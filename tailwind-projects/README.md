@@ -19,10 +19,11 @@ The goal of this repository is to:
 
 ## 📁 Projects Included
 
-| No. | Project Name              | Folder Name         | Status   | Live Demo |
-|-----|--------------------------|---------------------|----------|----------|
-| 1   | Internship Application Form | form-tailwind      | ✅ Done  | ❌ Not Live |
-| 2   | Personal Portfolio Website  | portfolio-tailwind | ✅ Done  | ❌ Not Live |
+| No. | Project Name              | Folder Name             | Status   | Live Demo |
+|-----|--------------------------|------------------------|----------|----------|
+| 1   | Internship Application Form | form-tailwind        | ✅ Done  | ❌ Not Live |
+| 2   | Personal Portfolio Website  | portfolio-tailwind   | ✅ Done  | ❌ Not Live |
+| 3   | Modern Landing Page         | landing-page-tailwind| ✅ Done  | ❌ Not Live |
 
 ---
 
@@ -48,6 +49,10 @@ tailwind-projects/
 │   ├── images/  
 │   └── README.md  
 
+├── landing-page-tailwind/  
+│   ├── index.html  
+│   └── README.md  
+
 ---
 
 ## ▶️ How to Run Locally
@@ -55,7 +60,7 @@ tailwind-projects/
 ### Method 1: Direct Open
 
 - Open any project folder  
-- Double-click on `index.html` or `portfolio.html`  
+- Double-click on the HTML file  
 - It will run in your browser  
 
 ---
@@ -82,7 +87,7 @@ tailwind-projects/
 ## 🚧 Future Improvements
 
 - Convert CDN version to production Tailwind setup  
-- Add animations and transitions  
+- Add animations  
 - Deploy projects online  
 - Add more advanced UI components  
 
