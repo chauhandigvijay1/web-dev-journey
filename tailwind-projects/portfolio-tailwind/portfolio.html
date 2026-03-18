@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Digvijay Kumar Singh | Portfolio</title>
+
+  <!-- Tailwind CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <style>
+    body {
+      background: radial-gradient(circle at top, #1e293b, #020617);
+    }
+  </style>
+</head>
+
+<body class="text-slate-200 font-sans">
+
+  <!-- HERO -->
+  <header class="text-center py-24 px-6 bg-gradient-to-br from-indigo-500 to-cyan-400 relative overflow-hidden">
+
+    <div class="absolute inset-0 backdrop-blur-2xl bg-white/5"></div>
+
+    <div class="relative z-10 max-w-4xl mx-auto">
+      <h1 class="text-4xl md:text-5xl font-bold">Digvijay Kumar Singh</h1>
+      <p class="mt-3 text-lg opacity-90">Full Stack Developer | MERN Stack</p>
+
+      <img src="images/IMG_20250527_234340.png"
+           class="w-28 h-28 mx-auto mt-6 rounded-full border-4 border-white shadow-xl hover:scale-110 transition duration-300 object-cover">
+
+      <!-- NAV -->
+      <nav class="mt-8">
+        <ul class="flex flex-wrap justify-center gap-6 text-sm md:text-base">
+          <li><a href="#summary" class="hover:text-black transition">Summary</a></li>
+          <li><a href="#skills" class="hover:text-black transition">Skills</a></li>
+          <li><a href="#projects" class="hover:text-black transition">Projects</a></li>
+          <li><a href="#contact" class="hover:text-black transition">Contact</a></li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+
+  <!-- MAIN -->
+  <main class="px-5">
+
+    <!-- SUMMARY -->
+    <section id="summary" class="max-w-5xl mx-auto my-12 p-8 rounded-2xl bg-white/10 backdrop-blur-xl shadow-lg hover:-translate-y-2 transition">
+      <h2 class="text-2xl text-cyan-400 mb-4">Professional Summary</h2>
+      <p>
+        Full Stack Developer skilled in MERN stack, building scalable web apps,
+        REST APIs, authentication systems, and real-time applications.
+      </p>
+    </section>
+
+    <!-- SKILLS -->
+    <section id="skills" class="max-w-5xl mx-auto my-12 p-8 rounded-2xl bg-white/10 backdrop-blur-xl shadow-lg">
+      <h2 class="text-2xl text-cyan-400 mb-6">Technical Skills</h2>
+
+      <div class="grid md:grid-cols-2 gap-6">
+
+        <div class="bg-white/5 p-5 rounded-xl hover:scale-105 transition">
+          <h3 class="font-semibold mb-2">Languages</h3>
+          <p>JavaScript, TypeScript, Java</p>
+        </div>
+
+        <div class="bg-white/5 p-5 rounded-xl hover:scale-105 transition">
+          <h3 class="font-semibold mb-2">Frontend</h3>
+          <p>React.js, Next.js, HTML, CSS, Tailwind</p>
+        </div>
+
+        <div class="bg-white/5 p-5 rounded-xl hover:scale-105 transition">
+          <h3 class="font-semibold mb-2">Backend</h3>
+          <p>Node.js, Express.js, REST APIs</p>
+        </div>
+
+        <div class="bg-white/5 p-5 rounded-xl hover:scale-105 transition">
+          <h3 class="font-semibold mb-2">Database</h3>
+          <p>MongoDB, SQL, Redis</p>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- PROJECTS -->
+    <section id="projects" class="max-w-5xl mx-auto my-12 p-8 rounded-2xl bg-white/10 backdrop-blur-xl shadow-lg">
+      <h2 class="text-2xl text-cyan-400 mb-6">Projects</h2>
+
+      <div class="grid md:grid-cols-2 gap-6">
+
+        <div class="bg-white/5 p-6 rounded-xl hover:scale-105 transition">
+          <h3 class="font-semibold text-lg">AI Knowledge Assistant</h3>
+          <p class="text-sm mt-2">Next.js, Node.js, MongoDB, OpenAI API</p>
+        </div>
+
+        <div class="bg-white/5 p-6 rounded-xl hover:scale-105 transition">
+          <h3 class="font-semibold text-lg">Realtime Workspace</h3>
+          <p class="text-sm mt-2">React, Node.js, Socket.io</p>
+        </div>
+
+        <div class="bg-white/5 p-6 rounded-xl hover:scale-105 transition">
+          <h3 class="font-semibold text-lg">CampusMentor</h3>
+          <p class="text-sm mt-2">Mentorship platform with real-time chat</p>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- CONTACT -->
+    <section id="contact" class="max-w-5xl mx-auto my-12 p-8 rounded-2xl bg-white/10 backdrop-blur-xl shadow-lg">
+      <h2 class="text-2xl text-cyan-400 mb-6">Contact</h2>
+
+      <form class="space-y-4">
+
+        <input type="text" placeholder="Your Name"
+          class="w-full p-3 rounded-lg bg-white/10 focus:outline-none focus:ring-2 focus:ring-cyan-400">
+
+        <input type="email" placeholder="Your Email"
+          class="w-full p-3 rounded-lg bg-white/10 focus:outline-none focus:ring-2 focus:ring-cyan-400">
+
+        <textarea rows="4" placeholder="Your Message"
+          class="w-full p-3 rounded-lg bg-white/10 focus:outline-none focus:ring-2 focus:ring-cyan-400"></textarea>
+
+        <button
+          class="w-full py-3 rounded-lg bg-gradient-to-r from-indigo-500 to-cyan-400 hover:scale-105 transition font-semibold">
+          Send Message
+        </button>
+
+      </form>
+
+    </section>
+
+  </main>
+
+  <!-- FOOTER -->
+  <footer class="text-center py-6 text-slate-400 bg-[#020617]">
+    © 2026 Digvijay Kumar Singh • Full Stack Developer
+  </footer>
+
+</body>
+</html>
