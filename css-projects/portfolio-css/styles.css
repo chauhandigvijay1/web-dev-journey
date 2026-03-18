@@ -1,0 +1,218 @@
+/* GOOGLE FONT */
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap');
+
+:root {
+    --primary: #6366f1;
+    --secondary: #06b6d4;
+    --bg-dark: #020617;
+    --bg-light: #f8fafc;
+    --glass: rgba(255, 255, 255, 0.08);
+}
+
+/* RESET */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+/* BODY */
+body {
+    font-family: 'Poppins', sans-serif;
+    background: radial-gradient(circle at top, #1e293b, #020617);
+    color: #e2e8f0;
+    line-height: 1.6;
+}
+
+/* HERO SECTION */
+#hero-header {
+    text-align: center;
+    padding: 90px 20px;
+    background: linear-gradient(135deg, #6366f1, #06b6d4);
+    position: relative;
+    overflow: hidden;
+}
+
+/* GLASS OVERLAY */
+#hero-header::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    backdrop-filter: blur(25px);
+    background: rgba(255,255,255,0.05);
+}
+
+/* TEXT ABOVE OVERLAY */
+#hero-header * {
+    position: relative;
+    z-index: 2;
+}
+
+/* NAME */
+#hero-header h1 {
+    font-size: 3rem;
+    font-weight: 600;
+    letter-spacing: 1px;
+}
+
+/* SUBTEXT */
+#hero-header p {
+    margin: 10px 0 20px;
+    opacity: 0.9;
+}
+
+/* PROFILE IMAGE */
+#hero-header img {
+    border-radius: 50%;
+    border: 3px solid white;
+    box-shadow: 0 0 20px rgba(255,255,255,0.6);
+    transition: 0.4s ease;
+}
+
+#hero-header img:hover {
+    transform: scale(1.1);
+    box-shadow: 0 0 40px rgba(255,255,255,1);
+}
+
+/* NAVBAR */
+nav ul {
+    display: flex;
+    justify-content: center;
+    gap: 25px;
+    list-style: none;
+    margin-top: 20px;
+}
+
+nav a {
+    text-decoration: none;
+    color: white;
+    font-weight: 500;
+    position: relative;
+}
+
+/* NAV HOVER LINE */
+nav a::after {
+    content: "";
+    position: absolute;
+    width: 0%;
+    height: 2px;
+    background: white;
+    left: 0;
+    bottom: -5px;
+    transition: 0.3s;
+}
+
+nav a:hover::after {
+    width: 100%;
+}
+
+/* SECTIONS */
+.section {
+    max-width: 1000px;
+    margin: 50px auto;
+    padding: 30px;
+    border-radius: 20px;
+    background: var(--glass);
+    backdrop-filter: blur(20px);
+    box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+    transition: 0.4s ease;
+}
+
+/* HOVER LIFT */
+.section:hover {
+    transform: translateY(-10px);
+}
+
+/* HEADINGS */
+.section h2 {
+    color: var(--secondary);
+    margin-bottom: 15px;
+}
+
+/* TABLE */
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+th {
+    background: rgba(255,255,255,0.1);
+}
+
+td, th {
+    padding: 10px;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+}
+
+/* PROJECT CARDS */
+#projects li {
+    list-style: none;
+    background: rgba(255,255,255,0.05);
+    padding: 15px;
+    margin-bottom: 15px;
+    border-radius: 12px;
+    transition: 0.3s;
+}
+
+#projects li:hover {
+    transform: scale(1.02);
+    background: rgba(255,255,255,0.1);
+}
+
+/* LINKS */
+a {
+    color: var(--secondary);
+}
+
+a:hover {
+    text-decoration: underline;
+}
+
+/* FORM */
+input, textarea, select {
+    width: 100%;
+    padding: 10px;
+    border-radius: 10px;
+    border: none;
+    margin-top: 5px;
+    margin-bottom: 15px;
+    background: rgba(255,255,255,0.1);
+    color: white;
+}
+
+/* BUTTON */
+input[type="submit"] {
+    background: linear-gradient(135deg, #6366f1, #06b6d4);
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+input[type="submit"]:hover {
+    transform: scale(1.05);
+}
+
+/* FOOTER */
+#page-footer {
+    text-align: center;
+    padding: 20px;
+    background: #020617;
+    color: #94a3b8;
+}
+
+
+/* RESPONSIVE */
+@media (max-width: 768px) {
+    #hero-header h1 {
+        font-size: 2rem;
+    }
+
+    .section {
+        margin: 20px;
+        padding: 20px;
+    }
+
+    nav ul {
+        flex-direction: column;
+        gap: 10px;
+    }
+}

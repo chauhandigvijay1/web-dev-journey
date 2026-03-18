@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Internship Application Form</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <h1 id="title">Internship Application Form</h1>
+            <p id="description">Apply below to join our internship program </p>
+        </header>
+
+        <form id="survey-form">
+            <div class="form-group">
+                <label id="name-label" for="name">Name</label>
+                <input type="text" id="name" name="name" class="form-control" placeholder="Enter your name" required>
+            </div>
+
+            <div class="form-group">
+                <label id="email-label" for="email">Email</label>
+                <input type="email" id="email" name="email" class="form-control" placeholder="Enter your Email" required>
+            </div>
+
+            <div class="form-group">
+                <label id="number-label" for="number">Age (optional)</label>
+                <input type="number" id="number" name="age" class="form-control" min="10" max="99" placeholder="Age">
+            </div>
+
+            <div class="form-group">
+                <p>What is your current education level?</p>
+                <select id="education" name="education" class="form-control" required>
+                    <option disabled selected value>Select education</option>
+                    <option value="undergraduate">Undergraduate (B.Tech/BSc/etc.)</option>
+                    <option value="postgraduate">Postgraduate (MCA/M.Tech/etc.)</option>
+                    <option value="diploma">Diploma</option>
+                    <option value="other">Other</option>
+                </select>
+            </div>
+
+
+            <div class="form-group">
+                 <p>Which internship are you interested in?</p>
+                <label><input type="radio" name="internship-type" value="frontend" class="input-radio"> Frontend Development</label>
+                <label><input type="radio" name="internship-type" value="backend" class="input-radio"> Backend Development</label>
+                <label><input type="radio" name="internship-type" value="fullstack" class="input-radio"> Fullstack Development</label>
+                <label><input type="radio" name="internship-type" value="uiux" class="input-radio"> UI/UX Design</label>
+            </div>
+
+
+            <div class="form-group">
+                 <p>When can you start the internship?</p>
+                 <select id="availability" name="availability" class="form-control" required>
+                     <option disabled selected value>Select availability</option>
+                     <option value="immediately">Immediately</option>
+                     <option value="1-week">In 1 week</option>
+                     <option value="2-weeks">In 2 weeks</option>
+                     <option value="next-month">Next Month</option>
+                 </select>
+            </div>
+
+
+            <div class="form-group">
+                 <p>Which skills do you have? <span class="clue">(Check all that apply)</span></p>
+                    <label><input name="skills" value="html" type="checkbox" class="input-checkbox">HTML</label>
+                    <label><input name="skills" value="css" type="checkbox" class="input-checkbox">CSS</label>
+                    <label><input name="skills" value="javascript" type="checkbox" class="input-checkbox">JavaScript</label>
+                    <label><input name="skills" value="react" type="checkbox" class="input-checkbox">React</label>
+                    <label><input name="skills" value="node" type="checkbox" class="input-checkbox">Node.js</label>
+                    <label><input name="skills" value="mongodb" type="checkbox" class="input-checkbox">MongoDB</label>
+                    <label><input name="skills" value="figma" type="checkbox" class="input-checkbox">Figma</label>
+            </div>
+
+            <div class="form-group">
+                <p>Why do you want this internship?</p>
+                <textarea id="comments" class="input-textarea" name="comment" placeholder="Explain your motivation briefly..."></textarea>
+            </div>
+
+
+            <div class="form-group">
+                <button type="submit" id="submit" class="submit-button">Submit</button>
+            </div>
+        </form>
+    </div>
+</body>
+</html>
