@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <script>
+//swap two numbers
+
+    //Method 1
+        let a=2
+        let b=3
+
+        let temp=a;
+        a=b;
+        b=temp;
+
+        console.log("a=", a)
+        console.log("b=",b)
+
+    //Method 2
+        let c=2
+        let d=3
+
+        c=c+d;
+        d=c-d;
+        c=c-d;
+
+        console.log("c=", c)
+        console.log("d=",d)
+
+    //Method 3
+        let e=5;
+        let f=6;
+
+        [e,f]=[f,e]
+
+        console.log("e=", e)
+        console.log("f=",f)
+
+
+//Program to find largest of 3
+        let g=5
+        let h=20
+        let i=12
+
+        if(g>h){
+            if(g>i){
+                console.log("g is greatest")
+            }
+        }else if(h>i){
+            console.log("h is greatest")
+        } else{
+            console.log("i is greatest")
+        }
+
+
+//function to check even or odd
+       
+        function check(x){
+             if (x%2==0){
+                return "even";
+            } else {
+                return "odd";
+            }
+        }
+        console.log("The given no. is", check(25))
+
+
+//Program to check leap year
+        let year=2026
+
+        if(year%4 == 0 && year%100 != 0 || year%400 ==0){
+            console.log("Leap Year")
+        }else{
+            console.log("Not Leap year")
+        }
+
+
+//Grade System
+        /*let j = prompt("Enter the marks");
+        console.log(j)*/
+
+        let j=85;
+
+        if(j>90){
+            console.log("Grade A")
+        }else if(j>80){
+            console.log("Grade B")
+        }else if (j>60){
+            console.log("Grade C")
+        }else{
+            console.log("Grade D")
+        }
+
+
+//Triangle Validity
+        function isValidTriangle(a, b, c) {
+    if (a + b > c && b + c > a && a + c > b) {
+        console.log("Valid Triangle");
+    } else {
+        console.log("Not a Triangle");
+    }
+}
+
+isValidTriangle(3, 4, 5);
+
+//Sum of digits
+    //Method 1
+        function sumOfDigits(num) {
+            let sum = 0;
+            for (let i = num; i > 0; i = Math.floor(i / 10)) {
+                sum += i % 10;
+            }
+            return sum;
+        }
+        console.log(sumOfDigits(1234));
+
+    //Method 2
+        function sumOfDigits(num) {
+            let sum = 0;
+            while (num > 0) {
+                let digit = num % 10;   // last digit
+                sum = sum + digit;      // add
+                num = Math.floor(num / 10); // remove last digit
+                }
+                return sum;
+            }
+            console.log(sumOfDigits(1234));
+
+    //Method 3
+        let num = 1234;
+        let sum = num.toString().split('').reduce((a, b) => a + Number(b), 0);
+        console.log(sum);
+
+//Reverse a number
+        function reverseNum(num) {
+            let rev = 0;
+            
+            while (num > 0) {
+                let digit = num % 10;
+                rev = rev * 10 + digit;
+                num = Math.floor(num / 10);
+            }
+            
+            return rev;
+        }
+        
+        console.log(reverseNum(1234));
+
+//Palindrome Number
+        function isPalindrome(num) {
+            let original = num;
+            let rev = 0;
+            
+            while (num > 0) {
+                let digit = num % 10;
+                rev = rev * 10 + digit;
+                num = Math.floor(num / 10);
+            }
+            if (original === rev) {
+                console.log("Palindrome");
+            } else {
+                console.log("Not Palindrome");
+            }
+        }
+        
+        isPalindrome(121);
+
+/*Armstrong Number
+example - 1³ + 5³ + 3³ = 153*/
+        function isArmstrong(num) {
+            let original = num;
+            let sum = 0;
+            let digits = num.toString().length;
+            
+            while (num > 0) {
+                let digit = num % 10;
+                sum += digit ** digits;
+                num = Math.floor(num / 10);
+            }
+            
+            if (sum === original) {
+                console.log("Armstrong");
+            } else {
+                console.log("Not Armstrong");
+            }
+        }
+        isArmstrong(153);
+
+//Count Digits
+        function countDigits(num) {
+            let count = 0;
+            while (num > 0) {
+                count++;
+                num = Math.floor(num / 10);
+            }
+            return count;
+        }
+        console.log(countDigits(12345));
+
+    </script>
+</body>
+</html>
