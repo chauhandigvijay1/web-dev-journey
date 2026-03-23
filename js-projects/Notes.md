@@ -1,5 +1,3 @@
-##Revision
-
 ### Swap Numbers
 
 * Exchange two values
