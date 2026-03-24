@@ -59,3 +59,5 @@
 ### Factorial
 
 * Multiply from 1 to n
+
+## Basic Complete
