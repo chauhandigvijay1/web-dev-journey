@@ -102,4 +102,19 @@ else => " "
 
 * Multiply from 1 to n
 
+### GCD / HCF
+- Greatest common factor
+- Euclidean Algorithm:
+  GCD(a, b) = GCD(b, a % b)
+
+### LCM
+- Smallest common multiple
+- Formula:
+  LCM(a, b) = (a * b) / GCD(a, b)
+
+### Power of Number
+- Multiply base by itself exp times
+- Example: 2^4 = 16
+
+
 ## Basic Complete
