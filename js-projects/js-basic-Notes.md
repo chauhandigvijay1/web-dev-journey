@@ -31,10 +31,12 @@
 
 ### Palindrome
 
+* number = original
 * Reverse == original → Palindrome
 
 ### Armstrong
 
+* num.toString().length → length
 * Sum of (digit ^ total digits)
 * If equal → Armstrong
 
@@ -43,18 +45,58 @@
 * Keep dividing by 10
 * Count steps
 
-### Patterns
+## Patterns
+
+### Trick
+
+* 1. Total rows kitni hain?
+* 2. Har row me stars/numbers kitne hain?
+* 3. Space kitni hai?
+* 4. Print kya ho raha hai? (*, i, j, letters?)
 
 * Outer loop = rows
 * Inner loop = design (stars/numbers)
 
+* Square |
+j <= n
+
+* Increasing triangle |
+j <= i
+
+* Decreasing triangle |
+j <= n - i + 1
+
+* Right aligned triangle |
+spaces = n - i
+stars = i
+
+* Pyramid |
+spaces = n - i
+stars = 2 * i - 1
+
+* Inverted pyramid |
+spaces = i - 1
+stars = 2 * (n - i) + 1
+
+* Diamond |
+pyramid + inverted pyramid
+
+* Hollow |
+if border => "*"
+else => " "
+
 ### Fibonacci
 
 * Next = sum of previous two numbers
+* - Start with 0, 1
+* - next = a + b
+* - shift values
+* - O(n)
 
 ### Prime
 
 * Not divisible by anything except 1 and itself
+* i <= Math.sqrt(n)
 
 ### Factorial
 
