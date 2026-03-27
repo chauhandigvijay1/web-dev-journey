@@ -98,14 +98,13 @@
 
 //Triangle Validity
         function isValidTriangle(a, b, c) {
-    if (a + b > c && b + c > a && a + c > b) {
-        console.log("Valid Triangle");
-    } else {
-        console.log("Not a Triangle");
-    }
-}
-
-isValidTriangle(3, 4, 5);
+            if (a + b > c && b + c > a && a + c > b) {
+                console.log("Valid Triangle");
+            } else {
+                console.log("Not a Triangle");
+            }
+        }
+        isValidTriangle(3, 4, 5);
 
 //Sum of digits
     //Method 1
@@ -267,6 +266,23 @@ example - 1³ + 5³ + 3³ = 153*/
         
         console.log(isPrime(7));
 
+        //Print prime numbers until n
+        function printPrimes(n) {
+            for (let i = 2; i <= n; i++) {
+                let isPrime = true;
+                for (let j = 2; j <= Math.sqrt(i); j++) {
+                    if (i % j === 0) {
+                        isPrime = false;
+                        break;
+                    }
+                }
+                if (isPrime) {
+                    console.log(i);
+                }
+            }
+        }
+        printPrimes(20);
+
 //Factorial Number
         function factorial(n) {
             let fact = 1;
@@ -278,6 +294,18 @@ example - 1³ + 5³ + 3³ = 153*/
             return fact;
         }
         console.log(factorial(5));
+
+//Finding Factors of a no.
+        function factor(n)
+        {
+            for(let i=1;i<=n;i++)
+        {
+            if(n%i===0){
+                console.log(i);
+            }
+        }
+        }
+        factor(12);
 
 //Pyramid Pattern
         let y = 5;
@@ -319,6 +347,41 @@ example - 1³ + 5³ + 3³ = 153*/
 
             console.log(row);
         }
+
+//GCD/HCF
+        function gcd(a, b) {
+            while (b !== 0) {
+                let temp = b;
+                b = a % b;
+                a = temp;
+            }
+            return a;
+        }
+        console.log(gcd(12, 18)); // 6
+
+//LCM
+        function gcd(a, b) {
+            while (b !== 0) {
+                let temp = b;
+                b = a % b;
+                a = temp;
+            }
+            return a;
+        }
+        function lcm(a, b) {
+            return (a * b) / gcd(a, b);
+        }
+        console.log(lcm(12, 18)); // 36
+
+//Power Of a number
+        function power(base, exp) {
+            let result = 1;
+            for (let i = 1; i <= exp; i++) {
+                result *= base;
+            }
+            return result;
+        }
+        console.log(power(2, 4)); // 16
 
     </script>
 </body>
