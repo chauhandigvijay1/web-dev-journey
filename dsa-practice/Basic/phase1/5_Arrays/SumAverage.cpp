@@ -14,18 +14,20 @@
 using namespace std;
 
 int main() {
-    int arr[5];
-    int sum=0;
-    cout << "Enter 5 numbers: ";
-    for(int i=0; i<=4;i++)
+    int arr[100];
+    int sum=0, n;
+    cout << "Enter no. of elements: ";
+    cin >> n;
+    cout << "Enter " << n << " numbers: ";
+    for(int i=0; i<n;i++)
     {
         cin>>arr[i];
     }
-    for(int i=0;i<=4;i++)
+    for(int i=0;i<n;i++)
     {
         sum= sum + arr[i];
     }
     cout<<"Sum of the numbers is: "<<sum<<endl;
-    cout<<"Average of the numbers is: "<<(float)sum/5.0<<endl;
+    cout<<"Average of the numbers is: "<<(float)sum/n<<endl;
     return 0;
 }

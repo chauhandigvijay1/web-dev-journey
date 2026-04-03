@@ -7,10 +7,10 @@
     Approach:
     - Read total seconds from input
     - Find hours by dividing by 3600
-    - Find remaining seconds
+    - Find remaivalue will be seconds
+    - Print ning seconds
     - Find minutes by dividing remaining seconds by 60
-    - Remaining value will be seconds
-    - Print hours, minutes, and seconds
+    - Remaining hours, minutes, and seconds
 */
 
 #include<bits/stdc++.h>

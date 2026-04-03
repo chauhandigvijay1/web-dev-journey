@@ -1,41 +1,40 @@
 /*
-    Question: Input + Print Array
+    Question: Input + Print Matrix
 
     Problem:
-    Take array input and display all elements.
+    Take rows and columns, input matrix, and print it.
 
     Approach:
-    - Read size of array
-    - Input all elements
-    - Print all elements
+    - Input rows and columns
+    - Use nested loops for input and output
 */
 
-#include<bits/stdc++.h>
+#include <bits/stdc++.h>
 using namespace std;
 
 int main() {
-    int n;
-    cin >> n;
-
-    int arr[n];
-
-    for(int i = 0; i < n; i++) {
-        cin >> arr[i];
+    int arr[100][100], rows, cols;
+    cout << "Enter number of rows: ";
+    cin >> rows;
+    cout << "Enter number of columns: ";   
+    cin>>cols;
+    cout<<"Enter " << rows*cols << " numbers: ";
+    for(int i=0; i<rows; i++)
+    {
+        for(int j=0; j<cols; j++)
+        {
+            cout<<"Element at ("<<i<<","<<j<<"): ";
+            cin>>arr[i][j];
+        }
     }
-
-    cout << "Array Elements: ";
-    for(int i = 0; i < n; i++) {
-        cout << arr[i] << " ";
+    cout<<"Matrix:";
+    for(int i=0; i<rows; i++)
+    {
+        cout<<endl;
+        for(int j=0; j<cols; j++)
+        {
+            cout<<arr[i][j]<<" ";
+        }
     }
-
     return 0;
 }
-
-/*
-Sample Input:
-5
-1 2 3 4 5
-
-Sample Output:
-Array Elements: 1 2 3 4 5
-*/
