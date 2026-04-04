@@ -17,20 +17,16 @@ int main() {
     cout << "Enter a string: ";
     getline(cin, str);
 
-    int n = str.length();
-    bool isPalindrome = true;
-
-    for(int i = 0; i < n / 2; i++) {
-        if(str[i] != str[n - 1 - i]) {
-            isPalindrome = false;
-            break;
-        }
+    string rev = "";
+    for(int i = str.length() - 1; i >= 0; i--) {
+        rev = rev + str[i];
     }
 
-    if(isPalindrome)
+    if(str == rev)
         cout << "The string is a Palindrome" << endl;
     else
         cout << "The string is NOT a Palindrome" << endl;
+
 
     return 0;
 }

@@ -14,14 +14,16 @@
 using namespace std;
 
 bool isPalindrome(string str) {
-    int n = str.length();
-
-    for(int i = 0; i < n / 2; i++) {
-        if(str[i] != str[n - 1 - i])
-            return false;
+    string original = str;
+    string rev = "";
+    for(int i = str.length() - 1; i >= 0; i--) {
+        rev += str[i];
     }
-
-    return true;
+    if(rev == original) {
+        return true;
+    } else {
+        return false;
+    }
 }
 
 int main() {

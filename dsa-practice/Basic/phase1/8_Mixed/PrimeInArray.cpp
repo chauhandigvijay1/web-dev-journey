@@ -1,56 +1,58 @@
 /*
-    Question: Swap using Pass by Reference
+    Question: Check Prime number in array
 
     Problem:
-    Create a function to swap two numbers using pass by reference.
+    Create a function to check if a number is prime.
 
     Approach:
-    - Create swapNumbers() function
-    - Use reference variables
-    - Swap values directly
+    - Create isPrime() function
+    - Check divisibility up to square root of the number
+    - Return true or false
 */
 
 #include <bits/stdc++.h>
 using namespace std;
 
-void swapNumbers(int &a, int &b) {
-    int temp = a;
-    a = b;
-    b = temp;
+bool isPrime(int num) {
+    if (num <= 1) {
+        return false;
+    }
+
+    for (int j = 2; j <= sqrt(num); j++) {
+        if (num % j == 0) {
+            return false;
+        }
+    }
+
+    return true;
 }
 
 int main() {
-    int a, b;
+    int size;
 
-    cout << "Enter first number: ";
-    cin >> a;
+    cout << "Enter size of array: ";
+    cin >> size;
 
-    cout << "Enter second number: ";
-    cin >> b;
+    int arr[size];
 
-    cout << "Before swapping:" << endl;
-    cout << "First number: " << a << endl;
-    cout << "Second number: " << b << endl;
+    cout << "Enter elements of array: ";
+    for (int i = 0; i < size; i++) {
+        cin >> arr[i];
+    }
 
-    swapNumbers(a, b);
+    bool found = false;
 
-    cout << "After swapping:" << endl;
-    cout << "First number: " << a << endl;
-    cout << "Second number: " << b << endl;
+    cout << "Prime numbers in the array are: ";
+    for (int i = 0; i < size; i++) {
+        if (isPrime(arr[i])) {
+            cout << arr[i] << " ";
+            found = true;
+        }
+    }
+
+    if (!found) {
+        cout << "No prime numbers in the array.";
+    }
 
     return 0;
 }
-
-/*
-Sample Input:
-10
-20
-
-Sample Output:
-Before swapping:
-First number: 10
-Second number: 20
-After swapping:
-First number: 20
-Second number: 10
-*/
