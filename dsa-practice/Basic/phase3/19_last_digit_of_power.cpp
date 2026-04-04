@@ -18,13 +18,11 @@ using namespace std;
 // Function to find last digit of a^b
 int lastDigitOfPower(int a, int b) {
     int result = 1;
-    a = a % 10;
+    result= pow(a,b);
 
-    for(int i = 1; i <= b; i++) {
-        result = (result * a) % 10;
-    }
+    int lastdigit = result % 10;
 
-    return result;
+    return lastdigit;
 }
 
 int main() {

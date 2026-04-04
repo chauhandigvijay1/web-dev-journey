@@ -16,28 +16,16 @@
 #include <bits/stdc++.h>
 using namespace std;
 
-// Function to count digits
-int countDigits(int n) {
-    if(n == 0) return 1;
-
-    int count = 0;
-    n = abs(n);
-
-    while(n > 0) {
-        count++;
-        n = n / 10;
-    }
-
-    return count;
-}
 
 // Function to check Automorphic Number
 bool isAutomorphic(int n) {
     int square = n * n;
-    int digits = countDigits(n);
-    int power = pow(10, digits);
+    if(n%10 == 0) return false; // Automorphic numbers cannot end with 0
+    if(n < 0) return false; // Automorphic numbers cannot be negative
+    if(n == 0) return true; // 0 is an Automorphic number
+    if(n%10 == (n*n)%10) return true; // Check last digit
 
-    return square % power == n;
+    return false;
 }
 
 int main() {

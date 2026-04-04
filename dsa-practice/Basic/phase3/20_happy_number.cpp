@@ -40,7 +40,10 @@ bool isHappy(int n) {
         n = sumOfSquareDigits(n);
     }
 
-    return n == 1;
+    if(n == 1){
+    return true;
+    }
+    return false;
 }
 
 int main() {

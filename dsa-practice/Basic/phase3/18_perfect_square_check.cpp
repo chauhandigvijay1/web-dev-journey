@@ -20,7 +20,10 @@ bool isPerfectSquare(int n) {
     if(n < 0) return false;
 
     int root = sqrt(n);
-    return root * root == n;
+
+    if(root * root == n){
+    return true;
+    }
 }
 
 int main() {

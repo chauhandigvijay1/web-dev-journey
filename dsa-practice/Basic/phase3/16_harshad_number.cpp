@@ -34,9 +34,9 @@ int sumOfDigits(int n) {
 bool isHarshad(int n) {
     int sum = sumOfDigits(n);
 
-    if(sum == 0) return false;
+    if(sum == 0 || n % sum != 0) return false;
 
-    return n % sum == 0;
+    return true;
 }
 
 int main() {
