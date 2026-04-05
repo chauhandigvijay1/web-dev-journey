@@ -57,7 +57,8 @@ This phase includes patterns based on:
 ```bash id="7i0pkv"
 Phase-2/
 │── README.md
-│── notes.md
+│── Notes.md
+│── Patterns_shortcuts.md
 │
 ├── pattern_01.cpp
 ├── pattern_02.cpp
@@ -88,7 +89,8 @@ Phase-2/
 ## Files Included
 
 * `README.md` → overview of this phase
-* `notes.md` → notes, logic, and pattern understanding
+* `Notes.md` → notes, logic, and pattern understanding
+* `Pattern_shortcuts.md` → Concepts shortcuts and tricks
 * `pattern_01.cpp` to `pattern_22.cpp` → one file for one pattern
 
 ---
