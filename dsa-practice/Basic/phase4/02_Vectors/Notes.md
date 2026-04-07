@@ -685,27 +685,3 @@ So this is one of the **most important STL topics**.
 
 ---
 
-# Unique Questions to Practice
-
-## Basic
-
-1. Take input in vector and print it
-2. Find sum of all elements
-3. Find maximum and minimum element
-4. Reverse a vector
-5. Sort a vector
-
-## Important
-
-6. Remove duplicates from vector
-7. Insert element at a specific index
-8. Delete element from a specific index
-9. Create and print 2D vector
-10. Create and print vector of pairs
-11. Merge two vectors
-12. Find second largest element
-13. Prefix sum using vector
-14. Rotate vector by 1 place
-15. Count frequency of each element using vector
-
----

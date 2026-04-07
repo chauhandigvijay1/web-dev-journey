@@ -472,20 +472,3 @@ This is not a very hard topic, but it is **very important for writing clean STL 
 
 ---
 
-# Unique Questions to Practice
-
-## Basic
-
-1. Traverse vector using iterator
-2. Reverse print vector using iterator
-3. Traverse vector using `auto`
-
-## Important
-
-4. Traverse vector of pairs using iterator
-5. Traverse set using iterator
-6. Traverse map using iterator
-7. Print key-value pairs using iterator
-8. Use iterator with `find()`
-
----

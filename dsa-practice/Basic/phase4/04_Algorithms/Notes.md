@@ -738,25 +738,3 @@ This topic is **extremely important** for coding rounds and DSA.
 
 ---
 
-# Unique Questions to Practice
-
-## Basic
-
-1. Sort a vector in ascending order
-2. Sort a vector in descending order
-3. Reverse a vector
-4. Find maximum and minimum element
-5. Find sum of all elements
-
-## Important
-
-6. Check if an element exists using `find()`
-7. Count occurrences of an element
-8. Use `binary_search()` on sorted vector
-9. Find first occurrence using `lower_bound()`
-10. Find position to insert element in sorted vector
-11. Count occurrences using `upper_bound() - lower_bound()`
-12. Find first element greater than x
-13. Find first element greater than or equal to x
-
----

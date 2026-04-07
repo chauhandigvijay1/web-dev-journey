@@ -485,22 +485,3 @@ So this is a **must know STL topic**.
 
 ---
 
-# Unique Questions to Practice
-
-## Basic
-
-1. Store and print a pair
-2. Take pair input from user
-3. Swap two pairs
-
-## Important
-
-4. Create and print array of pairs
-5. Create and print vector of pairs
-6. Sort vector of pairs
-7. Sort pairs where first is same but second differs
-8. Store coordinates of points
-9. Store student name and marks using pair
-10. Use nested pair and print all values
-
----

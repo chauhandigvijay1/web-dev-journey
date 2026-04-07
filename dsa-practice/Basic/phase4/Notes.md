@@ -1,389 +1,390 @@
 # Phase 4 - STL Notes (C++)
 
-This phase focuses on learning **Standard Template Library (STL)** in C++.
+This phase focuses on learning the **Standard Template Library (STL)** in C++.
 
-Goal:
+## Goal
 
-* reduce code length
-* improve performance
-* use built-in optimized structures
-* prepare for DSA / problem solving
-
----
-
-# 1. What is STL?
-
-STL (Standard Template Library) is a collection of:
-
-* containers → store data
-* algorithms → perform operations
-* iterators → traverse data
+* Reduce code length
+* Improve performance
+* Use built-in optimized structures
+* Prepare for DSA / problem solving
 
 ---
 
-# 2. pair
+## 1. What is STL?
 
-## What is pair?
+**STL (Standard Template Library)** is a collection of:
 
-* stores two values together
+* **Containers** → Store data
+* **Algorithms** → Perform operations
+* **Iterators** → Traverse data
 
-## Syntax
+---
+
+## 2. `pair`
+
+### What is `pair`?
+
+Stores **two values together**.
+
+### Syntax
 
 ```cpp
 pair<int, int> p;
 ```
 
-## Example
+### Example
 
 ```cpp
 pair<int, int> p = {1, 2};
 ```
 
-## Access
+### Access
 
 ```cpp
 p.first
 p.second
 ```
 
-## Use cases
+### Use Cases
 
-* coordinates (x, y)
-* storing (value, index)
-* maps, sorting
-
----
-
-# 3. Iterators
-
-## What is iterator?
-
-* used to traverse containers
-
-## Types
-
-* begin()
-* end()
-* rbegin()
-* rend()
-
-## Example
-
-```cpp
-vector<int> v = {1,2,3};
-
-for(auto it = v.begin(); it != v.end(); it++) {
-    cout << *it;
-}
-```
-
-## Shortcut
-
-```cpp
-for(auto x : v)
-```
+* Coordinates `(x, y)`
+* Storing `(value, index)`
+* Sorting / vector of pairs
 
 ---
 
-# 4. Common Functions (Important)
+## 3. `vector`
 
-Works in most STL containers
+### What is `vector`?
 
-* size()
-* empty()
-* clear()
-* insert()
-* erase()
-* find()
-* count()
+A **dynamic array** (resizable).
 
----
-
-# 5. vector
-
-## What is vector?
-
-* dynamic array (resizable)
-
-## Declaration
+### Declaration
 
 ```cpp
 vector<int> v;
 ```
 
-## Important functions
+### Important Functions
 
-* push_back()
-* pop_back()
-* size()
-* clear()
+* `push_back()`
+* `pop_back()`
+* `size()`
+* `clear()`
+* `empty()`
+* `front()`
+* `back()`
 
-## Access
+### Access
 
 ```cpp
 v[i]
 ```
 
-## Use case
+### Use Cases
 
-* arrays replacement
-* dynamic data
-
----
-
-# 6. list
-
-## What is list?
-
-* doubly linked list
-
-## Properties
-
-* fast insertion/deletion
-* no random access
-
-## Functions
-
-* push_back()
-* push_front()
-* pop_back()
-* pop_front()
+* Array replacement
+* Dynamic data
+* Most DSA problems
 
 ---
 
-# 7. deque
+## 4. Iterators
 
-## What is deque?
+### What is an Iterator?
 
-* double ended queue
+Used to **traverse containers**.
 
-## Features
+### Types
 
-* insert/delete from both ends
+* `begin()`
+* `end()`
+* `rbegin()`
+* `rend()`
 
-## Functions
+### Example
 
-* push_back()
-* push_front()
+```cpp
+for (auto it = v.begin(); it != v.end(); it++) {
+    cout << *it;
+}
+```
 
----
+### Shortcut
 
-# 8. stack
-
-## What is stack?
-
-* LIFO (Last In First Out)
-
-## Functions
-
-* push()
-* pop()
-* top()
-
----
-
-# 9. queue
-
-## What is queue?
-
-* FIFO (First In First Out)
-
-## Functions
-
-* push()
-* pop()
-* front()
+```cpp
+for (auto x : v) {
+    cout << x;
+}
+```
 
 ---
 
-# 10. priority_queue
+## 5. Common Functions
 
-## What is priority_queue?
+These work in many STL containers:
 
-* heap based structure
+* `size()`
+* `empty()`
+* `clear()`
+* `insert()`
+* `erase()`
+* `find()`
+* `count()`
 
-## Default
+---
 
-* max heap
+## 6. `stack`
 
-## Min heap
+### What is `stack`?
+
+**LIFO** → Last In First Out
+
+### Functions
+
+* `push()`
+* `pop()`
+* `top()`
+
+### Use Cases
+
+* Reverse
+* Parentheses
+* Next greater / smaller element
+
+---
+
+## 7. `queue`
+
+### What is `queue`?
+
+**FIFO** → First In First Out
+
+### Functions
+
+* `push()`
+* `pop()`
+* `front()`
+* `back()`
+
+### Use Cases
+
+* BFS
+* Level order traversal
+* Simulation problems
+
+---
+
+## 8. `priority_queue`
+
+### What is `priority_queue`?
+
+A **heap-based structure**.
+
+### Default
+
+```cpp
+priority_queue<int> pq;
+```
+
+> By default, it is a **max heap**.
+
+### Min Heap
 
 ```cpp
 priority_queue<int, vector<int>, greater<int>> pq;
 ```
 
-## Functions
+### Functions
 
-* push()
-* pop()
-* top()
+* `push()`
+* `pop()`
+* `top()`
 
----
+### Use Cases
 
-# 11. set
-
-## What is set?
-
-* stores unique elements
-* sorted
-
-## Functions
-
-* insert()
-* erase()
-* find()
+* Kth largest / smallest
+* Top K problems
+* Heap-based questions
 
 ---
 
-# 12. multiset
+## 9. `set`
 
-## What is multiset?
+### What is `set`?
 
-* allows duplicates
-* sorted
+Stores:
+
+* Unique elements
+* In sorted order
+
+### Functions
+
+* `insert()`
+* `erase()`
+* `find()`
+* `count()`
+
+### Use Cases
+
+* Remove duplicates
+* Unique sorted data
 
 ---
 
-# 13. unordered_set
+## 10. `unordered_set`
 
-## What is unordered_set?
+### What is `unordered_set`?
 
-* unique elements
-* no order
-* faster (average)
+Stores:
+
+* Unique elements
+* No order
+* Faster average access
+
+### Use Cases
+
+* Fast lookup
+* Duplicate checking
 
 ---
 
-# 14. map
+## 11. `map`
 
-## What is map?
+### What is `map`?
 
-* key-value pairs
-* sorted by key
+Stores **key-value pairs** in **sorted order by key**.
 
-## Example
+### Example
 
 ```cpp
 map<int, int> mp;
 mp[1] = 10;
 ```
 
----
+### Use Cases
 
-# 15. multimap
-
-## What is multimap?
-
-* multiple same keys allowed
+* Frequency count
+* Key-value mapping
+* Sorted key storage
 
 ---
 
-# 16. unordered_map
+## 12. `unordered_map`
 
-## What is unordered_map?
+### What is `unordered_map`?
 
-* key-value pairs
-* no order
-* faster access
+Stores **key-value pairs** with:
 
----
+* No order
+* Faster average access
 
-# 17. unordered_multimap
+### Use Cases
 
-* allows duplicate keys
-* unordered
-
----
-
-# 18. Algorithms
+* Hashing problems
+* Fast frequency count
+* Two Sum type problems
 
 ---
 
-## sort()
+## 13. Comparator / Custom Sorting
+
+### Why use it?
+
+To change the **default sorting order**.
+
+### Example
+
+```cpp
+bool cmp(pair<int, int> a, pair<int, int> b) {
+    return a.second < b.second;
+}
+```
+
+### Use
+
+```cpp
+sort(v.begin(), v.end(), cmp);
+```
+
+### Use Cases
+
+* Sort by second value
+* Sort students by marks
+* Interval / greedy problems
+
+---
+
+## 14. Algorithms
+
+### `sort()`
 
 ```cpp
 sort(v.begin(), v.end());
 ```
 
-## Descending
+### Descending Sort
 
 ```cpp
 sort(v.begin(), v.end(), greater<int>());
 ```
 
----
-
-## reverse()
+### `reverse()`
 
 ```cpp
 reverse(v.begin(), v.end());
 ```
 
----
-
-## find()
+### `find()`
 
 ```cpp
 find(v.begin(), v.end(), x);
 ```
 
----
-
-## count()
+### `count()`
 
 ```cpp
 count(v.begin(), v.end(), x);
 ```
 
----
-
-## binary_search()
+### `binary_search()`
 
 ```cpp
 binary_search(v.begin(), v.end(), x);
 ```
 
-(only on sorted array)
+> Works only on **sorted data**.
 
----
-
-## lower_bound()
+### `lower_bound()`
 
 ```cpp
 lower_bound(v.begin(), v.end(), x);
 ```
 
-* first >= x
+> Returns first element **>= x**
 
----
-
-## upper_bound()
+### `upper_bound()`
 
 ```cpp
 upper_bound(v.begin(), v.end(), x);
 ```
 
-* first > x
+> Returns first element **> x**
 
----
-
-## min_element()
+### `min_element()`
 
 ```cpp
 *min_element(v.begin(), v.end());
 ```
 
----
-
-## max_element()
+### `max_element()`
 
 ```cpp
 *max_element(v.begin(), v.end());
 ```
 
----
-
-## accumulate()
+### `accumulate()`
 
 ```cpp
 accumulate(v.begin(), v.end(), 0);
@@ -391,103 +392,98 @@ accumulate(v.begin(), v.end(), 0);
 
 ---
 
-## next_permutation()
+## 15. When to Use What
 
-```cpp
-next_permutation(v.begin(), v.end());
-```
+### `vector`
 
----
+* Default choice
+* Most problems
 
-## __builtin_popcount()
+### `set` / `unordered_set`
 
-```cpp
-__builtin_popcount(x);
-```
+* Unique elements
+* Checking existence
 
-* counts number of 1s in binary
+### `map` / `unordered_map`
 
----
+* Frequency counting
+* Key-value mapping
 
-# 19. When to Use What (VERY IMPORTANT)
+### `priority_queue`
 
-## vector
+* Repeated max/min extraction
 
-* default choice
-* most problems
+### `stack`
 
-## set / unordered_set
+* Reverse
+* Parentheses
+* Monotonic stack
 
-* unique elements
-* checking existence
+### `queue`
 
-## map / unordered_map
-
-* frequency counting
-* key-value mapping
-
-## priority_queue
-
-* max/min element repeatedly
-
-## stack
-
-* reverse, parentheses, recursion-like
-
-## queue
-
-* BFS, level order
+* BFS
+* Level order
+* Simulation
 
 ---
 
-# 20. Time Complexity (Basic Idea)
+## 16. Time Complexity (Basic Idea)
 
-| Container     | Insert   | Find     |
-| ------------- | -------- | -------- |
-| vector        | O(1)     | O(n)     |
-| set           | O(log n) | O(log n) |
-| unordered_set | O(1) avg | O(1) avg |
-| map           | O(log n) | O(log n) |
-| unordered_map | O(1) avg | O(1) avg |
-
----
-
-# 21. Common Mistakes
-
-* using map instead of unordered_map (slow)
-* using vector search instead of set/map
-* forgetting sort before binary_search
-* wrong iterator usage
-* accessing empty container
+| Container       | Insert             | Find       |
+| --------------- | ------------------ | ---------- |
+| `vector`        | `O(1)` (push_back) | `O(n)`     |
+| `set`           | `O(log n)`         | `O(log n)` |
+| `unordered_set` | `O(1)` avg         | `O(1)` avg |
+| `map`           | `O(log n)`         | `O(log n)` |
+| `unordered_map` | `O(1)` avg         | `O(1)` avg |
 
 ---
 
-# 22. Final Understanding
+## 17. Common Mistakes
 
-STL is not about remembering syntax.
+* Using `map` instead of `unordered_map` when order is not needed
+* Using vector search instead of set/map for repeated lookup
+* Forgetting to sort before `binary_search()`
+* Wrong iterator usage
+* Accessing empty container
+
+---
+
+## 18. Final Understanding
+
+STL is **not just about remembering syntax**.
 
 It is about:
 
-* choosing right container
-* using built-in functions
-* writing clean and fast code
+* Choosing the right container
+* Using built-in functions smartly
+* Writing clean and fast code
 
 ---
 
-# Final Goal
+## Final Line
 
-If you can:
-
-* choose correct STL structure
-* use functions without confusion
-* solve problems faster
-
-👉 then your STL is strong
-
----
-
-# Final Line
-
-STL = speed + simplicity + power
+> **STL = Speed + Simplicity + Power**
 
 Mastering STL makes coding much easier and faster.
+
+---
+
+## Quick STL Summary Table
+
+| Topic            | Main Purpose               |
+| ---------------- | -------------------------- |
+| `pair`           | Store 2 values together    |
+| `vector`         | Dynamic array              |
+| Iterators        | Traverse containers        |
+| `stack`          | LIFO operations            |
+| `queue`          | FIFO operations            |
+| `priority_queue` | Heap / top element access  |
+| `set`            | Unique sorted elements     |
+| `unordered_set`  | Unique fast lookup         |
+| `map`            | Sorted key-value pairs     |
+| `unordered_map`  | Fast key-value pairs       |
+| Comparator       | Custom sorting             |
+| Algorithms       | Built-in useful operations |
+
+---
