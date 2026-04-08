@@ -175,8 +175,6 @@ cout << arr[2].first << " " << arr[2].second << endl;
 
 # Vector of Pairs
 
-Very important topic.
-
 Used when we want **dynamic storage of pairs**.
 
 ### Syntax
