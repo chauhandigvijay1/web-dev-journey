@@ -1,0 +1,15 @@
+{
+  "/_global-error/page": "/_global-error",
+  "/_not-found/page": "/_not-found",
+  "/account/page": "/account",
+  "/chat/[id]/page": "/chat/[id]",
+  "/dashboard/page": "/dashboard",
+  "/forgot-password/page": "/forgot-password",
+  "/login/page": "/login",
+  "/page": "/",
+  "/pricing/page": "/pricing",
+  "/reset-password/page": "/reset-password",
+  "/settings/billing/page": "/settings/billing",
+  "/settings/page": "/settings",
+  "/signup/page": "/signup"
+}
