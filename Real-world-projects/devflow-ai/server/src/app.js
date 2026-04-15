@@ -17,26 +17,23 @@ const { notFound, errorHandler } = require("./middleware/errorMiddleware");
 
 const app = express();
 
-
 // =========================
 // BASIC SETTINGS
 // =========================
 app.disable("x-powered-by");
 app.set("trust proxy", 1);
 
-
 // =========================
 // CORS FIX (FINAL)
 // =========================
 const allowedOrigins = [
-  "https://devflow-ai-client.netlify.app", // Netlify
-  "http://localhost:3000", // Local
+  "https://devflow-ai-client.netlify.app",
+  "http://localhost:3000",
 ];
 
 app.use(
   cors({
     origin: function (origin, callback) {
-      // allow tools like Postman / curl
       if (!origin) return callback(null, true);
 
       if (allowedOrigins.includes(origin)) {
@@ -52,9 +49,8 @@ app.use(
   })
 );
 
-// ✅ VERY IMPORTANT (preflight fix)
-app.options("*", cors());
-
+// ✅ FIXED (IMPORTANT)
+app.options("/*", cors());
 
 // =========================
 // SECURITY & MIDDLEWARES
@@ -81,7 +77,6 @@ app.use(
 app.use(express.json({ limit: "1mb" }));
 app.use(express.urlencoded({ extended: true }));
 
-
 // =========================
 // HEALTH CHECK
 // =========================
@@ -92,7 +87,6 @@ app.get("/api/health", (_req, res) => {
   });
 });
 
-
 // =========================
 // ROUTES
 // =========================
@@ -102,11 +96,10 @@ app.use("/api/ai", aiRoutes);
 app.use("/api/payments", paymentRoutes);
 app.use("/api/uploads", uploadRoutes);
 
-
+// =========================
 // ERROR HANDLING
+// =========================
 app.use(notFound);
 app.use(errorHandler);
 
-
-// EXPORT
 module.exports = app;
