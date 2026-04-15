@@ -104,7 +104,7 @@ self.__SERVER_FILES_MANIFEST={
         "transform": "lodash/{{member}}"
       }
     },
-    "outputFileTracingRoot": "C:\\Users\\cingh_x\\OneDrive\\Desktop\\Development\\devflow-ai\\client",
+    "outputFileTracingRoot": "C:\\Users\\ASUS\\OneDrive\\Desktop\\web-dev-journey\\Real-world-projects\\devflow-ai\\client",
     "cacheComponents": false,
     "cacheLife": {
       "default": {
@@ -166,7 +166,7 @@ self.__SERVER_FILES_MANIFEST={
       "proxyPrefetch": "flexible",
       "optimisticClientCache": true,
       "manualClientBasePath": false,
-      "cpus": 7,
+      "cpus": 15,
       "memoryBasedWorkersCount": false,
       "imgOptConcurrency": null,
       "imgOptTimeoutInSeconds": 7,
@@ -304,11 +304,11 @@ self.__SERVER_FILES_MANIFEST={
     "bundlePagesRouterDependencies": false,
     "configFileName": "next.config.mjs",
     "turbopack": {
-      "root": "C:\\Users\\cingh_x\\OneDrive\\Desktop\\Development\\devflow-ai\\client"
+      "root": "C:\\Users\\ASUS\\OneDrive\\Desktop\\web-dev-journey\\Real-world-projects\\devflow-ai\\client"
     },
     "distDirRoot": ".next"
   },
-  "appDir": "C:\\Users\\cingh_x\\OneDrive\\Desktop\\Development\\devflow-ai\\client",
+  "appDir": "C:\\Users\\ASUS\\OneDrive\\Desktop\\web-dev-journey\\Real-world-projects\\devflow-ai\\client",
   "relativeAppDir": "",
   "files": [
     ".next\\routes-manifest.json",
