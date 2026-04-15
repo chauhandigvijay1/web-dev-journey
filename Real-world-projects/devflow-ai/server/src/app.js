@@ -4,6 +4,7 @@ const helmet = require("helmet");
 const morgan = require("morgan");
 const cookieParser = require("cookie-parser");
 const rateLimit = require("express-rate-limit");
+
 const env = require("./config/env");
 
 const authRoutes = require("./routes/authRoutes");
@@ -16,54 +17,85 @@ const { notFound, errorHandler } = require("./middleware/errorMiddleware");
 
 const app = express();
 
+
+// =========================
+// BASIC SETTINGS
+// =========================
 app.disable("x-powered-by");
 app.set("trust proxy", 1);
 
 
-// ✅ CORS FIX (IMPORTANT)
+// =========================
+// CORS FIX (FINAL)
+// =========================
 const allowedOrigins = [
-  env.clientUrl, // Netlify URL
-  "http://localhost:3000", // local dev
+  "https://devflow-ai-client.netlify.app", // Netlify
+  "http://localhost:3000", // Local
 ];
 
 app.use(
   cors({
     origin: function (origin, callback) {
+      // allow tools like Postman / curl
       if (!origin) return callback(null, true);
 
       if (allowedOrigins.includes(origin)) {
         return callback(null, true);
       } else {
+        console.log("❌ CORS blocked:", origin);
         return callback(new Error("Not allowed by CORS"));
       }
     },
     credentials: true,
+    methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
   })
 );
 
+// ✅ VERY IMPORTANT (preflight fix)
+app.options("*", cors());
 
-// ✅ Middlewares
+
+// =========================
+// SECURITY & MIDDLEWARES
+// =========================
 app.use(helmet());
-app.use(morgan("dev"));
+
+app.use(
+  morgan("dev", {
+    skip: (req) => req.url === "/api/health",
+  })
+);
+
 app.use(cookieParser());
 
 app.use(
   rateLimit({
     windowMs: 15 * 60 * 1000,
     max: 300,
+    standardHeaders: true,
+    legacyHeaders: false,
   })
 );
 
 app.use(express.json({ limit: "1mb" }));
+app.use(express.urlencoded({ extended: true }));
 
 
-// ✅ Health check
+// =========================
+// HEALTH CHECK
+// =========================
 app.get("/api/health", (_req, res) => {
-  res.json({ success: true, message: "DevFlow AI API running 🚀" });
+  res.status(200).json({
+    success: true,
+    message: "DevFlow AI API running 🚀",
+  });
 });
 
 
-// ✅ Routes
+// =========================
+// ROUTES
+// =========================
 app.use("/api/auth", authRoutes);
 app.use("/api/chats", chatRoutes);
 app.use("/api/ai", aiRoutes);
@@ -71,13 +103,10 @@ app.use("/api/payments", paymentRoutes);
 app.use("/api/uploads", uploadRoutes);
 
 
-
-/// app.use("/api/payment", paymentRoutes);
-/// app.use("/api/upload", uploadRoutes);
-
-
-// ✅ Error handlers
+// ERROR HANDLING
 app.use(notFound);
 app.use(errorHandler);
 
+
+// EXPORT
 module.exports = app;
