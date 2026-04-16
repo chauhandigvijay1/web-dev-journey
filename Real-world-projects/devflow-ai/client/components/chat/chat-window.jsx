@@ -183,7 +183,15 @@ export default function ChatWindow({ chatId, initialPrompt = "" }) {
   }, []);
 
   const sendPrompt = async (forcedPrompt = "") => {
-    const promptText = String(forcedPrompt || prompt).trim();
+    const isEventObject =
+      forcedPrompt &&
+      typeof forcedPrompt === "object" &&
+      ("nativeEvent" in forcedPrompt ||
+        "preventDefault" in forcedPrompt ||
+        "target" in forcedPrompt);
+
+    const promptSource = isEventObject ? prompt : forcedPrompt || prompt;
+    const promptText = String(promptSource).trim();
     if (!promptText || loading) return;
     setError("");
 
@@ -384,7 +392,7 @@ export default function ChatWindow({ chatId, initialPrompt = "" }) {
           </Button>
         ) : (
           <Button
-            onClick={sendPrompt}
+            onClick={() => sendPrompt()}
             disabled={!prompt.trim()}
             className="absolute bottom-2 right-2 h-9 w-9 p-0"
           >
