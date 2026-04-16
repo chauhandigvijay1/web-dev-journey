@@ -8,40 +8,75 @@ The project is built using a modern MERN + Next.js stack and deployed on Netlify
 
 ## 🌐 Live Demo
 
-* **Frontend (Netlify):** https://devflow-ai-client.netlify.app
-* **Backend API (Render):** https://devflow-api-ubnd.onrender.com
+* Frontend (Netlify): https://devflow-ai-client.netlify.app
+* Backend API (Render): https://devflow-api-ubnd.onrender.com
+
+---
+
+## 🎬 Demo Video
+
+Watch the complete project walkthrough:
+https://drive.google.com/file/d/1i_7GaBoV9wYduITWSZtkO-jt4Ic7SoVD/view?usp=sharing
+
+---
+
+## 📸 Screenshots
+
+### Authentication
+
+![Signup](./Screenshots/signup.png)
+![Login](./Screenshots/login.png)
+
+### Chat System
+
+![Chat](./Screenshots/Chat.png)
+
+### Billing
+
+![Billing](./Screenshots/Billing.png)
+
+### Settings
+
+![Settings](./Screenshots/Settings.png)
+
+---
+
+## 📚 API Documentation
+
+Detailed API endpoints and usage:
+👉 ./API.md
 
 ---
 
 ## 📌 Features
 
-### 🔐 Authentication
+### Authentication
 
 * User Signup & Login
 * Secure password handling
 * Forgot Password & Reset Password
 * Unique username validation
 
-### 💬 AI Chat System
+### AI Chat System
 
 * Create and manage chats
 * Real-time message interaction
 * Chat history persistence
-* Clean UI with auto-scroll
+* Auto-scroll and responsive UI
 
-### ⚡ Usage Limits
+### Usage Limits
 
 * Free plan with daily limits
 * Usage tracking per user
-* Limit enforcement on backend + UI
+* Backend + frontend enforcement
 
-### 💳 Billing & Subscription
+### Billing & Subscription
 
 * Razorpay payment integration
 * Upgrade to Pro plan
-* Subscription status stored in database
+* Subscription stored in database
 
-### ⚙️ User Settings
+### User Settings
 
 * Profile management
 * Account configuration
@@ -51,22 +86,24 @@ The project is built using a modern MERN + Next.js stack and deployed on Netlify
 
 ## 🛠️ Tech Stack
 
-**Frontend:**
+Frontend:
 
 * Next.js
 * React
 * Tailwind CSS
 
-**Backend:**
+Backend:
 
 * Node.js
 * Express.js
 * MongoDB (Mongoose)
 
-**Other Tools:**
+Integrations & Tools:
 
+* Groq API (AI Chat)
 * Razorpay (Payments)
 * JWT (Authentication)
+* Cloudinary (Media Handling)
 * Netlify (Frontend Hosting)
 * Render (Backend Hosting)
 
@@ -74,14 +111,14 @@ The project is built using a modern MERN + Next.js stack and deployed on Netlify
 
 ## 📂 Project Structure
 
-```
 devflow-ai/
 │
 ├── client/          # Frontend (Next.js)
 ├── server/          # Backend (Express + MongoDB)
 │
+├── API.md           # API Documentation
+├── Screenshots/     # Project Screenshots
 └── README.md
-```
 
 ---
 
@@ -89,9 +126,6 @@ devflow-ai/
 
 ### Backend (.env)
 
-Create a `.env` file inside the `server` folder:
-
-```
 PORT=5000
 MONGO_URI=your_mongodb_connection_string
 JWT_SECRET=your_secret_key
@@ -99,159 +133,129 @@ CLIENT_URL=https://devflow-ai-client.netlify.app
 
 RAZORPAY_KEY_ID=your_key
 RAZORPAY_KEY_SECRET=your_secret
-```
 
 ---
 
 ### Frontend (.env.local)
 
-Inside `client` folder:
-
-```
 NEXT_PUBLIC_API_URL=https://devflow-api-ubnd.onrender.com
-```
 
 ---
 
 ## 🚀 Getting Started (Local Setup)
 
-### 1. Clone the Repository
+### 1. Clone Repository
 
-```
-git clone https://github.com/your-username/web-dev-journey.git
+git clone https://github.com/chauhandigvijay1/web-dev-journey.git
 cd web-dev-journey/Real-world-projects/devflow-ai
-```
 
 ---
 
 ### 2. Install Dependencies
 
-#### Backend
-
-```
+Backend:
 cd server
 npm install
-```
 
-#### Frontend
-
-```
+Frontend:
 cd ../client
 npm install
-```
 
 ---
 
-### 3. Run the Project
+### 3. Run Project
 
-#### Start Backend
-
-```
+Start Backend:
 cd server
 npm run dev
-```
 
-#### Start Frontend
-
-```
+Start Frontend:
 cd client
 npm run dev
-```
 
 ---
 
-### 4. Open in Browser
+### 4. Open Browser
 
-```
 http://localhost:3000
-```
 
 ---
 
 ## 🔧 Deployment
 
-### Frontend (Netlify)
+Frontend (Netlify):
 
-* Connected GitHub repository
-* Auto-deploy on push
-* Environment variable:
+* Connected GitHub repo
+* Auto deploy on push
+* Env variable: NEXT_PUBLIC_API_URL
 
-  * `NEXT_PUBLIC_API_URL`
+Backend (Render):
 
-### Backend (Render)
-
-* Node.js Web Service
-* Auto-deploy on push
-* Environment variables configured in Render dashboard
+* Node.js web service
+* Auto deploy on push
+* Env variables configured in dashboard
 
 ---
 
 ## 🐛 Common Issues & Fixes
 
-### CORS Errors
+CORS Error:
 
-* Ensure `CLIENT_URL` is correctly set in backend `.env`
-* Backend must allow Netlify domain
+* Ensure CLIENT_URL is correct
+* Allow Netlify domain in backend
 
-### 500 Server Errors
+500 Errors:
 
 * Check MongoDB connection
-* Verify environment variables
-* Ensure schema matches database structure
+* Verify env variables
+* Match schema properly
 
-### Deployment Fails
+Deployment Issues:
 
-* Avoid using `*` wildcard in Express routes
-* Always use:
-
-  ```
-  process.env.PORT || 5000
-  ```
+* Avoid wildcard (*) routes
+* Always use process.env.PORT || 5000
 
 ---
 
 ## 📈 Future Improvements
 
-* Add real-time streaming responses
-* Improve UI/UX animations
-* Add admin dashboard
-* Enhance analytics tracking
+* Streaming AI responses
+* Better UI animations
+* Admin dashboard
+* Analytics system
 
 ---
 
 ## 🤝 Contributing
 
-Contributions are welcome. Feel free to fork the repository and submit a pull request.
+Feel free to fork the repo and create pull requests.
 
 ---
 
 ## 📄 License
 
-This project is open-source and available under the MIT License.
+MIT License
 
 ---
 
 ## 👨‍💻 Author
 
-Developed by **Digvijay Kumar Singh**
+Digvijay Kumar Singh
 
 ---
 
-## 🔗 Connect with Me
+## 🔗 Connect
 
-🧑‍💻 [LinkedIn](https://www.linkedin.com/in/digvijaykumarsingh)  
-💻 [GitHub](https://github.com/chauhandigvijay1)  
-📧 chauhandigvijay669@gmail.com
+LinkedIn: https://www.linkedin.com/in/digvijaykumarsingh
+GitHub: https://github.com/chauhandigvijay1
+Email: [chauhandigvijay669@gmail.com](mailto:chauhandigvijay669@gmail.com)
 
 ---
 
 ## ⭐ Support
 
-If you like this repository or found it helpful, consider giving it a **star ⭐** on GitHub.
-Your support motivates me to build more cool projects! 💡🔥
+If you found this project helpful, consider giving it a star ⭐
 
 ---
 
-Stay tuned for updates! 🚀
-
-
+🚀 Thanks for visiting DevFlow AI!
