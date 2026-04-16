@@ -1,29 +1,30 @@
-const env = require("./config/env");
+require("./config/env");
 const connectDb = require("./config/db");
 const app = require("./app");
 
+const PORT = process.env.PORT || 5000;
 let server;
 
 const startServer = async () => {
   try {
     await connectDb();
 
-    server = app.listen(env.port, () => {
-      console.log(`✅ Server running on port ${env.port}`);
+    server = app.listen(PORT, () => {
+      console.log(`Server running on port ${PORT}`);
     });
   } catch (error) {
-    console.error("❌ Failed to start server:", error);
+    console.error("Failed to start server:", error);
     process.exit(1);
   }
 };
 
 const shutdown = (signal) => {
-  console.log(`⚠️ ${signal} received. Shutting down gracefully...`);
+  console.log(`${signal} received. Shutting down gracefully...`);
 
   if (!server) return process.exit(0);
 
   server.close(() => {
-    console.log("🛑 Server closed");
+    console.log("Server closed");
     process.exit(0);
   });
 
@@ -34,11 +35,11 @@ process.on("SIGINT", () => shutdown("SIGINT"));
 process.on("SIGTERM", () => shutdown("SIGTERM"));
 
 process.on("unhandledRejection", (reason) => {
-  console.error("❌ Unhandled Promise Rejection:", reason);
+  console.error("Unhandled Promise Rejection:", reason);
 });
 
 process.on("uncaughtException", (error) => {
-  console.error("❌ Uncaught Exception:", error);
+  console.error("Uncaught Exception:", error);
 });
 
 startServer();

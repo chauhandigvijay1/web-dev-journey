@@ -2,6 +2,22 @@ const dotenv = require("dotenv");
 
 dotenv.config();
 
+const parseCsv = (value) =>
+  String(value || "")
+    .split(",")
+    .map((item) => item.trim().replace(/\/+$/, ""))
+    .filter(Boolean);
+
+const clientUrls = Array.from(
+  new Set([
+    ...parseCsv(process.env.CLIENT_URL),
+    ...parseCsv(process.env.CLIENT_URLS),
+    "https://devflow-ai-client.netlify.app",
+    "http://localhost:3000",
+    "http://localhost:5173",
+  ])
+);
+
 // Core required vars (server cannot boot without these)
 const requiredVars = ["MONGO_URI", "JWT_SECRET", "GROQ_API_KEY"];
 
@@ -19,7 +35,8 @@ module.exports = {
   jwtSecret: process.env.JWT_SECRET,
   jwtExpiresIn: process.env.JWT_EXPIRES_IN || "7d",
 
-  clientUrl: process.env.CLIENT_URL || "http://localhost:3000",
+  clientUrl: clientUrls[0],
+  clientUrls,
 
   // AI (Groq)
   groqApiKey: process.env.GROQ_API_KEY,

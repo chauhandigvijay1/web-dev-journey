@@ -16,12 +16,26 @@ const app = express();
 app.disable("x-powered-by");
 app.set("trust proxy", 1);
 
-app.use(
-  cors({
-    origin: env.clientUrl,
-    credentials: true,
-  })
-);
+const corsOptions = {
+  origin(origin, callback) {
+    const normalizedOrigin = origin?.replace(/\/+$/, "");
+
+    if (!origin || env.clientUrls.includes(normalizedOrigin)) {
+      return callback(null, true);
+    }
+
+    const error = new Error(`CORS blocked origin: ${origin}`);
+    error.statusCode = 403;
+    return callback(error);
+  },
+  credentials: true,
+  methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization"],
+  optionsSuccessStatus: 204,
+};
+
+// This handles OPTIONS preflight globally without Express 5 wildcard routes.
+app.use(cors(corsOptions));
 app.use(helmet());
 app.use(morgan("dev"));
 app.use(cookieParser());
