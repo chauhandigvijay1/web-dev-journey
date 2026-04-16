@@ -11,24 +11,27 @@ import { ArrowUp, Square } from "lucide-react";
 import { api } from "@/lib/api";
 
 const normalizeMessageContent = (value) => {
-  if (typeof value === "string") {
-    if (value.includes("Error occurred") && value.includes("â")) {
-      return "Error occurred";
-    }
-    return value;
-  }
+  if (typeof value === "string") return value;
   if (typeof value === "number" || typeof value === "boolean") return String(value);
+
   if (Array.isArray(value)) {
-    return value.map(normalizeMessageContent).filter(Boolean).join("");
+    return value
+      .map((item) => normalizeMessageContent(item))
+      .filter(Boolean)
+      .join("");
   }
+
   if (value && typeof value === "object") {
     const directValue =
       value.content ??
       value.text ??
+      value.value ??
       value.message ??
       value.response ??
       value.answer ??
       value.output ??
+      value.parts ??
+      value.data ??
       value.delta?.content ??
       value.delta?.text;
 
@@ -42,10 +45,13 @@ const normalizeMessageContent = (value) => {
       return "";
     }
   }
+
   return "";
 };
 
-// Markdown renderer configured for stable hydration and code blocks.
+const getMessageContent = (message) =>
+  normalizeMessageContent(message?.content ?? message?.text ?? message?.message);
+
 const MarkdownMessage = memo(function MarkdownMessage({ content }) {
   const normalizedContent = normalizeMessageContent(content);
 
@@ -121,14 +127,13 @@ export default function ChatWindow({ chatId, initialPrompt = "" }) {
     resolveDisplayName();
   }, []);
 
-  // Load current chat messages.
   const loadChat = async () => {
     if (!chatId) return;
     try {
       const { data } = await api.get(`/api/chats/${chatId}`);
       const nextMessages = (data.data?.messages || []).map((message) => ({
         ...message,
-        content: normalizeMessageContent(message?.content ?? message?.text ?? message?.message),
+        content: getMessageContent(message),
       }));
       const greeting = displayName
         ? `Hello, ${displayName}! Ask me anything to get started.`
@@ -154,12 +159,10 @@ export default function ChatWindow({ chatId, initialPrompt = "" }) {
     setPrompt(initialPrompt);
   }, [initialPrompt]);
 
-  // Keep the latest message visible.
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
-  // Fetch usage information for plan limits.
   const fetchUsage = async () => {
     try {
       const { data } = await api.get("/api/payment/status");
@@ -179,13 +182,11 @@ export default function ChatWindow({ chatId, initialPrompt = "" }) {
     fetchUsage();
   }, []);
 
-  // Send a prompt and stream the assistant response.
   const sendPrompt = async (forcedPrompt = "") => {
     const promptText = String(forcedPrompt || prompt).trim();
     if (!promptText || loading) return;
     setError("");
 
-    // 🚫 limit check
     if (
       usageInfo.plan === "free" &&
       usageInfo.dailyCount >= usageInfo.limit
@@ -229,7 +230,6 @@ export default function ChatWindow({ chatId, initialPrompt = "" }) {
       let assistantText = "";
       let assistantStarted = false;
 
-      // Placeholder assistant bubble while stream is active.
       setMessages((prev) => [...prev, { role: "assistant", content: "" }]);
       assistantStarted = true;
 
@@ -247,12 +247,14 @@ export default function ChatWindow({ chatId, initialPrompt = "" }) {
           if (payload === "[DONE]") {
             break;
           }
+
           let parsed;
           try {
             parsed = JSON.parse(payload);
           } catch {
             continue;
           }
+
           const tokenChunk = normalizeMessageContent(
             parsed?.token ??
               parsed?.content ??
@@ -260,7 +262,9 @@ export default function ChatWindow({ chatId, initialPrompt = "" }) {
               parsed?.message ??
               parsed?.delta
           );
+
           if (!tokenChunk) continue;
+
           assistantText += tokenChunk;
           setMessages((prev) => {
             const next = [...prev];
@@ -294,17 +298,16 @@ export default function ChatWindow({ chatId, initialPrompt = "" }) {
       if (typeof window !== "undefined") {
         window.dispatchEvent(new Event("devflow:chat-updated"));
       }
-
     } catch (err) {
       setError(err?.message || "Error occurred while sending prompt.");
       setMessages((prev) => {
         const next = [...prev];
         const lastIndex = next.length - 1;
         if (lastIndex >= 0 && next[lastIndex].role === "assistant" && !next[lastIndex].content) {
-          next[lastIndex] = { ...next[lastIndex], content: "⚠️ Error occurred" };
+          next[lastIndex] = { ...next[lastIndex], content: "Error occurred" };
           return next;
         }
-        next.push({ role: "assistant", content: "⚠️ Error occurred" });
+        next.push({ role: "assistant", content: "Error occurred" });
         return next;
       });
     }
@@ -322,8 +325,6 @@ export default function ChatWindow({ chatId, initialPrompt = "" }) {
 
   return (
     <div className="flex h-full flex-col space-y-4 text-zinc-950 dark:text-zinc-100">
-      
-      {/* Chat area */}
       <div className="flex-1 space-y-3 overflow-y-auto pr-1 sm:pr-2">
         {messages.map((msg, i) => (
           <div key={i} className="relative">
@@ -334,19 +335,15 @@ export default function ChatWindow({ chatId, initialPrompt = "" }) {
                   : "border border-zinc-200 bg-white text-zinc-900 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-100"
               }`}
             >
-              <MarkdownMessage content={normalizeMessageContent(msg?.content ?? msg?.text ?? msg?.message)} />
+              <MarkdownMessage content={getMessageContent(msg)} />
             </div>
 
             <button
-              onClick={() =>
-                navigator.clipboard.writeText(
-                  normalizeMessageContent(msg?.content ?? msg?.text ?? msg?.message)
-                )
-              }
+              onClick={() => navigator.clipboard.writeText(getMessageContent(msg))}
               className="copy-message-button absolute right-1 top-1 rounded px-1 text-xs text-transparent opacity-60 transition hover:bg-zinc-100 hover:opacity-100 dark:hover:bg-zinc-800"
               aria-label="Copy message"
             >
-              📋
+              Copy
             </button>
           </div>
         ))}
@@ -354,7 +351,6 @@ export default function ChatWindow({ chatId, initialPrompt = "" }) {
         {loading && <p className="text-sm text-zinc-500 dark:text-zinc-400">Thinking...</p>}
         {error && <p className="text-sm text-red-600 dark:text-red-400">{error}</p>}
 
-        {/* Usage display */}
         <p className="text-xs text-zinc-500 dark:text-zinc-400">
           {usageInfo.dailyCount} / {usageInfo.limit} prompts used today
         </p>
@@ -362,7 +358,6 @@ export default function ChatWindow({ chatId, initialPrompt = "" }) {
         <div ref={bottomRef} />
       </div>
 
-      {/* Input box */}
       <div className="relative border-t border-zinc-200 pt-3 dark:border-zinc-800">
         <Textarea
           rows={3}
