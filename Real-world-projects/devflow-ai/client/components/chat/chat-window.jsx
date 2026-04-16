@@ -10,22 +10,44 @@ import { oneDark } from "react-syntax-highlighter/dist/esm/styles/prism";
 import { ArrowUp, Square } from "lucide-react";
 import { api } from "@/lib/api";
 
+const normalizeMessageContent = (value) => {
+  if (typeof value === "string") {
+    if (value.includes("Error occurred") && value.includes("â")) {
+      return "Error occurred";
+    }
+    return value;
+  }
+  if (typeof value === "number" || typeof value === "boolean") return String(value);
+  if (Array.isArray(value)) {
+    return value.map(normalizeMessageContent).filter(Boolean).join("");
+  }
+  if (value && typeof value === "object") {
+    const directValue =
+      value.content ??
+      value.text ??
+      value.message ??
+      value.response ??
+      value.answer ??
+      value.output ??
+      value.delta?.content ??
+      value.delta?.text;
+
+    if (directValue !== undefined && directValue !== value) {
+      return normalizeMessageContent(directValue);
+    }
+
+    try {
+      return JSON.stringify(value);
+    } catch {
+      return "";
+    }
+  }
+  return "";
+};
+
 // Markdown renderer configured for stable hydration and code blocks.
 const MarkdownMessage = memo(function MarkdownMessage({ content }) {
-  const normalizedContent = (() => {
-    if (typeof content === "string") return content;
-    if (typeof content === "number" || typeof content === "boolean") return String(content);
-    if (content && typeof content === "object") {
-      if (typeof content.content === "string") return content.content;
-      if (typeof content.text === "string") return content.text;
-      try {
-        return JSON.stringify(content);
-      } catch {
-        return "";
-      }
-    }
-    return "";
-  })();
+  const normalizedContent = normalizeMessageContent(content);
 
   return (
     <ReactMarkdown
@@ -46,11 +68,7 @@ const MarkdownMessage = memo(function MarkdownMessage({ content }) {
             );
           }
 
-          return (
-            <code className="bg-gray-300 px-1 rounded">
-              {children}
-            </code>
-          );
+          return <code className="rounded bg-zinc-200 px-1 py-0.5 dark:bg-zinc-800">{children}</code>;
         },
       }}
     >
@@ -76,21 +94,6 @@ export default function ChatWindow({ chatId, initialPrompt = "" }) {
   const bottomRef = useRef(null);
   const initialPromptSentRef = useRef(false);
   const pendingGreetingRef = useRef("");
-
-  const normalizeMessageContent = (value) => {
-    if (typeof value === "string") return value;
-    if (typeof value === "number" || typeof value === "boolean") return String(value);
-    if (value && typeof value === "object") {
-      if (typeof value.content === "string") return value.content;
-      if (typeof value.text === "string") return value.text;
-      try {
-        return JSON.stringify(value);
-      } catch {
-        return "";
-      }
-    }
-    return "";
-  };
 
   useEffect(() => {
     const resolveDisplayName = async () => {
@@ -125,7 +128,7 @@ export default function ChatWindow({ chatId, initialPrompt = "" }) {
       const { data } = await api.get(`/api/chats/${chatId}`);
       const nextMessages = (data.data?.messages || []).map((message) => ({
         ...message,
-        content: normalizeMessageContent(message?.content),
+        content: normalizeMessageContent(message?.content ?? message?.text ?? message?.message),
       }));
       const greeting = displayName
         ? `Hello, ${displayName}! Ask me anything to get started.`
@@ -250,7 +253,14 @@ export default function ChatWindow({ chatId, initialPrompt = "" }) {
           } catch {
             continue;
           }
-          const tokenChunk = parsed?.token || "";
+          const tokenChunk = normalizeMessageContent(
+            parsed?.token ??
+              parsed?.content ??
+              parsed?.text ??
+              parsed?.message ??
+              parsed?.delta
+          );
+          if (!tokenChunk) continue;
           assistantText += tokenChunk;
           setMessages((prev) => {
             const next = [...prev];
@@ -311,36 +321,41 @@ export default function ChatWindow({ chatId, initialPrompt = "" }) {
   }, [initialPrompt]);
 
   return (
-    <div className="flex h-full flex-col space-y-4">
+    <div className="flex h-full flex-col space-y-4 text-zinc-950 dark:text-zinc-100">
       
       {/* Chat area */}
-      <div className="flex-1 overflow-y-auto space-y-3 pr-2">
+      <div className="flex-1 space-y-3 overflow-y-auto pr-1 sm:pr-2">
         {messages.map((msg, i) => (
           <div key={i} className="relative">
             <div
-              className={`px-4 py-2 rounded-lg text-sm max-w-[70%] ${
+              className={`max-w-[min(42rem,86%)] break-words rounded-lg px-4 py-3 text-sm leading-6 shadow-sm sm:max-w-[72%] ${
                 msg.role === "user"
-                  ? "bg-blue-600 text-white ml-auto"
-                  : "bg-gray-200 text-black"
+                  ? "ml-auto bg-cyan-500 text-zinc-950 dark:bg-cyan-400"
+                  : "border border-zinc-200 bg-white text-zinc-900 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-100"
               }`}
             >
-              <MarkdownMessage content={msg.content} />
+              <MarkdownMessage content={normalizeMessageContent(msg?.content ?? msg?.text ?? msg?.message)} />
             </div>
 
             <button
-              onClick={() => navigator.clipboard.writeText(normalizeMessageContent(msg.content))}
-              className="absolute top-1 right-1 text-xs opacity-60 hover:opacity-100"
+              onClick={() =>
+                navigator.clipboard.writeText(
+                  normalizeMessageContent(msg?.content ?? msg?.text ?? msg?.message)
+                )
+              }
+              className="copy-message-button absolute right-1 top-1 rounded px-1 text-xs text-transparent opacity-60 transition hover:bg-zinc-100 hover:opacity-100 dark:hover:bg-zinc-800"
+              aria-label="Copy message"
             >
               📋
             </button>
           </div>
         ))}
 
-        {loading && <p className="text-sm text-gray-400">Thinking...</p>}
-        {error && <p className="text-sm text-red-500">{error}</p>}
+        {loading && <p className="text-sm text-zinc-500 dark:text-zinc-400">Thinking...</p>}
+        {error && <p className="text-sm text-red-600 dark:text-red-400">{error}</p>}
 
         {/* Usage display */}
-        <p className="text-xs text-gray-400">
+        <p className="text-xs text-zinc-500 dark:text-zinc-400">
           {usageInfo.dailyCount} / {usageInfo.limit} prompts used today
         </p>
 
@@ -348,7 +363,7 @@ export default function ChatWindow({ chatId, initialPrompt = "" }) {
       </div>
 
       {/* Input box */}
-      <div className="relative border-t pt-3">
+      <div className="relative border-t border-zinc-200 pt-3 dark:border-zinc-800">
         <Textarea
           rows={3}
           value={prompt}
