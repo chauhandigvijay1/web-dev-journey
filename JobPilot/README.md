@@ -13,7 +13,7 @@ Track applications, organize progress with Kanban workflow, receive reminders, a
 
 ## 🌐 Live Demo
 
-* **Frontend:** [https://jobpilot-client-ch.vercel.app](https://jobpilot-client-ch.vercel.app)
+* **Frontend:** [https://jobpilot-client-ch.vercel.app](https://jobpilot-client-chi.vercel.app/)
 * **Backend API:** [https://web-dev-journey-cnee.onrender.com](https://web-dev-journey-cnee.onrender.com)
 
 ---
