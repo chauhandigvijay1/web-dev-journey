@@ -1,5 +1,11 @@
 # 🌐 Personal Portfolio Website (Tailwind CSS)
 
+![HTML5](https://img.shields.io/badge/HTML5-Markup-E34F26?style=for-the-badge&logo=html5&logoColor=white)
+![Tailwind CSS](https://img.shields.io/badge/TailwindCSS-Modern%20UI-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white)
+![Portfolio](https://img.shields.io/badge/Portfolio-Developer%20Branding-FF9800?style=for-the-badge)
+![Responsive](https://img.shields.io/badge/Responsive-Mobile%20First-00C853?style=for-the-badge)
+![No JavaScript](https://img.shields.io/badge/JavaScript-Not%20Used-8E44AD?style=for-the-badge)
+
 This is my personal portfolio website built using HTML and Tailwind CSS.  
 It showcases my skills, projects, experience, and contact information in a clean and modern UI.
 
