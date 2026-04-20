@@ -1,5 +1,11 @@
 # 💻 Responsive Web Design Projects – HTML Practice Collection
 
+![HTML5](https://img.shields.io/badge/HTML5-Markup-E34F26?style=for-the-badge&logo=html5&logoColor=white)
+![Semantic HTML](https://img.shields.io/badge/Semantic-Structure-FF9800?style=for-the-badge)
+![Frontend](https://img.shields.io/badge/Frontend-Practice-00C853?style=for-the-badge)
+![CSS](https://img.shields.io/badge/CSS-Planned-1572B6?style=for-the-badge&logo=css3&logoColor=white)
+![Responsive Design](https://img.shields.io/badge/Responsive-Coming%20Soon-8E44AD?style=for-the-badge)
+
 This repository contains my custom implementations of key Responsive Web Design projects inspired by freeCodeCamp.
 
 All projects are built from scratch using only HTML, focusing on structure, semantics, and clean layout. CSS and deployment will be added later.
