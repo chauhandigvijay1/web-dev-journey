@@ -1,5 +1,11 @@
 # Basic C++ & DSA Foundation
 
+![C++](https://img.shields.io/badge/C++-Programming-00599C?style=for-the-badge&logo=cplusplus&logoColor=white)
+![DSA](https://img.shields.io/badge/DSA-Foundation-FF6F00?style=for-the-badge)
+![STL](https://img.shields.io/badge/STL-Containers%20%26%20Algorithms-8E44AD?style=for-the-badge)
+![Recursion](https://img.shields.io/badge/Recursion-Problem%20Solving-00C853?style=for-the-badge)
+![Hashing](https://img.shields.io/badge/Hashing-Maps%20%26%20Frequency-E91E63?style=for-the-badge)
+
 This folder contains my complete **basic foundation journey** for C++ and DSA.
 
 The goal of this section is to build a strong understanding of:
