@@ -1,5 +1,11 @@
 # 🚀 Personal Portfolio Website – Modern UI (Glassmorphism)
 
+![HTML5](https://img.shields.io/badge/HTML5-Markup-E34F26?style=for-the-badge&logo=html5&logoColor=white)
+![CSS3](https://img.shields.io/badge/CSS3-Styling-1572B6?style=for-the-badge&logo=css3&logoColor=white)
+![Glassmorphism](https://img.shields.io/badge/Glassmorphism-Modern%20UI-8E44AD?style=for-the-badge)
+![Responsive](https://img.shields.io/badge/Responsive-Mobile%20%2B%20Desktop-00C853?style=for-the-badge)
+![Portfolio](https://img.shields.io/badge/Portfolio-Personal%20Branding-FF9800?style=for-the-badge)
+
 This is my **Personal Portfolio Website**, redesigned with a **modern glassmorphism UI**, clean layout, and responsive design.
 
 ---
