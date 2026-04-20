@@ -1,5 +1,11 @@
 # Phase 4 - STL Notes (C++)
 
+![C++](https://img.shields.io/badge/C++-STL-00599C?style=for-the-badge&logo=cplusplus&logoColor=white)
+![STL](https://img.shields.io/badge/STL-Containers%20%26%20Algorithms-FF9800?style=for-the-badge)
+![Vector & Map](https://img.shields.io/badge/Vector%20%26%20Map-DSA%20Tools-00C853?style=for-the-badge)
+![Problem Solving](https://img.shields.io/badge/Problem-Solving-8E44AD?style=for-the-badge)
+![DSA Prep](https://img.shields.io/badge/DSA-Foundation-E91E63?style=for-the-badge)
+
 This phase focuses on learning the **Standard Template Library (STL)** in C++.
 
 ## Goal
