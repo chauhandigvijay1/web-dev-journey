@@ -1,5 +1,11 @@
 # Phase 2 - Pattern Problems
 
+![C++](https://img.shields.io/badge/C++-Pattern%20Problems-00599C?style=for-the-badge&logo=cplusplus&logoColor=white)
+![22 Problems](https://img.shields.io/badge/22-Patterns-FF9800?style=for-the-badge)
+![Loops](https://img.shields.io/badge/Nested-Loops-00C853?style=for-the-badge)
+![Logic Building](https://img.shields.io/badge/Logic-Building-8E44AD?style=for-the-badge)
+![DSA Prep](https://img.shields.io/badge/DSA-Foundation-E91E63?style=for-the-badge)
+
 This phase is focused on solving **22 important pattern problems** in C++.
 
 The main goal of this phase is to improve:
