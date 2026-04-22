@@ -1,5 +1,11 @@
 # Phase 3 - Basic Maths
 
+![C++](https://img.shields.io/badge/C++-Basic%20Maths-00599C?style=for-the-badge&logo=cplusplus&logoColor=white)
+![Number Logic](https://img.shields.io/badge/Number-Logic-FF9800?style=for-the-badge)
+![Prime & GCD](https://img.shields.io/badge/Prime%20%26%20GCD-Problems-00C853?style=for-the-badge)
+![Optimization](https://img.shields.io/badge/Optimization-Thinking-8E44AD?style=for-the-badge)
+![DSA Prep](https://img.shields.io/badge/DSA-Foundation-E91E63?style=for-the-badge)
+
 This phase focuses on solving important **basic maths problems** in C++.
 
 The main goal of this phase is to improve:

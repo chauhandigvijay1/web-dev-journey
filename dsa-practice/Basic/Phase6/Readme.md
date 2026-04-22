@@ -1,5 +1,11 @@
 # Phase 6 - Basic Hashing
 
+![C++](https://img.shields.io/badge/C++-Hashing-00599C?style=for-the-badge&logo=cplusplus&logoColor=white)
+![Hashing](https://img.shields.io/badge/Hashing-Basics-FF9800?style=for-the-badge)
+![unordered_map](https://img.shields.io/badge/unordered__map-Fast%20Lookup-00C853?style=for-the-badge)
+![Frequency Count](https://img.shields.io/badge/Frequency-Counting-8E44AD?style=for-the-badge)
+![DSA Prep](https://img.shields.io/badge/DSA-Foundation-E91E63?style=for-the-badge)
+
 This phase focuses on learning the basics of **hashing** in C++.
 
 The main goal of this phase is to understand how to:

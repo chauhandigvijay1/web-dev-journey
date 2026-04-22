@@ -1,5 +1,11 @@
 # Phase 5 - Basic Recursion
 
+![C++](https://img.shields.io/badge/C++-Recursion-00599C?style=for-the-badge&logo=cplusplus&logoColor=white)
+![Recursion](https://img.shields.io/badge/Recursion-Basics-FF9800?style=for-the-badge)
+![Call Stack](https://img.shields.io/badge/Call%20Stack-Function%20Flow-00C853?style=for-the-badge)
+![Problem Solving](https://img.shields.io/badge/Problem-Decomposition-8E44AD?style=for-the-badge)
+![DSA Prep](https://img.shields.io/badge/DSA-Foundation-E91E63?style=for-the-badge)
+
 This phase focuses on understanding **recursion fundamentals** in C++.
 
 The main goal of this phase is to build:

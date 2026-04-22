@@ -1,5 +1,11 @@
 # DevFlow AI 🚀
 
+![Next.js](https://img.shields.io/badge/Next.js-14-black?style=for-the-badge&logo=next.js)
+![Node.js](https://img.shields.io/badge/Node.js-Backend-339933?style=for-the-badge&logo=node.js&logoColor=white)
+![MongoDB](https://img.shields.io/badge/MongoDB-Atlas-47A248?style=for-the-badge&logo=mongodb&logoColor=white)
+![Netlify](https://img.shields.io/badge/Netlify-Deployed-00C7B7?style=for-the-badge&logo=netlify&logoColor=white)
+![Render](https://img.shields.io/badge/Render-Backend-5A67D8?style=for-the-badge&logo=render&logoColor=white)
+
 DevFlow AI is a full-stack SaaS application that allows users to interact with an AI-powered chat system, manage usage limits, and upgrade plans through integrated billing.
 
 The project is built using a modern MERN + Next.js stack and deployed on Netlify (frontend) and Render (backend).

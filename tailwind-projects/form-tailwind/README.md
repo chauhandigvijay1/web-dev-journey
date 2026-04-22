@@ -1,5 +1,11 @@
 # 📝 Internship Application Form (Tailwind CSS)
 
+![HTML5](https://img.shields.io/badge/HTML5-Markup-E34F26?style=for-the-badge&logo=html5&logoColor=white)
+![Tailwind CSS](https://img.shields.io/badge/TailwindCSS-Modern%20UI-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white)
+![Forms](https://img.shields.io/badge/Form-UI%20Design-FF9800?style=for-the-badge)
+![Responsive](https://img.shields.io/badge/Responsive-Mobile%20%2B%20Desktop-00C853?style=for-the-badge)
+![No JavaScript](https://img.shields.io/badge/JavaScript-Not%20Used-8E44AD?style=for-the-badge)
+
 This project is a modern internship application form built using HTML and Tailwind CSS.
 
 It demonstrates form handling UI, layout design, and responsive styling.

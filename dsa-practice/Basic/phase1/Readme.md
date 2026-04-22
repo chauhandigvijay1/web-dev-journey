@@ -1,5 +1,11 @@
 # Phase 1 - C++ Basics
 
+![C++](https://img.shields.io/badge/C++-Basics-00599C?style=for-the-badge&logo=cplusplus&logoColor=white)
+![Syntax](https://img.shields.io/badge/Syntax-Foundation-FF9800?style=for-the-badge)
+![Arrays](https://img.shields.io/badge/Arrays-1D%20%26%202D-00C853?style=for-the-badge)
+![Loops](https://img.shields.io/badge/Loops-Logic%20Building-8E44AD?style=for-the-badge)
+![Functions](https://img.shields.io/badge/Functions-Reusable%20Code-E91E63?style=for-the-badge)
+
 This phase contains my beginner-level C++ learning and practice.
 
 It includes the core concepts of C++ along with topic-wise practice questions to build a strong programming foundation.

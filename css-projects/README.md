@@ -1,5 +1,11 @@
 # 🎨 Responsive Web Design Projects – CSS Implementations
 
+![HTML5](https://img.shields.io/badge/HTML5-Markup-E34F26?style=for-the-badge&logo=html5&logoColor=white)
+![CSS3](https://img.shields.io/badge/CSS3-Styling-1572B6?style=for-the-badge&logo=css3&logoColor=white)
+![Flexbox](https://img.shields.io/badge/Flexbox-Layout-563D7C?style=for-the-badge)
+![Responsive Design](https://img.shields.io/badge/Responsive-Design-00C853?style=for-the-badge)
+![Frontend](https://img.shields.io/badge/Frontend-Projects-FF9800?style=for-the-badge)
+
 This repository contains the styled versions of my web development projects.  
 These projects are built using HTML and enhanced with CSS to create responsive and visually appealing user interfaces.
 
