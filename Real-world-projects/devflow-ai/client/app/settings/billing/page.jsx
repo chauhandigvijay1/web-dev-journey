@@ -265,7 +265,7 @@ export default function BillingPage() {
     <ProtectedRoute>
       <DashboardShell>
         <div className="mx-auto max-w-3xl space-y-6">
-          <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+          <div className="rounded-xl border border-zinc-200 bg-white p-6 shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
             <div className="mb-6 flex items-center justify-between">
               <h1 className="text-2xl font-semibold">Billing</h1>
               <Button variant="outline" onClick={() => router.push("/settings")}>
@@ -274,33 +274,33 @@ export default function BillingPage() {
             </div>
 
             {loading ? (
-              <p className="text-sm text-slate-500">Loading billing details...</p>
+              <p className="text-sm text-zinc-500">Loading billing details...</p>
             ) : (
               <div className="space-y-4">
-                <div className="rounded-lg border border-slate-200 p-4 dark:border-slate-700">
-                  <p className="text-sm text-slate-500">Current Plan</p>
+                <div className="rounded-lg border border-zinc-200 p-4 dark:border-zinc-700">
+                  <p className="text-sm text-zinc-500">Current Plan</p>
                   <p className="mt-1 text-lg font-semibold">{planLabel}</p>
                   {billing.plan === "pro" && billing.expiresAt && (
-                    <p className="mt-1 text-sm text-slate-500">
+                    <p className="mt-1 text-sm text-zinc-500">
                       Renews/Expires on {new Date(billing.expiresAt).toLocaleDateString()}
                     </p>
                   )}
                 </div>
 
-                <div className="rounded-lg border border-slate-200 p-4 dark:border-slate-700">
-                  <p className="text-sm text-slate-500">Usage</p>
+                <div className="rounded-lg border border-zinc-200 p-4 dark:border-zinc-700">
+                  <p className="text-sm text-zinc-500">Usage</p>
                   <p className="mt-1 text-sm">{usageLabel}</p>
                 </div>
 
                 {billing.plan !== "pro" && (
-                  <div className="rounded-lg border border-slate-200 p-4 dark:border-slate-700">
-                    <p className="text-sm text-slate-500">Coupon</p>
+                  <div className="rounded-lg border border-zinc-200 p-4 dark:border-zinc-700">
+                    <p className="text-sm text-zinc-500">Coupon</p>
                     <div className="mt-2 flex flex-col gap-2 sm:flex-row">
                       <input
                         value={couponCode}
                         onChange={(event) => setCouponCode(event.target.value)}
                         placeholder="Enter coupon code"
-                        className="h-10 w-full rounded-md border border-slate-300 bg-transparent px-3 text-sm outline-none focus:ring-2 focus:ring-slate-400 dark:border-slate-700"
+                        className="h-10 w-full rounded-md border border-zinc-300 bg-transparent px-3 text-sm outline-none focus:ring-2 focus:ring-zinc-400 dark:border-zinc-700"
                       />
                       <Button
                         type="button"
@@ -313,7 +313,7 @@ export default function BillingPage() {
                       </Button>
                     </div>
                     <div className="mt-2 space-y-2">
-                      <p className="text-xs text-slate-500">FREETRIAL: Rs. 1 for 7 days.</p>
+                      <p className="text-xs text-zinc-500">FREETRIAL: Rs. 1 for 7 days.</p>
                       <Button
                         type="button"
                         variant="outline"
@@ -323,7 +323,7 @@ export default function BillingPage() {
                       >
                         Apply FREETRIAL
                       </Button>
-                      <p className="text-xs text-slate-500">OFF50: 50% off monthly Pro.</p>
+                      <p className="text-xs text-zinc-500">OFF50: 50% off monthly Pro.</p>
                       <Button
                         type="button"
                         variant="outline"
@@ -338,10 +338,10 @@ export default function BillingPage() {
                 )}
 
                 {billing.plan !== "pro" && (
-                  <div className="rounded-lg border border-slate-200 p-4 dark:border-slate-700">
-                    <p className="text-sm text-slate-500">Payable Now</p>
+                  <div className="rounded-lg border border-zinc-200 p-4 dark:border-zinc-700">
+                    <p className="text-sm text-zinc-500">Payable Now</p>
                     <p className="mt-1 text-lg font-semibold">{displayPriceText}</p>
-                    <p className="mt-1 text-xs text-slate-500">
+                    <p className="mt-1 text-xs text-zinc-500">
                       Access duration: {displayDurationDays} day{displayDurationDays > 1 ? "s" : ""}
                     </p>
                   </div>
@@ -367,9 +367,9 @@ export default function BillingPage() {
         </div>
         {showExpiredPrompt && (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-            <div className="w-full max-w-sm rounded-xl border bg-white p-5 dark:bg-slate-900">
+            <div className="w-full max-w-sm rounded-xl border bg-white p-5 dark:bg-zinc-900">
               <h3 className="text-lg font-semibold">Plan Expired</h3>
-              <p className="mt-2 text-sm text-slate-600 dark:text-slate-300">
+              <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-300">
                 {expiredPromptMessage || "Your Pro access has expired. Upgrade to continue."}
               </p>
               <div className="mt-4 flex justify-end gap-2">

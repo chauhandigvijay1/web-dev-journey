@@ -76,13 +76,13 @@ export default function PricingPage() {
       <DashboardShell>
         <h2 className="mb-4 text-2xl font-semibold">Pricing</h2>
         <div className="grid gap-4 md:grid-cols-2">
-          <div className="rounded-lg border border-slate-200 p-5 dark:border-slate-800">
+          <div className="rounded-lg border border-zinc-200 p-5 dark:border-zinc-800">
             <h3 className="text-xl font-semibold">Free</h3>
-            <p className="mt-2 text-sm text-slate-500">20 prompts total, basic chat and code explain.</p>
+            <p className="mt-2 text-sm text-zinc-500">20 prompts total, basic chat and code explain.</p>
           </div>
-          <div className="rounded-lg border border-slate-200 p-5 dark:border-slate-800">
+          <div className="rounded-lg border border-zinc-200 p-5 dark:border-zinc-800">
             <h3 className="text-xl font-semibold">Pro</h3>
-            <p className="mt-2 text-sm text-slate-500">Unlimited usage, faster responses, priority support.</p>
+            <p className="mt-2 text-sm text-zinc-500">Unlimited usage, faster responses, priority support.</p>
             {error && <p className="mt-3 text-sm text-red-500">{error}</p>}
             <Button className="mt-4" onClick={upgrade} disabled={loading}>
               {loading ? "Opening checkout..." : "Upgrade to Pro"}

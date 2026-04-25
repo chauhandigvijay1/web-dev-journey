@@ -202,7 +202,7 @@ export default function DashboardShell({ children }) {
           type="button"
           onClick={createChat}
           disabled={creatingChat}
-          className="mb-3 inline-flex h-10 items-center justify-center gap-2 rounded-md bg-zinc-950 px-3 py-2 text-sm font-medium text-white transition hover:bg-zinc-800 disabled:opacity-60 dark:bg-cyan-400 dark:text-zinc-950 dark:hover:bg-cyan-300"
+          className="mb-3 inline-flex h-9 items-center justify-center gap-2 rounded-md bg-zinc-900 px-3 py-2 text-sm font-medium text-zinc-50 shadow-sm transition-colors hover:bg-zinc-900/90 disabled:opacity-60 dark:bg-zinc-50 dark:text-zinc-900 dark:hover:bg-zinc-50/90"
           aria-label="Create new chat"
         >
           {sidebarCollapsed ? <Plus size={18} /> : creatingChat ? "Creating..." : "New Chat"}
@@ -216,10 +216,10 @@ export default function DashboardShell({ children }) {
               return (
                 <div
                   key={chat._id}
-                  className={`group flex items-center gap-1 rounded-md border text-sm transition-colors ${
+                  className={`group relative flex items-center gap-1 rounded-md text-sm transition-colors ${
                     isActive
-                      ? "border-zinc-950 bg-zinc-950 text-white dark:border-cyan-400/60 dark:bg-cyan-400/15 dark:text-cyan-100"
-                      : "border-transparent text-zinc-700 hover:border-zinc-200 hover:bg-zinc-100 dark:text-zinc-300 dark:hover:border-zinc-800 dark:hover:bg-zinc-900"
+                      ? "bg-zinc-100 font-medium text-zinc-950 dark:bg-zinc-800 dark:text-zinc-50 before:absolute before:left-0 before:top-1/2 before:h-4 before:w-[3px] before:-translate-y-1/2 before:rounded-r-full before:bg-cyan-500 dark:before:bg-cyan-400"
+                      : "text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-800/50 dark:hover:text-zinc-100"
                   }`}
                 >
                   <Link
@@ -253,7 +253,7 @@ export default function DashboardShell({ children }) {
             <button
               type="button"
               onClick={() => setMenuOpen((prev) => !prev)}
-              className={`relative z-50 inline-flex h-9 items-center justify-center gap-2 rounded-md border border-zinc-200 bg-white px-2 text-xs font-medium text-zinc-700 transition hover:bg-zinc-100 hover:text-zinc-950 focus:outline-none focus:ring-2 focus:ring-cyan-400 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-200 dark:hover:bg-zinc-900 dark:hover:text-white ${
+              className={`relative z-50 inline-flex h-9 items-center justify-center gap-2 rounded-md border border-zinc-200 bg-transparent px-2 text-xs font-medium text-zinc-700 shadow-sm transition hover:bg-zinc-100 hover:text-zinc-950 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-zinc-950 dark:border-zinc-800 dark:text-zinc-200 dark:hover:bg-zinc-800 dark:hover:text-zinc-50 dark:focus-visible:ring-zinc-300 ${
                 sidebarCollapsed ? "w-full" : ""
               }`}
               aria-expanded={menuOpen}

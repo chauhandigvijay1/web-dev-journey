@@ -36,10 +36,10 @@ export default function ForgotPasswordPage() {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-slate-50 p-4 dark:bg-slate-950">
-      <div className="w-full max-w-md rounded-xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+    <div className="flex min-h-screen items-center justify-center bg-zinc-50 p-4 dark:bg-zinc-950">
+      <div className="w-full max-w-md rounded-xl border border-zinc-200 bg-white p-6 shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
         <h1 className="mb-1 text-2xl font-semibold">Forgot password</h1>
-        <p className="mb-6 text-sm text-slate-500">
+        <p className="mb-6 text-sm text-zinc-500">
           Enter your email to generate a password reset token.
         </p>
 
@@ -55,9 +55,9 @@ export default function ForgotPasswordPage() {
           </div>
 
           {error && <p className="text-sm text-red-500">{error}</p>}
-          {message && <p className="text-sm text-slate-600 dark:text-slate-300">{message}</p>}
+          {message && <p className="text-sm text-zinc-600 dark:text-zinc-300">{message}</p>}
           {resetToken && (
-            <p className="rounded-md bg-slate-100 p-2 text-xs dark:bg-slate-800">
+            <p className="rounded-md bg-zinc-100 p-2 text-xs dark:bg-zinc-800">
               Reset token: <span className="font-semibold">{resetToken}</span>
             </p>
           )}

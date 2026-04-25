@@ -100,10 +100,10 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-slate-50 p-4 dark:bg-slate-950">
-      <div className="w-full max-w-md rounded-xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+    <div className="flex min-h-screen items-center justify-center bg-zinc-50 p-4 dark:bg-zinc-950">
+      <div className="w-full max-w-md rounded-xl border border-zinc-200 bg-white p-6 shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
         <h1 className="mb-1 text-2xl font-semibold">Welcome back</h1>
-        <p className="mb-6 text-sm text-slate-500">Login to continue to DevFlow AI.</p>
+        <p className="mb-6 text-sm text-zinc-500">Login to continue to DevFlow AI.</p>
 
         <form className="space-y-4" onSubmit={onSubmit} noValidate>
           <div className="space-y-1">
@@ -131,7 +131,7 @@ export default function LoginPage() {
               <button
                 type="button"
                 onClick={() => setShowPassword((prev) => !prev)}
-                className="absolute right-2 top-1/2 -translate-y-1/2 text-xs text-slate-500 hover:text-slate-800 dark:hover:text-slate-200"
+                className="absolute right-2 top-1/2 -tranzinc-y-1/2 text-xs text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-200"
               >
                 {showPassword ? "Hide" : "Show"}
               </button>
@@ -162,9 +162,9 @@ export default function LoginPage() {
           </Button>
         </form>
 
-        <p className="mt-4 text-sm text-slate-600 dark:text-slate-300">
+        <p className="mt-4 text-sm text-zinc-600 dark:text-zinc-300">
           Don&apos;t have an account?{" "}
-          <Link href="/signup" className="font-medium text-slate-900 underline dark:text-slate-100">
+          <Link href="/signup" className="font-medium text-zinc-900 underline dark:text-zinc-100">
             Sign up
           </Link>
         </p>

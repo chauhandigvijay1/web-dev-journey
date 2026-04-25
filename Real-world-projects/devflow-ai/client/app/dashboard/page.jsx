@@ -54,7 +54,7 @@ export default function DashboardPage() {
                   key={template}
                   type="button"
                   onClick={() => createChat(template)}
-                  className="rounded-md border border-slate-200 p-3 text-left transition hover:bg-slate-100 dark:border-slate-800 dark:hover:bg-slate-900"
+                  className="rounded-md border border-zinc-200 p-3 text-left transition hover:bg-zinc-100 dark:border-zinc-800 dark:hover:bg-zinc-900"
                 >
                   {template}
                 </button>
@@ -65,7 +65,7 @@ export default function DashboardPage() {
             <h3 className="mb-2 text-lg font-medium">Recent Chats</h3>
             <div className="space-y-2">
               {chats.map((chat) => (
-                <Link key={chat._id} className="block rounded border border-slate-200 p-3 dark:border-slate-800" href={`/chat/${chat._id}`}>
+                <Link key={chat._id} className="block rounded border border-zinc-200 p-3 dark:border-zinc-800" href={`/chat/${chat._id}`}>
                   {chat.title}
                 </Link>
               ))}

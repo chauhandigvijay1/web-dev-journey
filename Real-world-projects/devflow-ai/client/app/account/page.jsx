@@ -174,7 +174,7 @@ export default function AccountPage() {
     <ProtectedRoute>
       <DashboardShell>
         <div className="mx-auto max-w-3xl space-y-6">
-          <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+          <div className="rounded-xl border border-zinc-200 bg-white p-6 shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
             <div className="mb-6 flex items-center justify-between">
               <h1 className="text-2xl font-semibold">Account</h1>
               <Button variant="outline" onClick={onBack}>
@@ -183,7 +183,7 @@ export default function AccountPage() {
             </div>
 
             {loading ? (
-              <p className="text-sm text-slate-500">Loading profile...</p>
+              <p className="text-sm text-zinc-500">Loading profile...</p>
             ) : (
               <form className="space-y-5" onSubmit={onUpdate}>
                 <div className="flex items-center gap-4">
@@ -194,7 +194,7 @@ export default function AccountPage() {
                       className="h-14 w-14 rounded-full border object-cover"
                     />
                   ) : (
-                    <div className="flex h-14 w-14 items-center justify-center rounded-full bg-slate-900 text-lg font-semibold text-white dark:bg-slate-100 dark:text-slate-900">
+                    <div className="flex h-14 w-14 items-center justify-center rounded-full bg-zinc-900 text-lg font-semibold text-white dark:bg-zinc-100 dark:text-zinc-900">
                       {avatarFallback}
                     </div>
                   )}
@@ -209,8 +209,8 @@ export default function AccountPage() {
                       onClick={() => fileInputRef.current?.click()}
                       className={`cursor-pointer rounded-lg border border-dashed p-4 text-center text-sm transition ${
                         isDragActive
-                          ? "border-slate-500 bg-slate-100 dark:bg-slate-800"
-                          : "border-slate-300 hover:border-slate-500 dark:border-slate-700"
+                          ? "border-zinc-500 bg-zinc-100 dark:bg-zinc-800"
+                          : "border-zinc-300 hover:border-zinc-500 dark:border-zinc-700"
                       }`}
                     >
                       Drag and drop profile image here, or click to upload
@@ -240,7 +240,7 @@ export default function AccountPage() {
                         onChange={onUploadAvatar}
                       />
                     </div>
-                    <p className="text-xs text-slate-500">
+                    <p className="text-xs text-zinc-500">
                       Square crop + compression are applied before upload.
                     </p>
                   </div>
@@ -260,7 +260,7 @@ export default function AccountPage() {
                       value={form.username}
                       onChange={(event) => updateField("username", event.target.value)}
                     />
-                    <p className="text-xs text-slate-500">
+                    <p className="text-xs text-zinc-500">
                       3–40 characters, letters and numbers only (no special characters).
                     </p>
                   </div>
@@ -282,7 +282,7 @@ export default function AccountPage() {
                 </div>
 
                 {message && (
-                  <p className="text-sm text-slate-600 dark:text-slate-300">{message}</p>
+                  <p className="text-sm text-zinc-600 dark:text-zinc-300">{message}</p>
                 )}
 
                 <div className="flex flex-wrap items-center gap-3">
@@ -310,9 +310,9 @@ export default function AccountPage() {
         )}
         {showSignOutModal && (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-            <div className="w-full max-w-sm rounded-xl border bg-white p-5 dark:bg-slate-900">
+            <div className="w-full max-w-sm rounded-xl border bg-white p-5 dark:bg-zinc-900">
               <h3 className="text-lg font-semibold">Sign out</h3>
-              <p className="mt-2 text-sm text-slate-600 dark:text-slate-300">
+              <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-300">
                 Are you sure you want to sign out?
               </p>
               <div className="mt-4 flex justify-end gap-2">

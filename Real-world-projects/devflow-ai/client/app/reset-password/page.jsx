@@ -58,10 +58,10 @@ export default function ResetPasswordPage() {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-slate-50 p-4 dark:bg-slate-950">
-      <div className="w-full max-w-md rounded-xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+    <div className="flex min-h-screen items-center justify-center bg-zinc-50 p-4 dark:bg-zinc-950">
+      <div className="w-full max-w-md rounded-xl border border-zinc-200 bg-white p-6 shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
         <h1 className="mb-1 text-2xl font-semibold">Reset password</h1>
-        <p className="mb-6 text-sm text-slate-500">
+        <p className="mb-6 text-sm text-zinc-500">
           Paste your token and set a new password.
         </p>
 
@@ -87,7 +87,7 @@ export default function ResetPasswordPage() {
               />
               <button
                 type="button"
-                className="absolute right-2 top-1/2 -translate-y-1/2 text-xs"
+                className="absolute right-2 top-1/2 -tranzinc-y-1/2 text-xs"
                 onClick={() => setShowPassword((prev) => !prev)}
               >
                 {showPassword ? "Hide" : "Show"}
@@ -109,7 +109,7 @@ export default function ResetPasswordPage() {
               />
               <button
                 type="button"
-                className="absolute right-2 top-1/2 -translate-y-1/2 text-xs"
+                className="absolute right-2 top-1/2 -tranzinc-y-1/2 text-xs"
                 onClick={() => setShowConfirmPassword((prev) => !prev)}
               >
                 {showConfirmPassword ? "Hide" : "Show"}
@@ -118,7 +118,7 @@ export default function ResetPasswordPage() {
           </div>
 
           {error && <p className="text-sm text-red-500">{error}</p>}
-          {message && <p className="text-sm text-slate-600 dark:text-slate-300">{message}</p>}
+          {message && <p className="text-sm text-zinc-600 dark:text-zinc-300">{message}</p>}
 
           <Button className="w-full" type="submit" disabled={loading}>
             {loading ? "Resetting..." : "Reset Password"}

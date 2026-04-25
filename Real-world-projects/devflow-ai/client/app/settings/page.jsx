@@ -34,7 +34,7 @@ const startPageOptions = ["Dashboard", "Chat", "Account", "Settings"];
 function SettingsTile({ id, title, subtitle, activeTile, setActiveTile, children }) {
   const open = activeTile === id;
   return (
-    <div className="rounded-xl border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
+    <div className="rounded-xl border border-zinc-200 bg-white shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
       <button
         type="button"
         onClick={() => setActiveTile(open ? "" : id)}
@@ -42,11 +42,11 @@ function SettingsTile({ id, title, subtitle, activeTile, setActiveTile, children
       >
         <div>
           <h2 className="text-lg font-semibold">{title}</h2>
-          <p className="text-sm text-slate-500">{subtitle}</p>
+          <p className="text-sm text-zinc-500">{subtitle}</p>
         </div>
-        <span className="text-sm text-slate-500">{open ? "Close" : "Open"}</span>
+        <span className="text-sm text-zinc-500">{open ? "Close" : "Open"}</span>
       </button>
-      {open && <div className="border-t border-slate-200 px-6 py-5 dark:border-slate-800">{children}</div>}
+      {open && <div className="border-t border-zinc-200 px-6 py-5 dark:border-zinc-800">{children}</div>}
     </div>
   );
 }
@@ -145,9 +145,9 @@ export default function SettingsPage() {
     <ProtectedRoute>
       <DashboardShell>
         <div className="mx-auto max-w-4xl space-y-6">
-          <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+          <div className="rounded-xl border border-zinc-200 bg-white p-6 shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
             <h1 className="text-2xl font-semibold">Settings</h1>
-            <p className="mt-1 text-sm text-slate-500">Manage your preferences and app information.</p>
+            <p className="mt-1 text-sm text-zinc-500">Manage your preferences and app information.</p>
           </div>
 
           <SettingsTile
@@ -182,10 +182,10 @@ export default function SettingsPage() {
                   <select
                     value={region}
                     onChange={(event) => setRegion(event.target.value)}
-                    className="w-full rounded-md border border-slate-300 bg-slate-900 px-3 py-2 text-sm text-slate-100 outline-none focus:ring-2 focus:ring-slate-400 dark:border-slate-700"
+                    className="w-full rounded-md border border-zinc-300 bg-zinc-900 px-3 py-2 text-sm text-zinc-100 outline-none focus:ring-2 focus:ring-zinc-400 dark:border-zinc-700"
                   >
                     {regionOptions.map((item) => (
-                      <option key={item} value={item} className="bg-slate-900 text-slate-100">
+                      <option key={item} value={item} className="bg-zinc-900 text-zinc-100">
                         {item}
                       </option>
                     ))}
@@ -197,10 +197,10 @@ export default function SettingsPage() {
                   <select
                     value={language}
                     onChange={(event) => setLanguage(event.target.value)}
-                    className="w-full rounded-md border border-slate-300 bg-slate-900 px-3 py-2 text-sm text-slate-100 outline-none focus:ring-2 focus:ring-slate-400 dark:border-slate-700"
+                    className="w-full rounded-md border border-zinc-300 bg-zinc-900 px-3 py-2 text-sm text-zinc-100 outline-none focus:ring-2 focus:ring-zinc-400 dark:border-zinc-700"
                   >
                     {languageOptions.map((item) => (
-                      <option key={item} value={item} className="bg-slate-900 text-slate-100">
+                      <option key={item} value={item} className="bg-zinc-900 text-zinc-100">
                         {item}
                       </option>
                     ))}
@@ -214,10 +214,10 @@ export default function SettingsPage() {
                   <select
                     value={country}
                     onChange={(event) => setCountry(event.target.value)}
-                    className="w-full rounded-md border border-slate-300 bg-slate-900 px-3 py-2 text-sm text-slate-100 outline-none focus:ring-2 focus:ring-slate-400 dark:border-slate-700"
+                    className="w-full rounded-md border border-zinc-300 bg-zinc-900 px-3 py-2 text-sm text-zinc-100 outline-none focus:ring-2 focus:ring-zinc-400 dark:border-zinc-700"
                   >
                     {countryOptions.map((item) => (
-                      <option key={item} value={item} className="bg-slate-900 text-slate-100">
+                      <option key={item} value={item} className="bg-zinc-900 text-zinc-100">
                         {item}
                       </option>
                     ))}
@@ -229,10 +229,10 @@ export default function SettingsPage() {
                   <select
                     value={timezone}
                     onChange={(event) => setTimezone(event.target.value)}
-                    className="w-full rounded-md border border-slate-300 bg-slate-900 px-3 py-2 text-sm text-slate-100 outline-none focus:ring-2 focus:ring-slate-400 dark:border-slate-700"
+                    className="w-full rounded-md border border-zinc-300 bg-zinc-900 px-3 py-2 text-sm text-zinc-100 outline-none focus:ring-2 focus:ring-zinc-400 dark:border-zinc-700"
                   >
                     {timezoneOptions.map((item) => (
-                      <option key={item} value={item} className="bg-slate-900 text-slate-100">
+                      <option key={item} value={item} className="bg-zinc-900 text-zinc-100">
                         {item}
                       </option>
                     ))}
@@ -243,7 +243,7 @@ export default function SettingsPage() {
               <div className="flex items-center gap-3">
                 <Button onClick={savePersonalization}>Save Personalization</Button>
                 {messageByTile.personalization && (
-                  <p className="text-sm text-slate-600 dark:text-slate-300">
+                  <p className="text-sm text-zinc-600 dark:text-zinc-300">
                     {messageByTile.personalization}
                   </p>
                 )}
@@ -261,7 +261,7 @@ export default function SettingsPage() {
             <div className="space-y-4">
               <div>
                 <label className="mb-1 block text-sm font-medium">Appearance</label>
-                <p className="mb-2 text-sm text-slate-500">Toggle between light and dark mode.</p>
+                <p className="mb-2 text-sm text-zinc-500">Toggle between light and dark mode.</p>
                 <ThemeToggle />
               </div>
 
@@ -270,10 +270,10 @@ export default function SettingsPage() {
                 <select
                   value={startPage}
                   onChange={(event) => setStartPage(event.target.value)}
-                  className="w-full rounded-md border border-slate-300 bg-slate-900 px-3 py-2 text-sm text-slate-100 outline-none focus:ring-2 focus:ring-slate-400 dark:border-slate-700"
+                  className="w-full rounded-md border border-zinc-300 bg-zinc-900 px-3 py-2 text-sm text-zinc-100 outline-none focus:ring-2 focus:ring-zinc-400 dark:border-zinc-700"
                 >
                   {startPageOptions.map((item) => (
-                    <option key={item} value={item} className="bg-slate-900 text-slate-100">
+                    <option key={item} value={item} className="bg-zinc-900 text-zinc-100">
                       {item}
                     </option>
                   ))}
@@ -301,7 +301,7 @@ export default function SettingsPage() {
               <div className="flex items-center gap-3">
                 <Button onClick={savePreferences}>Save Preferences</Button>
                 {messageByTile.preferences && (
-                  <p className="text-sm text-slate-600 dark:text-slate-300">
+                  <p className="text-sm text-zinc-600 dark:text-zinc-300">
                     {messageByTile.preferences}
                   </p>
                 )}
@@ -316,7 +316,7 @@ export default function SettingsPage() {
             activeTile={activeTile}
             setActiveTile={setActiveTile}
           >
-            <div className="space-y-3 text-sm text-slate-700 dark:text-slate-300">
+            <div className="space-y-3 text-sm text-zinc-700 dark:text-zinc-300">
               <p><span className="font-medium">Name:</span> Digvijay Singh</p>
               <p><span className="font-medium">Role:</span> Full stack Developer</p>
               <p>
@@ -339,7 +339,7 @@ export default function SettingsPage() {
             activeTile={activeTile}
             setActiveTile={setActiveTile}
           >
-            <p className="text-sm text-slate-600 dark:text-slate-300">
+            <p className="text-sm text-zinc-600 dark:text-zinc-300">
               Send your query to:{" "}
               <a className="underline" href="mailto:chauhandigvijay669@gmail.com">
                 chauhandigvijay669@gmail.com
