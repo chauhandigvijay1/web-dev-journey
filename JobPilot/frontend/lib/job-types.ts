@@ -10,6 +10,7 @@ export type Job = {
   title: string;
   company: string;
   location?: string;
+  locations?: string[];
   jobType?: string;
   salary: string;
   companyType?: string;
@@ -28,4 +29,10 @@ export type Job = {
   joiningType?: string;
   source?: string;
   followUpDate?: string | null;
+  skills?: string[];
+  qualification?: string;
+  applyDeadline?: string | null;
+  workMode?: string;
+  descriptionSummary?: string;
+  originalApplyLink?: string;
 };

@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useDeferredValue, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import {
   DndContext,
@@ -113,7 +113,7 @@ export function JobsKanban() {
   const [loading, setLoading] = useState(true);
   const [fetchError, setFetchError] = useState<string | null>(null);
   const [filters, setFilters] = useState<KanbanFilterState>(defaultKanbanFilters);
-  const [sort, setSort] = useState<KanbanSort>("latest");
+  const [sort, setSort] = useState<KanbanSort>("bestMatch");
   const [activeJob, setActiveJob] = useState<Job | null>(null);
   const [editJob, setEditJob] = useState<Job | null>(null);
   const [deleteJob, setDeleteJob] = useState<Job | null>(null);
@@ -142,10 +142,44 @@ export function JobsKanban() {
     void load();
   }, [load]);
 
+  const companies = useMemo(() => uniqueTrimmed(jobs.map((job) => job.company)), [jobs]);
   const jobTypes = useMemo(() => uniqueTrimmed(jobs.map((j) => j.jobType)), [jobs]);
   const sources = useMemo(() => uniqueTrimmed(jobs.map((j) => j.source)), [jobs]);
+  const {
+    search: filterSearch,
+    status: filterStatus,
+    company: filterCompany,
+    place: filterPlace,
+    country: filterCountry,
+    workMode: filterWorkMode,
+    jobType: filterJobType,
+    source: filterSource,
+  } = filters;
+  const deferredSearch = useDeferredValue(filterSearch);
+  const effectiveFilters = useMemo(
+    () => ({
+      search: deferredSearch,
+      status: filterStatus,
+      company: filterCompany,
+      place: filterPlace,
+      country: filterCountry,
+      workMode: filterWorkMode,
+      jobType: filterJobType,
+      source: filterSource,
+    }),
+    [
+      deferredSearch,
+      filterCompany,
+      filterCountry,
+      filterJobType,
+      filterPlace,
+      filterSource,
+      filterStatus,
+      filterWorkMode,
+    ]
+  );
 
-  const filteredJobs = useMemo(() => filterJobs(jobs, filters), [jobs, filters]);
+  const filteredJobs = useMemo(() => filterJobs(jobs, effectiveFilters), [effectiveFilters, jobs]);
 
   const grouped = useMemo(() => {
     const m = groupByStatus(filteredJobs);
@@ -266,6 +300,7 @@ export function JobsKanban() {
           onFiltersChange={setFilters}
           sort={sort}
           onSortChange={setSort}
+          companies={companies}
           jobTypes={jobTypes}
           sources={sources}
         />

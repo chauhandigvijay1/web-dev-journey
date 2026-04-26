@@ -1,15 +1,16 @@
 import "dotenv/config";
 import mongoose from "mongoose";
 import { app } from "./app.js";
+import { env } from "./config/env.js";
+import { startAutoHunterScheduler } from "./services/auto-hunter/scheduler.service.js";
 import { startReminderScheduler } from "./services/reminder.service.js";
 import { backfillMissingUsernames } from "./utils/auth.js";
-
-const PORT = Number(process.env.PORT) || 5000;
+import { logger } from "./utils/logger.js";
 
 async function connectDatabase() {
-  const uri = process.env.MONGO_URI;
+  const uri = env.mongoUri;
   if (!uri) {
-    console.warn("MONGO_URI is not set; skipping MongoDB connection.");
+    logger.warn("MONGO_URI is not set; skipping MongoDB connection.");
     return;
   }
   try {
@@ -17,18 +18,19 @@ async function connectDatabase() {
       serverSelectionTimeoutMS: 5000,
       connectTimeoutMS: 5000,
     });
-    console.log("MongoDB connected");
+    logger.info("MongoDB connected");
   } catch (err) {
-    console.warn("MongoDB connection failed:", err.message);
+    logger.warn("MongoDB connection failed", { message: err.message });
   }
 }
 
 await connectDatabase();
 if (mongoose.connection.readyState === 1) {
-  await backfillMissingUsernames();
+  await backfillMissingUsernames(logger);
 }
-startReminderScheduler();
+startReminderScheduler(logger);
+startAutoHunterScheduler(logger);
 
-app.listen(PORT, () => {
-  console.log(`Server listening on port ${PORT}`);
+app.listen(env.port, () => {
+  logger.info("Server listening", { port: env.port });
 });

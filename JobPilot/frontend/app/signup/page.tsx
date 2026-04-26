@@ -81,6 +81,7 @@ export default function SignupPage() {
 
     setPending(true);
     try {
+      const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
       const { data } = await api.post<{ success: boolean; data?: AuthPayload; message?: string }>(
         "/auth/register",
         {
@@ -89,6 +90,7 @@ export default function SignupPage() {
           email: email.trim(),
           password,
           emailNotifications,
+          timezone,
         }
       );
       if (!data.success || !data.data) {
@@ -108,9 +110,10 @@ export default function SignupPage() {
     setPending(true);
 
     try {
+      const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
       const { data } = await api.post<{ success: boolean; data?: AuthPayload; message?: string }>(
         "/auth/google",
-        { credential }
+        { credential, timezone }
       );
 
       if (!data.success || !data.data) {

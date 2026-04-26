@@ -1,5 +1,6 @@
 import mongoose from "mongoose";
 import { Job } from "../models/Job.js";
+import { ResumeProfile } from "../models/ResumeProfile.js";
 import { groqChat } from "../utils/groq.js";
 
 function sendAiError(res, err) {
@@ -80,6 +81,89 @@ ${JSON.stringify(snapshot, null, 2)}`;
       ],
       { max_tokens: 1500 }
     );
+    return res.json({ success: true, data: text });
+  } catch (err) {
+    return sendAiError(res, err);
+  }
+}
+
+export async function generateInterviewQuestions(req, res) {
+  try {
+    const { jobId } = req.body ?? {};
+    if (!jobId || !mongoose.isValidObjectId(jobId)) {
+      return res.status(400).json({ success: false, message: "Valid job id is required" });
+    }
+
+    const [job, resumeProfile] = await Promise.all([
+      Job.findOne({ _id: jobId, user: req.user._id }).lean(),
+      ResumeProfile.findOne({ user: req.user._id }).lean(),
+    ]);
+
+    if (!job) {
+      return res.status(404).json({ success: false, message: "Job not found" });
+    }
+
+    const jobSnapshot = {
+      title: job.title,
+      company: job.company,
+      location: job.location,
+      jobType: job.jobType,
+      workMode: job.workMode,
+      source: job.source,
+      experience: job.experience,
+      skills: job.skills,
+      qualification: job.qualification,
+      companyType: job.companyType,
+      descriptionSummary: job.descriptionSummary,
+      notes: job.notes,
+    };
+
+    const candidateSnapshot = resumeProfile
+      ? {
+          summary: resumeProfile.parsedData?.summary || "",
+          skills: resumeProfile.parsedData?.skills || [],
+          techStack: resumeProfile.parsedData?.techStack || [],
+          preferredRoles: resumeProfile.parsedData?.preferredRoles || [],
+          seniorityLevel: resumeProfile.parsedData?.seniorityLevel || "",
+          totalYearsExperience: resumeProfile.parsedData?.totalYearsExperience || 0,
+        }
+      : null;
+
+    const userPrompt = `Generate a company-specific and role-specific interview preparation pack in markdown.
+
+Rules:
+- Do not write generic filler.
+- Anchor every question to the job title, company, seniority, skills, and job context below.
+- If company-specific detail is inferred rather than explicit, say "Inferred from company/role context".
+- Include strong answer direction for each important question.
+- Keep the output concise but high signal.
+
+Required sections:
+1. Likely interview rounds
+2. HR and recruiter questions
+3. Role-specific technical questions
+4. Coding or case-style questions (if relevant)
+5. Company-focused signals to prepare
+6. Strong answer strategy
+
+Job context:
+${JSON.stringify(jobSnapshot, null, 2)}
+
+Candidate context:
+${JSON.stringify(candidateSnapshot, null, 2)}`;
+
+    const text = await groqChat(
+      [
+        {
+          role: "system",
+          content:
+            "You are an expert interview coach. Produce tailored interview prep grounded in the supplied job and candidate context.",
+        },
+        { role: "user", content: userPrompt },
+      ],
+      { max_tokens: 1800, temperature: 0.2 }
+    );
+
     return res.json({ success: true, data: text });
   } catch (err) {
     return sendAiError(res, err);

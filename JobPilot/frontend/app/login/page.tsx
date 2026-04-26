@@ -68,9 +68,10 @@ export default function LoginPage() {
     setPending(true);
 
     try {
+      const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
       const { data } = await api.post<{ success: boolean; data?: AuthPayload; message?: string }>(
         "/auth/google",
-        { credential }
+        { credential, timezone }
       );
 
       if (!data.success || !data.data) {

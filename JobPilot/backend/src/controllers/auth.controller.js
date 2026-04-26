@@ -1,6 +1,18 @@
 import bcrypt from "bcrypt";
 import { OAuth2Client } from "google-auth-library";
+import { assertSupportedTimezone } from "../config/env.js";
 import { User } from "../models/User.js";
+import {
+  clearRefreshCookie,
+  clearUserSession,
+  normalizeSettings,
+  publicUser,
+  readRefreshToken,
+  refreshUserSession,
+  sendAuthSuccess as sendAuthSuccessResponse,
+  setRefreshCookie,
+} from "../services/auth.service.js";
+import { syncRemindersForUser } from "../services/reminder.service.js";
 import {
   ensureUniqueUsername,
   ensureUserHasUsername,
@@ -12,60 +24,9 @@ import {
   normalizeEmail,
   normalizeUsername,
 } from "../utils/auth.js";
-import { generateToken } from "../utils/jwt.js";
-
-const DEFAULT_SETTINGS = {
-  jobPreferences: {
-    preferredJobType: "",
-    preferredLocation: "",
-    expectedSalaryRange: "",
-  },
-  productivity: {
-    defaultFollowUpDays: 5,
-    autoMarkGhostedDays: 21,
-  },
-};
+import { verifyRefreshToken } from "../utils/jwt.js";
 
 const googleClients = new Map();
-
-function normalizeSettings(settings = {}) {
-  return {
-    jobPreferences: {
-      preferredJobType: settings.jobPreferences?.preferredJobType || "",
-      preferredLocation: settings.jobPreferences?.preferredLocation || "",
-      expectedSalaryRange: settings.jobPreferences?.expectedSalaryRange || "",
-    },
-    productivity: {
-      defaultFollowUpDays:
-        typeof settings.productivity?.defaultFollowUpDays === "number"
-          ? settings.productivity.defaultFollowUpDays
-          : DEFAULT_SETTINGS.productivity.defaultFollowUpDays,
-      autoMarkGhostedDays:
-        typeof settings.productivity?.autoMarkGhostedDays === "number"
-          ? settings.productivity.autoMarkGhostedDays
-          : DEFAULT_SETTINGS.productivity.autoMarkGhostedDays,
-    },
-  };
-}
-
-function publicUser(user) {
-  return {
-    id: user._id.toString(),
-    name: user.name,
-    username: user.username || "",
-    email: user.email,
-    profilePic: user.profilePic || "",
-    phone: user.phone || "",
-    bio: user.bio || "",
-    emailNotifications: user.emailNotifications,
-    authProviders: {
-      password: user.hasPassword !== false,
-      google: Boolean(user.googleId),
-    },
-    settings: normalizeSettings(user.settings),
-    createdAt: user.createdAt,
-  };
-}
 
 function getGoogleClient(clientId) {
   if (!googleClients.has(clientId)) {
@@ -85,24 +46,6 @@ function duplicateFieldMessage(error) {
   if (field === "googleId") return "Google account is already linked";
 
   return "Account already exists";
-}
-
-async function sendAuthSuccess(res, user, status = 200) {
-  if (await ensureUserHasUsername(user)) {
-    await user.save();
-  }
-
-  let token;
-  try {
-    token = generateToken(user._id);
-  } catch (err) {
-    return res.status(500).json({ success: false, message: err.message });
-  }
-
-  return res.status(status).json({
-    success: true,
-    data: { token, user: publicUser(user) },
-  });
 }
 
 async function verifyGoogleCredential(credential) {
@@ -151,7 +94,7 @@ function parseBoundedInteger(value, min, max) {
 }
 
 export async function registerUser(req, res) {
-  const { name, username, email, password, emailNotifications } = req.body ?? {};
+  const { name, username, email, password, emailNotifications, timezone } = req.body ?? {};
 
   if (!isNonEmptyString(name)) {
     return res.status(400).json({ success: false, message: "Name is required" });
@@ -195,6 +138,14 @@ export async function registerUser(req, res) {
       hasPassword: true,
       emailNotifications:
         typeof emailNotifications === "boolean" ? emailNotifications : true,
+      settings: normalizeSettings({
+        notifications: {
+          timezone:
+            typeof timezone === "string" && assertSupportedTimezone(timezone.trim())
+              ? timezone.trim()
+              : undefined,
+        },
+      }),
     });
   } catch (err) {
     const duplicateMessage = duplicateFieldMessage(err);
@@ -204,7 +155,7 @@ export async function registerUser(req, res) {
     throw err;
   }
 
-  return sendAuthSuccess(res, user, 201);
+  return sendAuthSuccessResponse(res, user, 201);
 }
 
 export async function loginUser(req, res) {
@@ -241,11 +192,15 @@ export async function loginUser(req, res) {
     return res.status(401).json({ success: false, message: "Invalid credentials" });
   }
 
-  return sendAuthSuccess(res, user);
+  return sendAuthSuccessResponse(res, user);
 }
 
 export async function loginWithGoogle(req, res) {
   const credential = typeof req.body?.credential === "string" ? req.body.credential.trim() : "";
+  const timezone =
+    typeof req.body?.timezone === "string" && assertSupportedTimezone(req.body.timezone.trim())
+      ? req.body.timezone.trim()
+      : "";
   if (!credential) {
     return res.status(400).json({ success: false, message: "Google credential is required" });
   }
@@ -283,6 +238,15 @@ export async function loginWithGoogle(req, res) {
     if (picture && !user.profilePic) {
       user.profilePic = picture;
     }
+    if (timezone && !user.settings?.notifications?.timezone) {
+      user.settings = normalizeSettings({
+        ...user.settings,
+        notifications: {
+          ...user.settings?.notifications,
+          timezone,
+        },
+      });
+    }
     await user.save();
   } else {
     const generatedUsername = await ensureUniqueUsername({
@@ -298,6 +262,11 @@ export async function loginWithGoogle(req, res) {
         googleId: payload.sub,
         hasPassword: false,
         profilePic: picture,
+        settings: normalizeSettings({
+          notifications: {
+            timezone: timezone || undefined,
+          },
+        }),
       });
     } catch (err) {
       const duplicateMessage = duplicateFieldMessage(err);
@@ -308,7 +277,7 @@ export async function loginWithGoogle(req, res) {
     }
   }
 
-  return sendAuthSuccess(res, user);
+  return sendAuthSuccessResponse(res, user);
 }
 
 export async function getMe(req, res) {
@@ -320,10 +289,9 @@ export async function getMe(req, res) {
 
 export async function updateMe(req, res) {
   const body = req.body ?? {};
+  let shouldSyncReminders = false;
 
-  if (!req.user.settings) {
-    req.user.settings = normalizeSettings();
-  }
+  req.user.settings = normalizeSettings(req.user.settings);
 
   if (Object.prototype.hasOwnProperty.call(body, "name")) {
     if (!isNonEmptyString(body.name)) {
@@ -377,6 +345,7 @@ export async function updateMe(req, res) {
         .json({ success: false, message: "emailNotifications must be a boolean" });
     }
     req.user.emailNotifications = body.emailNotifications;
+    shouldSyncReminders = true;
   }
 
   if (Object.prototype.hasOwnProperty.call(body, "settings")) {
@@ -403,8 +372,18 @@ export async function updateMe(req, res) {
       return res.status(400).json({ success: false, message: "productivity must be an object" });
     }
 
+    if (
+      Object.prototype.hasOwnProperty.call(settings, "notifications") &&
+      (settings.notifications == null ||
+        typeof settings.notifications !== "object" ||
+        Array.isArray(settings.notifications))
+    ) {
+      return res.status(400).json({ success: false, message: "notifications must be an object" });
+    }
+
     const jobPreferences = settings.jobPreferences ?? {};
     const productivity = settings.productivity ?? {};
+    const notifications = settings.notifications ?? {};
 
     if (Object.prototype.hasOwnProperty.call(jobPreferences, "preferredJobType")) {
       if (jobPreferences.preferredJobType == null || jobPreferences.preferredJobType === "") {
@@ -462,6 +441,35 @@ export async function updateMe(req, res) {
       }
       req.user.settings.productivity.autoMarkGhostedDays = value;
     }
+
+    if (Object.prototype.hasOwnProperty.call(notifications, "timezone")) {
+      if (!isNonEmptyString(notifications.timezone) || !assertSupportedTimezone(notifications.timezone.trim())) {
+        return res.status(400).json({ success: false, message: "timezone must be a valid IANA timezone" });
+      }
+      req.user.settings.notifications.timezone = notifications.timezone.trim();
+      shouldSyncReminders = true;
+    }
+
+    if (Object.prototype.hasOwnProperty.call(notifications, "reminderHour")) {
+      const value = parseBoundedInteger(notifications.reminderHour, 0, 23);
+      if (value == null) {
+        return res
+          .status(400)
+          .json({ success: false, message: "reminderHour must be between 0 and 23" });
+      }
+      req.user.settings.notifications.reminderHour = value;
+      shouldSyncReminders = true;
+    }
+
+    if (Object.prototype.hasOwnProperty.call(notifications, "weeklySummaryEnabled")) {
+      if (typeof notifications.weeklySummaryEnabled !== "boolean") {
+        return res
+          .status(400)
+          .json({ success: false, message: "weeklySummaryEnabled must be a boolean" });
+      }
+      req.user.settings.notifications.weeklySummaryEnabled = notifications.weeklySummaryEnabled;
+      shouldSyncReminders = true;
+    }
   }
 
   if (!req.user.isModified()) {
@@ -469,6 +477,10 @@ export async function updateMe(req, res) {
   }
 
   await req.user.save();
+
+  if (shouldSyncReminders) {
+    await syncRemindersForUser(req.user._id);
+  }
 
   return res.json({ success: true, data: { user: publicUser(req.user) } });
 }
@@ -526,4 +538,64 @@ export async function changePassword(req, res) {
   await user.save();
 
   return res.json({ success: true, message: "Password updated successfully" });
+}
+
+export async function refreshAuthSession(req, res) {
+  const refreshToken = readRefreshToken(req);
+  if (!refreshToken) {
+    clearRefreshCookie(res);
+    return res.status(401).json({ success: false, message: "Refresh session not found" });
+  }
+
+  let decoded;
+  try {
+    decoded = verifyRefreshToken(refreshToken);
+  } catch {
+    clearRefreshCookie(res);
+    return res.status(401).json({ success: false, message: "Refresh session is invalid" });
+  }
+
+  const user = await User.findById(decoded.userId).select(
+    "+refreshTokenHash +refreshSessionId +refreshTokenExpiresAt"
+  );
+  if (!user) {
+    clearRefreshCookie(res);
+    return res.status(401).json({ success: false, message: "User not found" });
+  }
+
+  const session = await refreshUserSession(req, user);
+  if (!session) {
+    clearRefreshCookie(res);
+    return res.status(401).json({ success: false, message: "Refresh session is invalid" });
+  }
+
+  setRefreshCookie(res, session.refreshToken);
+
+  return res.json({
+    success: true,
+    data: {
+      token: session.accessToken,
+      user: session.publicUser,
+    },
+  });
+}
+
+export async function logoutUser(req, res) {
+  const refreshToken = readRefreshToken(req);
+  if (refreshToken) {
+    try {
+      const decoded = verifyRefreshToken(refreshToken);
+      const user = await User.findById(decoded.userId).select(
+        "+refreshTokenHash +refreshSessionId +refreshTokenExpiresAt"
+      );
+      if (user) {
+        await clearUserSession(user);
+      }
+    } catch {
+      // Best-effort logout.
+    }
+  }
+
+  clearRefreshCookie(res);
+  return res.json({ success: true, message: "Logged out" });
 }

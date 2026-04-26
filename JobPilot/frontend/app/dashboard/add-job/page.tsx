@@ -18,16 +18,41 @@ type Extracted = {
   title: string;
   company: string;
   location: string;
+  locations: string;
   jobType: string;
   salary: string;
+  workMode: string;
+  experience: string;
+  skills: string;
+  qualification: string;
+  applyDeadline: string;
+  descriptionSummary: string;
+  originalApplyLink: string;
+  source: string;
+  warning?: string;
+};
+
+type ExtractedResponse = Omit<Extracted, "locations" | "skills"> & {
+  locations?: string[] | string;
+  skills?: string[] | string;
 };
 
 const emptyExtracted: Extracted = {
   title: "",
   company: "",
   location: "",
+  locations: "",
   jobType: "",
   salary: "",
+  workMode: "",
+  experience: "",
+  skills: "",
+  qualification: "",
+  applyDeadline: "",
+  descriptionSummary: "",
+  originalApplyLink: "",
+  source: "",
+  warning: "",
 };
 
 function toDateInput(daysFromNow: number) {
@@ -37,12 +62,41 @@ function toDateInput(daysFromNow: number) {
   return date.toISOString().slice(0, 10);
 }
 
+function parseDateInput(value?: string | null) {
+  if (!value) return "";
+  const parsed = new Date(value);
+  return Number.isNaN(parsed.getTime()) ? "" : parsed.toISOString().slice(0, 10);
+}
+
+function normalizeList(value: string) {
+  return value
+    .split(/\n|,|;/)
+    .map((item) => item.trim())
+    .filter(Boolean);
+}
+
+function listToString(value?: string[] | string) {
+  if (Array.isArray(value)) {
+    return value.join(", ");
+  }
+  return value ?? "";
+}
+
+function sourceFromUrl(value: string) {
+  try {
+    return new URL(value).hostname.replace(/^www\./, "");
+  } catch {
+    return "";
+  }
+}
+
 export default function AddJobPage() {
   const router = useRouter();
   const userSettings = useAppSelector((state) => state.auth.user?.settings ?? defaultStoredUserSettings);
   const [jobUrl, setJobUrl] = useState("");
   const [extractLoading, setExtractLoading] = useState(false);
   const [extractError, setExtractError] = useState<string | null>(null);
+  const [extractNotice, setExtractNotice] = useState<string | null>(null);
   const [showForm, setShowForm] = useState(false);
   const [basic, setBasic] = useState<Extracted>(emptyExtracted);
   const [expectedSalary, setExpectedSalary] = useState(userSettings.jobPreferences.expectedSalaryRange);
@@ -63,12 +117,23 @@ export default function AddJobPage() {
 
   function startManualEntry() {
     setExtractError(null);
+    setExtractNotice(null);
     setBasic((current) => ({
       title: current.title,
       company: current.company,
       location: current.location || userSettings.jobPreferences.preferredLocation,
+      locations: current.locations || userSettings.jobPreferences.preferredLocation,
       jobType: current.jobType || userSettings.jobPreferences.preferredJobType,
       salary: current.salary,
+      workMode: current.workMode,
+      experience: current.experience,
+      skills: current.skills,
+      qualification: current.qualification,
+      applyDeadline: current.applyDeadline,
+      descriptionSummary: current.descriptionSummary,
+      originalApplyLink: current.originalApplyLink || jobUrl.trim(),
+      source: current.source || sourceFromUrl(jobUrl.trim()),
+      warning: current.warning,
     }));
     setExpectedSalary((current) => current || userSettings.jobPreferences.expectedSalaryRange);
     setFollowUpDate((current) => current || toDateInput(userSettings.productivity.defaultFollowUpDays));
@@ -77,6 +142,7 @@ export default function AddJobPage() {
 
   async function handleExtract() {
     setExtractError(null);
+    setExtractNotice(null);
     const url = jobUrl.trim();
     if (!url) {
       setExtractError("Enter a job URL");
@@ -85,7 +151,7 @@ export default function AddJobPage() {
 
     setExtractLoading(true);
     try {
-      const { data } = await api.post<{ success: boolean; data?: Extracted; message?: string }>(
+      const { data } = await api.post<{ success: boolean; data?: ExtractedResponse; message?: string }>(
         "/jobs/extract",
         { url }
       );
@@ -98,9 +164,23 @@ export default function AddJobPage() {
         title: data.data.title ?? "",
         company: data.data.company ?? "",
         location: data.data.location?.trim() || userSettings.jobPreferences.preferredLocation,
+        locations:
+          listToString(data.data.locations).trim() ||
+          data.data.location?.trim() ||
+          userSettings.jobPreferences.preferredLocation,
         jobType: data.data.jobType?.trim() || userSettings.jobPreferences.preferredJobType,
         salary: data.data.salary ?? "",
+        workMode: data.data.workMode ?? "",
+        experience: data.data.experience ?? "",
+        skills: listToString(data.data.skills),
+        qualification: data.data.qualification ?? "",
+        applyDeadline: parseDateInput(data.data.applyDeadline),
+        descriptionSummary: data.data.descriptionSummary ?? "",
+        originalApplyLink: data.data.originalApplyLink ?? url,
+        source: data.data.source ?? sourceFromUrl(url),
+        warning: data.data.warning ?? "",
       });
+      setExtractNotice(data.data.warning?.trim() || null);
       setExpectedSalary((prev) => prev || userSettings.jobPreferences.expectedSalaryRange);
       if (!followUpDate) {
         setFollowUpDate(toDateInput(userSettings.productivity.defaultFollowUpDays));
@@ -133,15 +213,23 @@ export default function AddJobPage() {
         title: basic.title.trim(),
         company: basic.company,
         location: basic.location,
+        locations: normalizeList(basic.locations),
         jobType: basic.jobType,
         salary: basic.salary,
+        workMode: basic.workMode,
+        experience: basic.experience,
+        skills: normalizeList(basic.skills),
+        qualification: basic.qualification,
+        applyDeadline: serializeFollowUpDate(basic.applyDeadline),
+        descriptionSummary: basic.descriptionSummary,
+        originalApplyLink: basic.originalApplyLink || jobUrl.trim() || undefined,
         expectedSalary,
         offeredSalary,
         companyType,
         confidenceScore: Number.isFinite(score) ? score : 0,
         notes,
         followUpDate: serializeFollowUpDate(followUpDate),
-        source: jobUrl.trim() || undefined,
+        source: basic.source || sourceFromUrl(jobUrl.trim()) || undefined,
       });
       if (!data.success) {
         setSaveError(data.message ?? "Could not save job");
@@ -177,6 +265,11 @@ export default function AddJobPage() {
           {extractError ? (
             <p className="rounded-md border border-destructive/30 bg-destructive/10 px-3 py-2 text-sm text-destructive">
               {extractError}
+            </p>
+          ) : null}
+          {extractNotice ? (
+            <p className="rounded-md border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-sm text-amber-900 dark:text-amber-100">
+              {extractNotice}
             </p>
           ) : null}
           <div className="space-y-2">
@@ -236,6 +329,15 @@ export default function AddJobPage() {
                   onChange={(event) => setBasic((state) => ({ ...state, location: event.target.value }))}
                 />
               </div>
+              <div className="space-y-2 sm:col-span-2">
+                <Label htmlFor="locations">Multiple locations</Label>
+                <Input
+                  id="locations"
+                  value={basic.locations}
+                  onChange={(event) => setBasic((state) => ({ ...state, locations: event.target.value }))}
+                  placeholder="Remote, Bengaluru, London"
+                />
+              </div>
               <div className="space-y-2">
                 <Label htmlFor="jobType">Job type</Label>
                 <Input
@@ -250,6 +352,55 @@ export default function AddJobPage() {
                   id="salary"
                   value={basic.salary}
                   onChange={(event) => setBasic((state) => ({ ...state, salary: event.target.value }))}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="workMode">Work mode</Label>
+                <Input
+                  id="workMode"
+                  value={basic.workMode}
+                  onChange={(event) => setBasic((state) => ({ ...state, workMode: event.target.value }))}
+                  placeholder="Remote / Hybrid / Onsite"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="experience">Experience</Label>
+                <Input
+                  id="experience"
+                  value={basic.experience}
+                  onChange={(event) => setBasic((state) => ({ ...state, experience: event.target.value }))}
+                  placeholder="Fresher, 1-3 years"
+                />
+              </div>
+              <div className="space-y-2 sm:col-span-2">
+                <Label htmlFor="qualification">Qualification</Label>
+                <Input
+                  id="qualification"
+                  value={basic.qualification}
+                  onChange={(event) => setBasic((state) => ({ ...state, qualification: event.target.value }))}
+                  placeholder="B.Tech, Bachelor's degree, etc."
+                />
+              </div>
+              <div className="space-y-2 sm:col-span-2">
+                <Label htmlFor="skills">Skills</Label>
+                <Textarea
+                  id="skills"
+                  value={basic.skills}
+                  onChange={(event) => setBasic((state) => ({ ...state, skills: event.target.value }))}
+                  rows={3}
+                  placeholder="React, Node.js, SQL"
+                />
+              </div>
+              <div className="space-y-2 sm:col-span-2">
+                <Label htmlFor="descriptionSummary">Description summary</Label>
+                <Textarea
+                  id="descriptionSummary"
+                  value={basic.descriptionSummary}
+                  onChange={(event) =>
+                    setBasic((state) => ({ ...state, descriptionSummary: event.target.value }))
+                  }
+                  rows={4}
+                  placeholder="Short summary of responsibilities and role expectations"
                 />
               </div>
             </CardContent>
@@ -303,6 +454,36 @@ export default function AddJobPage() {
                   type="date"
                   value={followUpDate}
                   onChange={(event) => setFollowUpDate(event.target.value)}
+                />
+              </div>
+              <div className="space-y-2 sm:col-span-2">
+                <Label htmlFor="applyDeadline">Apply deadline</Label>
+                <Input
+                  id="applyDeadline"
+                  type="date"
+                  value={basic.applyDeadline}
+                  onChange={(event) => setBasic((state) => ({ ...state, applyDeadline: event.target.value }))}
+                />
+              </div>
+              <div className="space-y-2 sm:col-span-2">
+                <Label htmlFor="originalApplyLink">Original apply link</Label>
+                <Input
+                  id="originalApplyLink"
+                  type="url"
+                  value={basic.originalApplyLink}
+                  onChange={(event) =>
+                    setBasic((state) => ({ ...state, originalApplyLink: event.target.value }))
+                  }
+                  placeholder="https://..."
+                />
+              </div>
+              <div className="space-y-2 sm:col-span-2">
+                <Label htmlFor="source">Source</Label>
+                <Input
+                  id="source"
+                  value={basic.source}
+                  onChange={(event) => setBasic((state) => ({ ...state, source: event.target.value }))}
+                  placeholder="linkedin.com, careers page, referral"
                 />
               </div>
               <div className="space-y-2 sm:col-span-2">

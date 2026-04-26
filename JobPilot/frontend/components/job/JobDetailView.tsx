@@ -11,6 +11,7 @@ import {
   FileText,
   Flame,
   Ghost,
+  MessageSquareText,
   Loader2,
   Mail,
   Pin,
@@ -125,7 +126,7 @@ export function JobDetailView({ jobId }: { jobId: string }) {
   const [flagSaving, setFlagSaving] = useState<"pin" | "important" | "ghost" | null>(null);
   const [statusSaving, setStatusSaving] = useState(false);
   const [aiOpen, setAiOpen] = useState(false);
-  const [aiKind, setAiKind] = useState<"email" | "summary">("email");
+  const [aiKind, setAiKind] = useState<"email" | "summary" | "interview">("email");
   const [aiLoading, setAiLoading] = useState(false);
   const [aiError, setAiError] = useState<string | null>(null);
   const [aiOutput, setAiOutput] = useState("");
@@ -250,7 +251,7 @@ export function JobDetailView({ jobId }: { jobId: string }) {
     }
   }
 
-  async function runAi(kind: "email" | "summary") {
+  async function runAi(kind: "email" | "summary" | "interview") {
     if (!job) return;
     setAiKind(kind);
     setAiError(null);
@@ -266,9 +267,16 @@ export function JobDetailView({ jobId }: { jobId: string }) {
         );
         if (!data.success || typeof data.data !== "string") throw new Error(data.message ?? "Request failed");
         setAiOutput(data.data);
-      } else {
+      } else if (kind === "summary") {
         const { data } = await api.post<{ success: boolean; data?: string; message?: string }>(
           "/ai/summarize",
+          { jobId: job._id }
+        );
+        if (!data.success || typeof data.data !== "string") throw new Error(data.message ?? "Request failed");
+        setAiOutput(data.data);
+      } else {
+        const { data } = await api.post<{ success: boolean; data?: string; message?: string }>(
+          "/ai/interview-questions",
           { jobId: job._id }
         );
         if (!data.success || typeof data.data !== "string") throw new Error(data.message ?? "Request failed");
@@ -472,6 +480,12 @@ export function JobDetailView({ jobId }: { jobId: string }) {
               <p className="font-medium">{job.location?.trim() || "-"}</p>
             </div>
             <div>
+              <p className="text-muted-foreground">Locations</p>
+              <p className="font-medium">
+                {job.locations && job.locations.length > 0 ? job.locations.join(", ") : job.location?.trim() || "-"}
+              </p>
+            </div>
+            <div>
               <p className="text-muted-foreground">Job type</p>
               <p className="font-medium">{job.jobType?.trim() || "-"}</p>
             </div>
@@ -480,9 +494,23 @@ export function JobDetailView({ jobId }: { jobId: string }) {
               <p className="font-medium">{job.salary?.trim() || "-"}</p>
             </div>
             <div>
+              <p className="text-muted-foreground">Work mode</p>
+              <p className="font-medium">{job.workMode?.trim() || "-"}</p>
+            </div>
+            <div>
+              <p className="text-muted-foreground">Experience</p>
+              <p className="font-medium">{job.experience?.trim() || "-"}</p>
+            </div>
+            <div>
               <p className="text-muted-foreground">Follow-up</p>
               <p className="font-medium">
                 {job.followUpDate ? formatFollowUpLabel(job.followUpDate) : "Not scheduled"}
+              </p>
+            </div>
+            <div>
+              <p className="text-muted-foreground">Apply deadline</p>
+              <p className="font-medium">
+                {job.applyDeadline ? formatFollowUpLabel(job.applyDeadline) : "Not scheduled"}
               </p>
             </div>
           </CardContent>
@@ -540,8 +568,47 @@ export function JobDetailView({ jobId }: { jobId: string }) {
             <p className="font-medium">{job.companyType?.trim() || "-"}</p>
           </div>
           <div>
+            <p className="text-sm text-muted-foreground">Qualification</p>
+            <p className="font-medium">{job.qualification?.trim() || "-"}</p>
+          </div>
+          <div>
+            <p className="text-sm text-muted-foreground">Skills</p>
+            <p className="font-medium">
+              {job.skills && job.skills.length > 0 ? job.skills.join(", ") : "-"}
+            </p>
+          </div>
+          <div>
             <p className="mb-2 text-sm text-muted-foreground">Confidence score</p>
             <ConfidenceStars score={job.confidenceScore ?? 0} />
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader className="pb-3">
+          <CardTitle className="text-base">Source</CardTitle>
+          <CardDescription>Original listing reference</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-3 text-sm">
+          <div>
+            <p className="text-muted-foreground">Source</p>
+            <p className="font-medium">{job.source?.trim() || "-"}</p>
+          </div>
+          <div>
+            <p className="text-muted-foreground">Original apply link</p>
+            {job.originalApplyLink?.trim() ? (
+              <a
+                href={job.originalApplyLink}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 font-medium text-primary underline-offset-4 hover:underline"
+              >
+                <ExternalLink className="h-4 w-4" />
+                Open original listing
+              </a>
+            ) : (
+              <p className="font-medium">-</p>
+            )}
           </div>
         </CardContent>
       </Card>
@@ -585,6 +652,18 @@ export function JobDetailView({ jobId }: { jobId: string }) {
         </CardContent>
       </Card>
 
+      {job.descriptionSummary?.trim() ? (
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base">Description summary</CardTitle>
+            <CardDescription>Quick snapshot from the source job post</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <p className="text-sm leading-7 text-muted-foreground">{job.descriptionSummary}</p>
+          </CardContent>
+        </Card>
+      ) : null}
+
       <Card>
         <CardHeader className="pb-3">
           <CardTitle className="text-base">AI assistant</CardTitle>
@@ -620,6 +699,21 @@ export function JobDetailView({ jobId }: { jobId: string }) {
               <FileText className="h-4 w-4" />
             )}
             Summarize job
+          </Button>
+          <Button
+            type="button"
+            variant="secondary"
+            size="sm"
+            className="gap-2"
+            disabled={aiLoading}
+            onClick={() => void runAi("interview")}
+          >
+            {aiLoading && aiKind === "interview" ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <MessageSquareText className="h-4 w-4" />
+            )}
+            Generate interview questions
           </Button>
         </CardContent>
       </Card>
@@ -734,9 +828,19 @@ export function JobDetailView({ jobId }: { jobId: string }) {
       >
         <DialogContent className="max-h-[90vh] max-w-2xl gap-4 overflow-hidden">
           <DialogHeader>
-            <DialogTitle>{aiKind === "email" ? "Follow-up email" : "Job summary"}</DialogTitle>
+            <DialogTitle>
+              {aiKind === "email"
+                ? "Follow-up email"
+                : aiKind === "summary"
+                  ? "Job summary"
+                  : "Interview preparation pack"}
+            </DialogTitle>
             <DialogDescription className="sr-only">
-              {aiKind === "email" ? "Generated follow-up email draft" : "Generated job summary"}
+              {aiKind === "email"
+                ? "Generated follow-up email draft"
+                : aiKind === "summary"
+                  ? "Generated job summary"
+                  : "Generated interview preparation content"}
             </DialogDescription>
           </DialogHeader>
           <div className="min-h-[120px] space-y-3">

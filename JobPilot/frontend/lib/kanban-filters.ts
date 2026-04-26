@@ -1,83 +1,231 @@
 import { JOB_STATUSES, isJobStatus, type Job, type JobStatus } from "@/lib/job-types";
 
-export type KanbanSort = "latest" | "confidence" | "followup";
+export type KanbanSort =
+  | "latest"
+  | "bestMatch"
+  | "salaryHighToLow"
+  | "salaryLowToHigh"
+  | "followup";
 
 export type KanbanFilterState = {
+  search: string;
   status: JobStatus | "all";
+  company: string;
+  place: string;
+  country: string;
+  workMode: string;
   jobType: string;
   source: string;
 };
 
 export const defaultKanbanFilters: KanbanFilterState = {
+  search: "",
   status: "all",
+  company: "",
+  place: "",
+  country: "",
+  workMode: "",
   jobType: "",
   source: "",
 };
 
-export function uniqueTrimmed(values: (string | undefined | null)[]): string[] {
-  const set = new Set<string>();
-  for (const v of values) {
-    const t = (v ?? "").trim();
-    if (t) set.add(t);
-  }
-  return Array.from(set).sort((a, b) => a.localeCompare(b));
+function normalizeText(value: string | undefined | null) {
+  return (value ?? "").trim().toLowerCase();
 }
 
-export function filterJobs(jobs: Job[], f: KanbanFilterState): Job[] {
-  return jobs.filter((j) => {
-    if (f.status !== "all" && j.status !== f.status) return false;
-    if (f.jobType && (j.jobType ?? "").trim() !== f.jobType) return false;
-    if (f.source && (j.source ?? "").trim() !== f.source) return false;
+function locationValues(job: Job) {
+  return [job.location, ...(job.locations ?? [])]
+    .map((value) => (value ?? "").trim())
+    .filter(Boolean);
+}
+
+function locationSegments(job: Job) {
+  const segments = locationValues(job).flatMap((value) =>
+    value
+      .split(/,|\//)
+      .map((part) => part.trim())
+      .filter(Boolean)
+  );
+
+  return uniqueTrimmed(segments);
+}
+
+function countryTokens(job: Job) {
+  const countries = locationValues(job)
+    .map((value) => {
+      const parts = value
+        .split(/,|\//)
+        .map((part) => part.trim())
+        .filter(Boolean);
+      return parts.length > 1 ? parts[parts.length - 1] : "";
+    })
+    .filter(Boolean);
+
+  return uniqueTrimmed(countries);
+}
+
+function normalizeWorkMode(value: string | undefined | null) {
+  const text = normalizeText(value);
+  if (!text) return "";
+  if (text.includes("remote")) return "remote";
+  if (text.includes("hybrid")) return "hybrid";
+  if (text.includes("onsite") || text.includes("on-site") || text.includes("office")) return "onsite";
+  return text;
+}
+
+function parseSalaryToken(token: string) {
+  const normalized = token.toLowerCase().replace(/,/g, "");
+  const value = Number.parseFloat(normalized.replace(/[^\d.]/g, ""));
+  if (!Number.isFinite(value)) return null;
+
+  if (normalized.includes("crore") || normalized.includes("cr")) return value * 10_000_000;
+  if (normalized.includes("lakh") || normalized.includes("lac") || normalized.includes("lpa")) {
+    return value * 100_000;
+  }
+  if (normalized.endsWith("m")) return value * 1_000_000;
+  if (normalized.endsWith("k")) return value * 1_000;
+  return value;
+}
+
+function salarySortValue(job: Job) {
+  const source = [job.offeredSalary, job.salary, job.expectedSalary]
+    .map((value) => (value ?? "").trim())
+    .find(Boolean);
+
+  if (!source) return null;
+
+  const tokens =
+    source.match(/(?:usd|inr|eur|gbp|\$|rs\.?)?\s?\d[\d,]*(?:\.\d+)?\s?(?:k|m|cr|crore|lakh|lac|lpa)?/gi) || [];
+  const numbers = tokens.map(parseSalaryToken).filter((value): value is number => value != null);
+  if (!numbers.length) return null;
+  return Math.max(...numbers);
+}
+
+export function uniqueTrimmed(values: (string | undefined | null)[]): string[] {
+  const set = new Set<string>();
+  for (const value of values) {
+    const trimmed = (value ?? "").trim();
+    if (trimmed) set.add(trimmed);
+  }
+  return Array.from(set).sort((left, right) => left.localeCompare(right));
+}
+
+export function filterJobs(jobs: Job[], filters: KanbanFilterState): Job[] {
+  const query = normalizeText(filters.search);
+  const placeQuery = normalizeText(filters.place);
+  const countryQuery = normalizeText(filters.country);
+  const companyQuery = normalizeText(filters.company);
+  const workModeQuery = normalizeText(filters.workMode);
+  const sourceQuery = normalizeText(filters.source);
+
+  return jobs.filter((job) => {
+    if (query) {
+      const haystack = [
+        job.title,
+        job.company,
+        job.location,
+        ...(job.locations ?? []),
+        job.jobType,
+        job.status,
+        job.salary,
+        job.workMode,
+        job.source,
+      ]
+        .filter(Boolean)
+        .join(" ")
+        .toLowerCase();
+
+      if (!haystack.includes(query)) return false;
+    }
+
+    if (filters.status !== "all" && job.status !== filters.status) return false;
+    if (companyQuery && normalizeText(job.company) !== companyQuery) return false;
+    if (filters.jobType && normalizeText(job.jobType) !== normalizeText(filters.jobType)) return false;
+    if (workModeQuery && normalizeWorkMode(job.workMode) !== normalizeWorkMode(filters.workMode)) return false;
+    if (sourceQuery && normalizeText(job.source) !== sourceQuery) return false;
+
+    if (placeQuery) {
+      const matchesPlace = [...locationValues(job), ...locationSegments(job)].some((value) =>
+        normalizeText(value).includes(placeQuery)
+      );
+      if (!matchesPlace) return false;
+    }
+
+    if (countryQuery) {
+      const matchesCountry = [...countryTokens(job), ...locationValues(job)].some((value) =>
+        normalizeText(value).includes(countryQuery)
+      );
+      if (!matchesCountry) return false;
+    }
+
     return true;
   });
 }
 
-function followUpTime(iso?: string | null): number | null {
-  if (iso == null || iso === "") return null;
-  const t = new Date(iso).getTime();
-  return Number.isNaN(t) ? null : t;
+function followUpTime(value?: string | null) {
+  if (!value) return null;
+  const time = new Date(value).getTime();
+  return Number.isNaN(time) ? null : time;
 }
 
-function latestTime(j: Job): number {
-  const c = j.createdAt ? new Date(j.createdAt).getTime() : NaN;
-  const u = j.updatedAt ? new Date(j.updatedAt).getTime() : NaN;
-  const vals = [c, u].filter((x) => !Number.isNaN(x));
-  return vals.length ? Math.max(...vals) : 0;
+function latestTime(job: Job) {
+  const createdAt = job.createdAt ? new Date(job.createdAt).getTime() : Number.NaN;
+  const updatedAt = job.updatedAt ? new Date(job.updatedAt).getTime() : Number.NaN;
+  const valid = [createdAt, updatedAt].filter((value) => !Number.isNaN(value));
+  return valid.length ? Math.max(...valid) : 0;
 }
 
 export function sortJobsInColumn(jobs: Job[], sort: KanbanSort): Job[] {
   const copy = [...jobs];
-  copy.sort((a, b) => {
-    const ap = !!a.isPinned;
-    const bp = !!b.isPinned;
-    if (ap !== bp) return ap ? -1 : 1;
+
+  copy.sort((left, right) => {
+    const leftPinned = Boolean(left.isPinned);
+    const rightPinned = Boolean(right.isPinned);
+    if (leftPinned !== rightPinned) return leftPinned ? -1 : 1;
 
     switch (sort) {
       case "latest":
-        return latestTime(b) - latestTime(a);
-      case "confidence":
-        return (b.confidenceScore ?? 0) - (a.confidenceScore ?? 0);
+        return latestTime(right) - latestTime(left);
+      case "bestMatch":
+        return (right.confidenceScore ?? 0) - (left.confidenceScore ?? 0);
+      case "salaryHighToLow": {
+        const leftSalary = salarySortValue(left);
+        const rightSalary = salarySortValue(right);
+        if (leftSalary == null && rightSalary == null) return latestTime(right) - latestTime(left);
+        if (leftSalary == null) return 1;
+        if (rightSalary == null) return -1;
+        return rightSalary - leftSalary;
+      }
+      case "salaryLowToHigh": {
+        const leftSalary = salarySortValue(left);
+        const rightSalary = salarySortValue(right);
+        if (leftSalary == null && rightSalary == null) return latestTime(right) - latestTime(left);
+        if (leftSalary == null) return 1;
+        if (rightSalary == null) return -1;
+        return leftSalary - rightSalary;
+      }
       case "followup": {
-        const fa = followUpTime(a.followUpDate);
-        const fb = followUpTime(b.followUpDate);
-        if (fa === null && fb === null) return latestTime(b) - latestTime(a);
-        if (fa === null) return 1;
-        if (fb === null) return -1;
-        return fa - fb;
+        const leftFollowUp = followUpTime(left.followUpDate);
+        const rightFollowUp = followUpTime(right.followUpDate);
+        if (leftFollowUp == null && rightFollowUp == null) return latestTime(right) - latestTime(left);
+        if (leftFollowUp == null) return 1;
+        if (rightFollowUp == null) return -1;
+        return leftFollowUp - rightFollowUp;
       }
       default:
         return 0;
     }
   });
+
   return copy;
 }
 
 export function groupByStatus(jobs: Job[]): Map<JobStatus, Job[]> {
-  const m = new Map<JobStatus, Job[]>();
-  for (const s of JOB_STATUSES) m.set(s, []);
-  for (const j of jobs) {
-    const st = isJobStatus(j.status) ? j.status : "applied";
-    m.get(st)!.push(j);
+  const groups = new Map<JobStatus, Job[]>();
+  for (const status of JOB_STATUSES) groups.set(status, []);
+  for (const job of jobs) {
+    const status = isJobStatus(job.status) ? job.status : "applied";
+    groups.get(status)?.push(job);
   }
-  return m;
+  return groups;
 }

@@ -5,7 +5,7 @@ export async function uploadResume(req, res) {
     return res.status(400).json({ success: false, message: "Resume file is required" });
   }
   try {
-    const url = await uploadToCloudinary(req.file.buffer, req.file.mimetype);
+    const url = await uploadToCloudinary(req.file.buffer, req.file.mimetype, req.file.originalname);
     return res.json({ success: true, data: { url } });
   } catch (err) {
     if (err.message === "Cloudinary is not configured") {
@@ -20,7 +20,7 @@ export async function uploadProfileImage(req, res) {
     return res.status(400).json({ success: false, message: "Image file is required" });
   }
   try {
-    const url = await uploadImageToCloudinary(req.file.buffer, req.file.mimetype);
+    const url = await uploadImageToCloudinary(req.file.buffer, req.file.mimetype, req.file.originalname);
     return res.json({ success: true, data: { url } });
   } catch (err) {
     if (err.message === "Cloudinary is not configured") {

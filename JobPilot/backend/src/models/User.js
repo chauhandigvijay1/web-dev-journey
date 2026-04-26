@@ -12,6 +12,11 @@ const userSettingsSchema = new mongoose.Schema(
       defaultFollowUpDays: { type: Number, default: 5, min: 0, max: 30 },
       autoMarkGhostedDays: { type: Number, default: 21, min: 0, max: 365 },
     },
+    notifications: {
+      timezone: { type: String, trim: true, default: "UTC" },
+      reminderHour: { type: Number, default: 9, min: 0, max: 23 },
+      weeklySummaryEnabled: { type: Boolean, default: false },
+    },
   },
   { _id: false }
 );
@@ -41,6 +46,9 @@ const userSchema = new mongoose.Schema(
     bio: { type: String, trim: true, default: "" },
     emailNotifications: { type: Boolean, default: true },
     settings: { type: userSettingsSchema, default: () => ({}) },
+    refreshTokenHash: { type: String, select: false, default: "" },
+    refreshSessionId: { type: String, select: false, default: "" },
+    refreshTokenExpiresAt: { type: Date, select: false, default: null },
   },
   { timestamps: { createdAt: true, updatedAt: false } }
 );

@@ -1,153 +1,454 @@
 import cron from "node-cron";
 import mongoose from "mongoose";
-import nodemailer from "nodemailer";
+import { DateTime } from "luxon";
+import { env } from "../config/env.js";
 import { Job } from "../models/Job.js";
-import { formatFollowUpDate, getFollowUpDateKey } from "../utils/followUpDate.js";
-
-const DEFAULT_REMINDER_CRON = "*/15 * * * *";
+import { ReminderQueue } from "../models/ReminderQueue.js";
+import { User } from "../models/User.js";
+import {
+  buildDeadlineReminderEmail,
+  buildFollowUpReminderEmail,
+  buildInterviewReminderEmail,
+  buildWeeklySummaryEmail,
+} from "./email-templates.service.js";
+import { sendMail } from "./mail.service.js";
+import { logger as defaultLogger } from "../utils/logger.js";
+import {
+  formatFollowUpDate,
+  getFollowUpDateKey,
+  parseFollowUpDate,
+} from "../utils/followUpDate.js";
+import { normalizeSettings } from "./auth.service.js";
 
 let reminderTask = null;
 let runningSweep = null;
-let cachedTransporter = undefined;
-let missingMailConfigLogged = false;
 
-function getFrontendBaseUrl() {
-  const raw = process.env.FRONTEND_URL || process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
-  return raw.replace(/\/+$/, "");
+/* ======================================================
+   HELPERS
+====================================================== */
+
+function userNotificationSettings(user) {
+  const settings = normalizeSettings(user?.settings);
+  return settings.notifications;
 }
 
-function getMailFromAddress() {
-  return (
-    process.env.EMAIL_FROM ||
-    process.env.SMTP_FROM ||
-    process.env.SMTP_USER ||
-    ""
-  ).trim();
+function staleLockThreshold(now) {
+  return new Date(now.getTime() - env.reminderLockMinutes * 60 * 1000);
 }
 
-function hasMailConfig() {
-  return Boolean(
-    process.env.SMTP_HOST?.trim() &&
-      process.env.SMTP_PORT?.trim() &&
-      process.env.SMTP_USER?.trim() &&
-      process.env.SMTP_PASS?.trim() &&
-      getMailFromAddress()
+function reminderMessageId(reminder) {
+  return `<jobpilot-${reminder.type}-${reminder._id}@jobpilot.local>`;
+}
+
+function getFollowUpReason(job) {
+  if (job.status === "interview") {
+    return "Your interview process needs a timely follow-up.";
+  }
+
+  return "This follow-up date is due based on your application timeline.";
+}
+
+function getSuggestedNextAction(job, type) {
+  if (type === "deadline") {
+    return "Submit application before deadline.";
+  }
+
+  if (job.status === "interview") {
+    return "Send a professional interview follow-up.";
+  }
+
+  return "Send a short status follow-up email.";
+}
+
+/* ======================================================
+   DATE FIXED
+====================================================== */
+
+function toScheduledDate(dateValue, timezone, reminderHour) {
+  const date = parseFollowUpDate(dateValue);
+  if (!date) return null;
+
+  const utc = DateTime.fromJSDate(date, { zone: "utc" });
+
+  const scheduled = utc
+    .setZone(timezone)
+    .set({
+      hour: reminderHour,
+      minute: 0,
+      second: 0,
+      millisecond: 0,
+    })
+    .toUTC()
+    .toJSDate();
+
+  return scheduled;
+}
+
+/* ======================================================
+   DB OPS
+====================================================== */
+
+async function upsertReminder(spec) {
+  return ReminderQueue.findOneAndUpdate(
+    { dedupeKey: spec.dedupeKey },
+    {
+      $set: {
+        user: spec.user,
+        job: spec.job ?? null,
+        type: spec.type,
+        timezone: spec.timezone,
+        scheduledFor: spec.scheduledFor,
+        nextAttemptAt: spec.scheduledFor,
+        payload: spec.payload ?? {},
+        status: "pending",
+        attempts: 0,
+        lockedAt: null,
+        sentAt: null,
+        lastError: "",
+      },
+      $setOnInsert: {
+        maxAttempts: spec.maxAttempts ?? env.reminderRetryLimit,
+      },
+    },
+    {
+      upsert: true,
+      new: true,
+      setDefaultsOnInsert: true,
+    }
   );
 }
 
-function escapeHtml(value) {
-  return String(value)
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&#39;");
-}
+async function cancelOtherJobReminders(jobId, keepKeys = []) {
+  const query = {
+    job: jobId,
+    status: { $in: ["pending", "retry", "processing"] },
+  };
 
-function createMailTransporter() {
-  const port = Number(process.env.SMTP_PORT);
-  const secure = process.env.SMTP_SECURE === "true" || port === 465;
+  if (keepKeys.length) {
+    query.dedupeKey = { $nin: keepKeys };
+  }
 
-  return nodemailer.createTransport({
-    host: process.env.SMTP_HOST,
-    port,
-    secure,
-    auth: {
-      user: process.env.SMTP_USER,
-      pass: process.env.SMTP_PASS,
+  await ReminderQueue.updateMany(query, {
+    $set: {
+      status: "cancelled",
+      lockedAt: null,
     },
   });
 }
 
-async function getMailTransporter(logger) {
-  if (cachedTransporter !== undefined) {
-    return cachedTransporter;
-  }
-
-  if (!hasMailConfig()) {
-    if (!missingMailConfigLogged) {
-      logger.warn(
-        "[reminders] SMTP config is missing. Reminder emails are scheduled but will not send until SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS, and EMAIL_FROM are configured."
-      );
-      missingMailConfigLogged = true;
+export async function cancelJobReminders(jobId) {
+  await ReminderQueue.updateMany(
+    {
+      job: jobId,
+      status: { $in: ["pending", "retry", "processing"] },
+    },
+    {
+      $set: {
+        status: "cancelled",
+        lockedAt: null,
+      },
     }
-    cachedTransporter = null;
-    return cachedTransporter;
-  }
-
-  cachedTransporter = createMailTransporter();
-  return cachedTransporter;
+  );
 }
 
-function buildReminderMessage(job, user) {
-  const dashboardUrl = `${getFrontendBaseUrl()}/dashboard/jobs/${job._id}`;
-  const dueLabel = formatFollowUpDate(job.followUpDate);
-  const company = job.company?.trim() || "this company";
-  const notes = job.notes?.trim();
-  const safeTitle = escapeHtml(job.title);
-  const safeCompany = escapeHtml(job.company || "");
-  const safeDueLabel = escapeHtml(dueLabel);
-  const safeNotes = notes ? escapeHtml(notes) : "";
-  const safeStatus = job.status ? escapeHtml(job.status) : "";
-  const safeUserName = escapeHtml(user.name || "there");
+export async function cancelAllJobReminders(jobIds = []) {
+  if (!jobIds.length) return;
 
-  return {
-    from: getMailFromAddress(),
-    to: user.email,
-    subject: `JobPilot reminder: follow up on ${job.title}${job.company ? ` at ${job.company}` : ""}`,
-    text: [
-      `Hi ${user.name || "there"},`,
-      "",
-      `This is your JobPilot reminder to follow up on "${job.title}" at ${company}.`,
-      `Follow-up date: ${dueLabel}`,
-      job.status ? `Current status: ${job.status}` : "",
-      notes ? `Notes: ${notes}` : "",
-      "",
-      `Open this job: ${dashboardUrl}`,
-      "",
-      "You are receiving this because email reminders are enabled on your account.",
-    ]
-      .filter(Boolean)
-      .join("\n"),
-    html: `
-      <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #111827;">
-        <p>Hi ${safeUserName},</p>
-        <p>
-          This is your JobPilot reminder to follow up on
-          <strong>${safeTitle}</strong>${job.company ? ` at <strong>${safeCompany}</strong>` : ""}.
-        </p>
-        <p><strong>Follow-up date:</strong> ${safeDueLabel}</p>
-        ${job.status ? `<p><strong>Current status:</strong> ${safeStatus}</p>` : ""}
-        ${notes ? `<p><strong>Notes:</strong> ${safeNotes}</p>` : ""}
-        <p>
-          <a href="${dashboardUrl}" style="color: #2563eb; text-decoration: none;">Open this job in JobPilot</a>
-        </p>
-        <p style="color: #6b7280; font-size: 13px;">
-          You are receiving this because email reminders are enabled on your account.
-        </p>
-      </div>
-    `,
-  };
+  await ReminderQueue.updateMany(
+    {
+      job: { $in: jobIds },
+      status: { $in: ["pending", "retry", "processing"] },
+    },
+    {
+      $set: {
+        status: "cancelled",
+        lockedAt: null,
+      },
+    }
+  );
 }
 
-async function sendReminderEmail(job, user, logger) {
-  const transporter = await getMailTransporter(logger);
-  if (!transporter) {
-    return false;
-  }
+/* ======================================================
+   WEEKLY SUMMARY
+====================================================== */
 
-  const info = await transporter.sendMail(buildReminderMessage(job, user));
-  const previewUrl = nodemailer.getTestMessageUrl(info);
-  if (previewUrl) {
-    logger.info(`[reminders] Preview URL for job ${job._id}: ${previewUrl}`);
-  }
-  return true;
+async function scheduleWeeklySummaryForUser(user, now = new Date()) {
+  if (!user.emailNotifications) return null;
+
+  const notifications = userNotificationSettings(user);
+
+  if (!notifications.weeklySummaryEnabled) return null;
+
+  const localNow = DateTime.fromJSDate(now, {
+    zone: notifications.timezone,
+  });
+
+  const scheduled = localNow
+    .startOf("week")
+    .set({
+      hour: notifications.reminderHour,
+      minute: 0,
+      second: 0,
+      millisecond: 0,
+    });
+
+  const weekKey = scheduled.toFormat("kkkk-'W'WW");
+
+  return upsertReminder({
+    user: user._id,
+    type: "weekly_summary",
+    timezone: notifications.timezone,
+    scheduledFor: scheduled.toUTC().toJSDate(),
+    dedupeKey: `weekly_summary:${user._id}:${weekKey}`,
+    payload: {
+      weekLabel: `${scheduled.startOf("week").toFormat("dd LLL")} - ${scheduled
+        .endOf("week")
+        .toFormat("dd LLL yyyy")}`,
+    },
+  });
 }
 
-export async function runReminderSweep({ now = new Date(), logger = console } = {}) {
-  if (runningSweep) {
-    return runningSweep;
+async function ensureWeeklySummaryReminders(now) {
+  const users = await User.find({
+    emailNotifications: true,
+    email: { $exists: true, $ne: "" },
+    "settings.notifications.weeklySummaryEnabled": true,
+  }).select("emailNotifications email settings");
+
+  for (const user of users) {
+    await scheduleWeeklySummaryForUser(user, now);
   }
+}
+
+/* ======================================================
+   EMAIL BUILDERS
+====================================================== */
+
+async function buildWeeklySummaryPayload(user, reminder) {
+  const start = DateTime.fromJSDate(reminder.scheduledFor, {
+    zone: reminder.timezone,
+  }).startOf("week");
+
+  const end = start.endOf("week");
+
+  const jobs = await Job.find({
+    user: user._id,
+    createdAt: {
+      $gte: start.toUTC().toJSDate(),
+      $lte: end.toUTC().toJSDate(),
+    },
+  }).lean();
+
+  return buildWeeklySummaryEmail({
+    userName: user.name || "there",
+    weekLabel: reminder.payload?.weekLabel || "",
+    metrics: {
+      newJobs: jobs.length,
+      interviews: jobs.filter((x) => x.status === "interview").length,
+      offers: jobs.filter((x) => x.status === "offer").length,
+      followUpsDue: await Job.countDocuments({
+        user: user._id,
+        followUpDate: {
+          $gte: new Date(),
+        },
+      }),
+    },
+    highlights: jobs.slice(0, 3).map((j) => `${j.title} at ${j.company}`),
+  });
+}
+
+function buildReminderEmail(reminder, user, job) {
+  if (reminder.type === "weekly_summary") {
+    return buildWeeklySummaryPayload(user, reminder);
+  }
+
+  const company = job.company || "Unknown company";
+  const nextAction = getSuggestedNextAction(job, reminder.type);
+
+  if (reminder.type === "deadline") {
+    return Promise.resolve(
+      buildDeadlineReminderEmail({
+        userName: user.name,
+        jobTitle: job.title,
+        company,
+        deadlineLabel: formatFollowUpDate(job.applyDeadline),
+        nextAction,
+        jobId: job._id,
+      })
+    );
+  }
+
+  if (reminder.type === "interview") {
+    return Promise.resolve(
+      buildInterviewReminderEmail({
+        userName: user.name,
+        jobTitle: job.title,
+        company,
+        reminderDate: formatFollowUpDate(job.followUpDate),
+        nextAction,
+        jobId: job._id,
+      })
+    );
+  }
+
+  return Promise.resolve(
+    buildFollowUpReminderEmail({
+      userName: user.name,
+      jobTitle: job.title,
+      company,
+      appliedDate: formatFollowUpDate(job.createdAt),
+      reason: getFollowUpReason(job),
+      nextAction,
+      jobId: job._id,
+    })
+  );
+}
+
+/* ======================================================
+   MARKERS
+====================================================== */
+
+async function markReminderSent(reminder, now) {
+  reminder.status = "sent";
+  reminder.sentAt = now;
+  reminder.lastAttemptAt = now;
+  reminder.lockedAt = null;
+
+  await reminder.save();
+
+  if (reminder.job) {
+    await Job.updateOne(
+      { _id: reminder.job },
+      {
+        $set: {
+          reminderLastSentAt: now,
+          reminderLastSentForDate: getFollowUpDateKey(
+            reminder.payload?.followUpDate ||
+              reminder.payload?.applyDeadline ||
+              reminder.scheduledFor
+          ),
+        },
+      }
+    );
+  }
+}
+
+async function markReminderFailure(reminder, now, error) {
+  reminder.attempts += 1;
+  reminder.lastAttemptAt = now;
+  reminder.lockedAt = null;
+  reminder.lastError = String(error?.message || error);
+
+  if (reminder.attempts >= reminder.maxAttempts) {
+    reminder.status = "failed";
+  } else {
+    reminder.status = "retry";
+
+    const mins =
+      env.reminderRetryBaseMinutes *
+      2 ** (reminder.attempts - 1);
+
+    reminder.nextAttemptAt = new Date(
+      now.getTime() + mins * 60 * 1000
+    );
+  }
+
+  await reminder.save();
+}
+
+/* ======================================================
+   CLAIM
+====================================================== */
+
+async function claimNextReminder(now) {
+  return ReminderQueue.findOneAndUpdate(
+    {
+      $or: [
+        {
+          status: { $in: ["pending", "retry"] },
+          nextAttemptAt: { $lte: now },
+        },
+        {
+          status: "processing",
+          lockedAt: { $lte: staleLockThreshold(now) },
+        },
+      ],
+    },
+    {
+      $set: {
+        status: "processing",
+        lockedAt: now,
+      },
+    },
+    {
+      sort: { nextAttemptAt: 1 },
+      new: true,
+    }
+  );
+}
+
+/* ======================================================
+   PROCESS
+====================================================== */
+
+async function processOneReminder(reminder, now, logger) {
+  const populated = await ReminderQueue.findById(reminder._id)
+    .populate({
+      path: "user",
+      select: "name email emailNotifications settings",
+    })
+    .populate("job");
+
+  if (!populated) return { skipped: 1 };
+
+  if (!populated.user?.email || !populated.user.emailNotifications) {
+    populated.status = "cancelled";
+    populated.lockedAt = null;
+    await populated.save();
+    return { skipped: 1 };
+  }
+
+  if (populated.type !== "weekly_summary" && !populated.job) {
+    populated.status = "cancelled";
+    populated.lockedAt = null;
+    await populated.save();
+    return { skipped: 1 };
+  }
+
+  try {
+    const msg = await buildReminderEmail(
+      populated,
+      populated.user,
+      populated.job
+    );
+
+    await sendMail({
+      to: populated.user.email,
+      subject: msg.subject,
+      text: msg.text,
+      html: msg.html,
+      messageId: reminderMessageId(populated),
+    });
+
+    await markReminderSent(populated, now);
+
+    return { sent: 1 };
+  } catch (error) {
+    logger.error("Reminder failed", error);
+    await markReminderFailure(populated, now, error);
+    return { failed: 1 };
+  }
+}
+
+/* ======================================================
+   MAIN SWEEP FIXED
+====================================================== */
+
+export async function runReminderSweep({
+  now = new Date(),
+  logger = defaultLogger,
+} = {}) {
+  if (runningSweep) return runningSweep;
 
   runningSweep = (async () => {
     if (mongoose.connection.readyState !== 1) {
@@ -156,65 +457,46 @@ export async function runReminderSweep({ now = new Date(), logger = console } = 
         sent: 0,
         skipped: 0,
         failed: 0,
-        reason: "database-not-ready",
       };
     }
 
-    const jobs = await Job.find({
-      followUpDate: { $ne: null, $lte: now },
-    }).populate({
-      path: "user",
-      select: "name email emailNotifications",
-      match: {
-        emailNotifications: true,
-        email: { $exists: true, $ne: "" },
-      },
-    });
+    await ensureWeeklySummaryReminders(now);
 
     let processed = 0;
     let sent = 0;
     let skipped = 0;
     let failed = 0;
 
-    for (const job of jobs) {
-      processed += 1;
+    while (processed < env.reminderBatchSize) {
+      const reminder = await claimNextReminder(now);
+      if (!reminder) break;
 
-      const user = job.user;
-      if (!user?.email) {
-        skipped += 1;
-        continue;
-      }
+      processed++;
 
-      const reminderKey = getFollowUpDateKey(job.followUpDate);
-      if (!reminderKey || job.reminderLastSentForDate === reminderKey) {
-        skipped += 1;
-        continue;
-      }
+      const result = await processOneReminder(
+        reminder,
+        now,
+        logger
+      );
 
-      try {
-        const delivered = await sendReminderEmail(job, user, logger);
-        if (!delivered) {
-          skipped += 1;
-          continue;
-        }
-
-        job.reminderLastSentAt = now;
-        job.reminderLastSentForDate = reminderKey;
-        await job.save();
-        sent += 1;
-      } catch (error) {
-        failed += 1;
-        logger.error(
-          `[reminders] Failed to send reminder for job ${job._id}: ${error.message}`
-        );
-      }
+      sent += result.sent || 0;
+      skipped += result.skipped || 0;
+      failed += result.failed || 0;
     }
 
-    logger.info(
-      `[reminders] Sweep complete: processed=${processed} sent=${sent} skipped=${skipped} failed=${failed}`
-    );
+    logger.info("[reminders] Sweep complete", {
+      processed,
+      sent,
+      skipped,
+      failed,
+    });
 
-    return { processed, sent, skipped, failed };
+    return {
+      processed,
+      sent,
+      skipped,
+      failed,
+    };
   })().finally(() => {
     runningSweep = null;
   });
@@ -222,17 +504,131 @@ export async function runReminderSweep({ now = new Date(), logger = console } = 
   return runningSweep;
 }
 
-export function startReminderScheduler(logger = console) {
-  if (reminderTask) {
-    return reminderTask;
+/* ======================================================
+   PUBLIC
+====================================================== */
+
+export async function syncJobReminders(job, user = null) {
+  if (!job?.user) return [];
+
+  const currentUser =
+    user ||
+    (await User.findById(job.user).select(
+      "email emailNotifications settings name"
+    ));
+
+  if (!currentUser?.email || !currentUser.emailNotifications) {
+    await cancelOtherJobReminders(job._id);
+    return [];
   }
 
-  const expression = process.env.REMINDER_CRON?.trim() || DEFAULT_REMINDER_CRON;
-  reminderTask = cron.schedule(expression, () => {
-    void runReminderSweep({ logger });
-  });
+  const notifications =
+    userNotificationSettings(currentUser);
 
-  logger.info(`[reminders] Scheduler started with "${expression}"`);
+  const keepKeys = [];
+  const created = [];
+
+  if (job.followUpDate) {
+    const type =
+      job.status === "interview"
+        ? "interview"
+        : "follow_up";
+
+    const key = `${type}:${job._id}:${getFollowUpDateKey(
+      job.followUpDate
+    )}`;
+
+    const scheduledFor = toScheduledDate(
+      job.followUpDate,
+      notifications.timezone,
+      notifications.reminderHour
+    );
+
+    if (scheduledFor) {
+      keepKeys.push(key);
+
+      created.push(
+        await upsertReminder({
+          user: currentUser._id,
+          job: job._id,
+          type,
+          timezone: notifications.timezone,
+          scheduledFor,
+          dedupeKey: key,
+          payload: {
+            followUpDate: job.followUpDate,
+          },
+        })
+      );
+    }
+  }
+
+  if (job.applyDeadline) {
+    const key = `deadline:${job._id}:${getFollowUpDateKey(
+      job.applyDeadline
+    )}`;
+
+    const scheduledFor = toScheduledDate(
+      job.applyDeadline,
+      notifications.timezone,
+      notifications.reminderHour
+    );
+
+    if (scheduledFor) {
+      keepKeys.push(key);
+
+      created.push(
+        await upsertReminder({
+          user: currentUser._id,
+          job: job._id,
+          type: "deadline",
+          timezone: notifications.timezone,
+          scheduledFor,
+          dedupeKey: key,
+          payload: {
+            applyDeadline: job.applyDeadline,
+          },
+        })
+      );
+    }
+  }
+
+  await cancelOtherJobReminders(job._id, keepKeys);
+
+  return created;
+}
+
+export async function syncRemindersForUser(userId) {
+  const user = await User.findById(userId).select(
+    "email emailNotifications settings"
+  );
+
+  if (!user) return;
+
+  const jobs = await Job.find({ user: userId });
+
+  for (const job of jobs) {
+    await syncJobReminders(job, user);
+  }
+
+  await scheduleWeeklySummaryForUser(user);
+}
+
+export function startReminderScheduler(
+  logger = defaultLogger
+) {
+  if (reminderTask) return reminderTask;
+
+  reminderTask = cron.schedule(
+    env.reminderCron,
+    () => {
+      void runReminderSweep({ logger });
+    },
+    { scheduled: true }
+  );
+
+  logger.info("Reminder scheduler started");
+
   void runReminderSweep({ logger });
 
   return reminderTask;

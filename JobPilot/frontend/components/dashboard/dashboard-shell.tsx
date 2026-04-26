@@ -6,6 +6,7 @@ import { usePathname, useRouter } from "next/navigation";
 import {
   LayoutDashboard,
   Briefcase,
+  Sparkles,
   BarChart3,
   ListTodo,
   Settings,
@@ -26,12 +27,14 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { ReminderBell } from "@/components/dashboard/ReminderBell";
+import { api } from "@/services/api";
 import { logout } from "@/store/authSlice";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 
 const nav = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { href: "/dashboard/jobs", label: "Jobs", icon: Briefcase },
+  { href: "/dashboard/auto-hunter", label: "AI Hunter", icon: Sparkles },
   { href: "/dashboard/analytics", label: "Analytics", icon: BarChart3 },
   { href: "/dashboard/reminders", label: "Reminders", icon: ListTodo },
   { href: "/dashboard/settings", label: "Settings", icon: Settings },
@@ -53,6 +56,7 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
   const user = useAppSelector((state) => state.auth.user);
 
   function handleLogout() {
+    void api.post("/auth/logout").catch(() => undefined);
     dispatch(logout());
     router.replace("/login");
   }

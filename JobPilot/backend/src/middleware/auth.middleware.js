@@ -1,5 +1,5 @@
-import jwt from "jsonwebtoken";
 import { User } from "../models/User.js";
+import { verifyAccessToken } from "../utils/jwt.js";
 
 export async function protect(req, res, next) {
   const header = req.headers.authorization;
@@ -7,14 +7,10 @@ export async function protect(req, res, next) {
   if (!token) {
     return res.status(401).json({ success: false, message: "Not authorized" });
   }
-  const secret = process.env.JWT_SECRET;
-  if (!secret) {
-    return res.status(500).json({ success: false, message: "Server misconfiguration" });
-  }
   try {
-    const decoded = jwt.verify(token, secret);
+    const decoded = verifyAccessToken(token);
     const userId = decoded.userId;
-    if (!userId) {
+    if (!userId || decoded.type !== "access") {
       return res.status(401).json({ success: false, message: "Invalid token" });
     }
     const user = await User.findById(userId);
@@ -24,7 +20,7 @@ export async function protect(req, res, next) {
     req.user = user;
     next();
   } catch (err) {
-    if (err instanceof jwt.JsonWebTokenError || err instanceof jwt.TokenExpiredError) {
+    if (err?.name === "JsonWebTokenError" || err?.name === "TokenExpiredError") {
       return res.status(401).json({ success: false, message: "Invalid token" });
     }
     return next(err);

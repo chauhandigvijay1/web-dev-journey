@@ -11,6 +11,11 @@ export type StoredUserSettings = {
     defaultFollowUpDays: number;
     autoMarkGhostedDays: number;
   };
+  notifications: {
+    timezone: string;
+    reminderHour: number;
+    weeklySummaryEnabled: boolean;
+  };
 };
 
 export const defaultStoredUserSettings: StoredUserSettings = {
@@ -22,6 +27,11 @@ export const defaultStoredUserSettings: StoredUserSettings = {
   productivity: {
     defaultFollowUpDays: 5,
     autoMarkGhostedDays: 21,
+  },
+  notifications: {
+    timezone: "UTC",
+    reminderHour: 9,
+    weeklySummaryEnabled: false,
   },
 };
 
@@ -66,6 +76,17 @@ export function normalizeStoredUser(user: StoredUser): StoredUser {
         autoMarkGhostedDays:
           user.settings?.productivity?.autoMarkGhostedDays ??
           defaultStoredUserSettings.productivity.autoMarkGhostedDays,
+      },
+      notifications: {
+        timezone:
+          user.settings?.notifications?.timezone ??
+          defaultStoredUserSettings.notifications.timezone,
+        reminderHour:
+          user.settings?.notifications?.reminderHour ??
+          defaultStoredUserSettings.notifications.reminderHour,
+        weeklySummaryEnabled:
+          user.settings?.notifications?.weeklySummaryEnabled ??
+          defaultStoredUserSettings.notifications.weeklySummaryEnabled,
       },
     },
   };

@@ -1,0 +1,13 @@
+process.env.NODE_ENV = "test";
+process.env.JWT_SECRET = "test-access-secret";
+process.env.JWT_REFRESH_SECRET = "test-refresh-secret";
+process.env.JWT_ACCESS_TTL = "15m";
+process.env.JWT_REFRESH_TTL = "30d";
+process.env.EMAIL_FROM = "qa@jobpilot.test";
+process.env.FRONTEND_URL = "https://jobpilot-client-chi.vercel.app";
+process.env.DEFAULT_TIMEZONE = "UTC";
+delete process.env.SMTP_HOST;
+delete process.env.SMTP_PORT;
+delete process.env.SMTP_USER;
+delete process.env.SMTP_PASS;
+delete process.env.SMTP_SECURE;

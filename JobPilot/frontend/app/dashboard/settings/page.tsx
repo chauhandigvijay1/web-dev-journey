@@ -95,7 +95,9 @@ function SettingSection({
 
 function escapeCsv(value: unknown): string {
   if (value == null) return "";
-  const stringValue = String(value).replace(/\r?\n/g, " ").trim();
+  const normalized =
+    Array.isArray(value) ? value.join(" | ") : String(value);
+  const stringValue = normalized.replace(/\r?\n/g, " ").trim();
   if (stringValue.includes(",") || stringValue.includes('"')) {
     return `"${stringValue.replace(/"/g, '""')}"`;
   }
@@ -116,6 +118,13 @@ function createJobsCsv(rows: Array<Record<string, unknown>>): string {
     "companyType",
     "confidenceScore",
     "notes",
+    "locations",
+    "skills",
+    "qualification",
+    "applyDeadline",
+    "workMode",
+    "descriptionSummary",
+    "originalApplyLink",
     "source",
     "followUpDate",
     "resumeUrl",
@@ -158,6 +167,11 @@ export default function SettingsPage() {
   const [autoMarkGhostedDays, setAutoMarkGhostedDays] = useState(
     settings.productivity.autoMarkGhostedDays
   );
+  const [timezone, setTimezone] = useState(settings.notifications.timezone);
+  const [reminderHour, setReminderHour] = useState(settings.notifications.reminderHour);
+  const [weeklySummaryEnabled, setWeeklySummaryEnabled] = useState(
+    settings.notifications.weeklySummaryEnabled
+  );
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -189,6 +203,9 @@ export default function SettingsPage() {
     setExpectedSalaryRange(settings.jobPreferences.expectedSalaryRange);
     setDefaultFollowUpDays(settings.productivity.defaultFollowUpDays);
     setAutoMarkGhostedDays(settings.productivity.autoMarkGhostedDays);
+    setTimezone(settings.notifications.timezone);
+    setReminderHour(settings.notifications.reminderHour);
+    setWeeklySummaryEnabled(settings.notifications.weeklySummaryEnabled);
   }, [settings, user]);
 
   const initials = useMemo(() => {
@@ -236,6 +253,11 @@ export default function SettingsPage() {
           productivity: {
             defaultFollowUpDays,
             autoMarkGhostedDays,
+          },
+          notifications: {
+            timezone: timezone.trim() || browserTimezone,
+            reminderHour,
+            weeklySummaryEnabled,
           },
         },
       });
@@ -378,9 +400,13 @@ export default function SettingsPage() {
   }
 
   function handleLogout() {
+    void api.post("/auth/logout").catch(() => undefined);
     dispatch(logout());
     window.location.assign("/login");
   }
+
+  const browserTimezone =
+    typeof Intl !== "undefined" ? Intl.DateTimeFormat().resolvedOptions().timeZone : "UTC";
 
   return (
     <>
@@ -503,7 +529,7 @@ export default function SettingsPage() {
                   <div className="space-y-1">
                     <p className="text-sm font-medium text-foreground">Email notifications</p>
                     <p className="text-sm text-muted-foreground">
-                      Keep reminder emails on for automatic follow-up emails and job tracking updates.
+                      Keep reminder emails on for follow-ups, deadline reminders, and weekly summaries.
                     </p>
                   </div>
                   <div className="flex items-center gap-3">
@@ -586,6 +612,68 @@ export default function SettingsPage() {
                     <p className="text-xs text-muted-foreground">
                       Old inactive jobs fade visually on the board based on this setting.
                     </p>
+                  </div>
+                </div>
+
+                <div className="grid gap-4 md:grid-cols-2">
+                  <div className="space-y-2">
+                    <Label htmlFor="timezone">Timezone</Label>
+                    <Input
+                      id="timezone"
+                      value={timezone}
+                      onChange={(event) => setTimezone(event.target.value)}
+                      placeholder="Asia/Kolkata"
+                    />
+                    <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+                      <span>Used for reminder delivery timing.</span>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        className="h-7 px-2 text-[11px]"
+                        onClick={() => setTimezone(browserTimezone)}
+                      >
+                        Use browser timezone
+                      </Button>
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="reminder-hour">Reminder send hour</Label>
+                    <select
+                      id="reminder-hour"
+                      value={reminderHour}
+                      onChange={(event) => setReminderHour(Number(event.target.value))}
+                      className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                    >
+                      {Array.from({ length: 24 }, (_, hour) => (
+                        <option key={hour} value={hour}>
+                          {hour.toString().padStart(2, "0")}:00
+                        </option>
+                      ))}
+                    </select>
+                    <p className="text-xs text-muted-foreground">
+                      Follow-up and deadline emails are queued at this local hour.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex flex-col gap-4 rounded-2xl border border-border/70 bg-background/60 p-4 sm:flex-row sm:items-center sm:justify-between">
+                  <div className="space-y-1">
+                    <p className="text-sm font-medium text-foreground">Weekly summary email</p>
+                    <p className="text-sm text-muted-foreground">
+                      Receive one weekly pipeline summary with highlights and upcoming follow-ups.
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <Checkbox
+                      id="weekly-summary"
+                      checked={weeklySummaryEnabled}
+                      disabled={savingPreferences}
+                      onCheckedChange={(checked) => setWeeklySummaryEnabled(checked === true)}
+                    />
+                    <Label htmlFor="weekly-summary" className="cursor-pointer">
+                      {weeklySummaryEnabled ? "Enabled" : "Disabled"}
+                    </Label>
                   </div>
                 </div>
 
