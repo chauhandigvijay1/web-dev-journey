@@ -11,9 +11,9 @@ export default function AvatarCropper({ imageSrc, onCancel, onConfirm }) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4">
-      <div className="w-full max-w-2xl rounded-xl border border-zinc-700 bg-zinc-900 p-4">
-        <h3 className="mb-3 text-sm font-semibold text-white">Crop profile image</h3>
-        <div className="relative h-[360px] w-full overflow-hidden rounded-md bg-black">
+      <div className="w-full max-w-2xl rounded-xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-950">
+        <h3 className="mb-3 text-sm font-semibold text-zinc-900 dark:text-white">Crop profile image</h3>
+        <div className="relative h-[360px] w-full overflow-hidden rounded-md bg-zinc-100 dark:bg-black">
           <Cropper
             image={imageSrc}
             crop={crop}
@@ -28,7 +28,7 @@ export default function AvatarCropper({ imageSrc, onCancel, onConfirm }) {
         </div>
 
         <div className="mt-4">
-          <label className="mb-1 block text-xs text-zinc-300">Zoom</label>
+          <label className="mb-1 block text-xs font-medium text-zinc-700 dark:text-zinc-300">Zoom</label>
           <input
             type="range"
             min={1}

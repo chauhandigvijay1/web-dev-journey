@@ -1,47 +1,35 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useTheme } from "next-themes";
 import { Button } from "@/components/ui/button";
 import { Sun, Moon } from "lucide-react";
 
 export default function ThemeToggle() {
+  const { theme, setTheme, resolvedTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
-  const [isDark, setIsDark] = useState(false);
 
-  // wait for mount before reading localStorage/theme classes
+  // Wait for mount to avoid hydration mismatch
   useEffect(() => {
     setMounted(true);
-    if (typeof window === "undefined") return;
-
-    const savedTheme = localStorage.getItem("theme");
-
-    if (savedTheme === "dark") {
-      setIsDark(true);
-      document.documentElement.classList.add("dark");
-    } else {
-      setIsDark(false);
-      document.documentElement.classList.remove("dark");
-    }
   }, []);
 
-  if (!mounted) return null;
+  if (!mounted) {
+    return (
+      <Button variant="outline" className="w-10 px-0 opacity-0">
+        <Sun size={16} />
+      </Button>
+    );
+  }
+
+  const isDark = resolvedTheme === "dark" || theme === "dark";
 
   const toggleTheme = () => {
-    if (typeof window === "undefined") return;
-    const newTheme = !isDark;
-    setIsDark(newTheme);
-
-    if (newTheme) {
-      document.documentElement.classList.add("dark");
-      localStorage.setItem("theme", "dark");
-    } else {
-      document.documentElement.classList.remove("dark");
-      localStorage.setItem("theme", "light");
-    }
+    setTheme(isDark ? "light" : "dark");
   };
 
   return (
-    <Button variant="outline" onClick={toggleTheme}>
+    <Button variant="outline" className="w-10 px-0" onClick={toggleTheme}>
       {isDark ? <Sun size={16} /> : <Moon size={16} />}
     </Button>
   );

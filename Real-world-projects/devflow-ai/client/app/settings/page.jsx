@@ -182,10 +182,10 @@ export default function SettingsPage() {
                   <select
                     value={region}
                     onChange={(event) => setRegion(event.target.value)}
-                    className="w-full rounded-md border border-zinc-300 bg-zinc-900 px-3 py-2 text-sm text-zinc-100 outline-none focus:ring-2 focus:ring-zinc-400 dark:border-zinc-700"
+                    className="w-full rounded-md border border-zinc-200 bg-transparent px-3 py-2 text-sm text-zinc-950 outline-none focus-visible:ring-1 focus-visible:ring-zinc-950 dark:border-zinc-800 dark:text-zinc-50 dark:focus-visible:ring-zinc-300"
                   >
                     {regionOptions.map((item) => (
-                      <option key={item} value={item} className="bg-zinc-900 text-zinc-100">
+                      <option key={item} value={item} className="bg-white text-zinc-950 dark:bg-zinc-900 dark:text-zinc-50">
                         {item}
                       </option>
                     ))}
@@ -197,10 +197,10 @@ export default function SettingsPage() {
                   <select
                     value={language}
                     onChange={(event) => setLanguage(event.target.value)}
-                    className="w-full rounded-md border border-zinc-300 bg-zinc-900 px-3 py-2 text-sm text-zinc-100 outline-none focus:ring-2 focus:ring-zinc-400 dark:border-zinc-700"
+                    className="w-full rounded-md border border-zinc-200 bg-transparent px-3 py-2 text-sm text-zinc-950 outline-none focus-visible:ring-1 focus-visible:ring-zinc-950 dark:border-zinc-800 dark:text-zinc-50 dark:focus-visible:ring-zinc-300"
                   >
                     {languageOptions.map((item) => (
-                      <option key={item} value={item} className="bg-zinc-900 text-zinc-100">
+                      <option key={item} value={item} className="bg-white text-zinc-950 dark:bg-zinc-900 dark:text-zinc-50">
                         {item}
                       </option>
                     ))}
@@ -214,10 +214,10 @@ export default function SettingsPage() {
                   <select
                     value={country}
                     onChange={(event) => setCountry(event.target.value)}
-                    className="w-full rounded-md border border-zinc-300 bg-zinc-900 px-3 py-2 text-sm text-zinc-100 outline-none focus:ring-2 focus:ring-zinc-400 dark:border-zinc-700"
+                    className="w-full rounded-md border border-zinc-200 bg-transparent px-3 py-2 text-sm text-zinc-950 outline-none focus-visible:ring-1 focus-visible:ring-zinc-950 dark:border-zinc-800 dark:text-zinc-50 dark:focus-visible:ring-zinc-300"
                   >
                     {countryOptions.map((item) => (
-                      <option key={item} value={item} className="bg-zinc-900 text-zinc-100">
+                      <option key={item} value={item} className="bg-white text-zinc-950 dark:bg-zinc-900 dark:text-zinc-50">
                         {item}
                       </option>
                     ))}
@@ -229,10 +229,10 @@ export default function SettingsPage() {
                   <select
                     value={timezone}
                     onChange={(event) => setTimezone(event.target.value)}
-                    className="w-full rounded-md border border-zinc-300 bg-zinc-900 px-3 py-2 text-sm text-zinc-100 outline-none focus:ring-2 focus:ring-zinc-400 dark:border-zinc-700"
+                    className="w-full rounded-md border border-zinc-200 bg-transparent px-3 py-2 text-sm text-zinc-950 outline-none focus-visible:ring-1 focus-visible:ring-zinc-950 dark:border-zinc-800 dark:text-zinc-50 dark:focus-visible:ring-zinc-300"
                   >
                     {timezoneOptions.map((item) => (
-                      <option key={item} value={item} className="bg-zinc-900 text-zinc-100">
+                      <option key={item} value={item} className="bg-white text-zinc-950 dark:bg-zinc-900 dark:text-zinc-50">
                         {item}
                       </option>
                     ))}
@@ -270,10 +270,10 @@ export default function SettingsPage() {
                 <select
                   value={startPage}
                   onChange={(event) => setStartPage(event.target.value)}
-                  className="w-full rounded-md border border-zinc-300 bg-zinc-900 px-3 py-2 text-sm text-zinc-100 outline-none focus:ring-2 focus:ring-zinc-400 dark:border-zinc-700"
+                  className="w-full rounded-md border border-zinc-200 bg-transparent px-3 py-2 text-sm text-zinc-950 outline-none focus-visible:ring-1 focus-visible:ring-zinc-950 dark:border-zinc-800 dark:text-zinc-50 dark:focus-visible:ring-zinc-300"
                 >
                   {startPageOptions.map((item) => (
-                    <option key={item} value={item} className="bg-zinc-900 text-zinc-100">
+                    <option key={item} value={item} className="bg-white text-zinc-950 dark:bg-zinc-900 dark:text-zinc-50">
                       {item}
                     </option>
                   ))}
