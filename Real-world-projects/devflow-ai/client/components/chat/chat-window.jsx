@@ -337,10 +337,10 @@ export default function ChatWindow({ chatId, initialPrompt = "" }) {
         {messages.map((msg, i) => (
           <div key={i} className="group relative">
             <div
-              className={`max-w-[min(42rem,86%)] break-words rounded-2xl px-5 py-3.5 text-[0.925rem] leading-relaxed shadow-sm sm:max-w-[72%] ${
+              className={`max-w-[min(45rem,90%)] break-words rounded-2xl px-5 py-4 text-[15px] leading-7 shadow-sm sm:max-w-[75%] ${
                 msg.role === "user"
-                  ? "ml-auto bg-zinc-900 text-zinc-50 dark:bg-zinc-100 dark:text-zinc-950"
-                  : "border border-zinc-200 bg-white text-zinc-950 dark:border-zinc-800/60 dark:bg-zinc-900/40 dark:text-zinc-50"
+                  ? "ml-auto bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900"
+                  : "border border-zinc-200 bg-white text-zinc-900 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-50"
               }`}
             >
               <MarkdownMessage content={getMessageContent(msg)} />
@@ -348,7 +348,7 @@ export default function ChatWindow({ chatId, initialPrompt = "" }) {
 
             <button
               onClick={() => navigator.clipboard.writeText(getMessageContent(msg))}
-              className="copy-message-button absolute right-1 top-1 rounded px-2 py-1 text-xs text-transparent opacity-0 transition-all hover:bg-zinc-100 hover:text-zinc-900 group-hover:opacity-100 dark:hover:bg-zinc-800 dark:hover:text-zinc-50"
+              className="copy-message-button absolute -right-2 -top-2 rounded-md border border-zinc-200 bg-white px-2 py-1 text-xs text-zinc-500 opacity-0 shadow-sm transition-all hover:bg-zinc-50 hover:text-zinc-900 group-hover:opacity-100 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-400 dark:hover:bg-zinc-700 dark:hover:text-zinc-100"
               aria-label="Copy message"
             >
               Copy

@@ -34,7 +34,7 @@ const startPageOptions = ["Dashboard", "Chat", "Account", "Settings"];
 function SettingsTile({ id, title, subtitle, activeTile, setActiveTile, children }) {
   const open = activeTile === id;
   return (
-    <div className="rounded-xl border border-zinc-200 bg-white shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
+    <div className="rounded-xl border border-zinc-200 bg-white shadow-sm transition-all dark:border-zinc-800 dark:bg-zinc-900">
       <button
         type="button"
         onClick={() => setActiveTile(open ? "" : id)}
@@ -182,7 +182,7 @@ export default function SettingsPage() {
                   <select
                     value={region}
                     onChange={(event) => setRegion(event.target.value)}
-                    className="w-full rounded-md border border-zinc-200 bg-transparent px-3 py-2 text-sm text-zinc-950 outline-none focus-visible:ring-1 focus-visible:ring-zinc-950 dark:border-zinc-800 dark:text-zinc-50 dark:focus-visible:ring-zinc-300"
+                    className="w-full rounded-md border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-900 outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-50 dark:focus-visible:ring-cyan-400"
                   >
                     {regionOptions.map((item) => (
                       <option key={item} value={item} className="bg-white text-zinc-950 dark:bg-zinc-900 dark:text-zinc-50">
@@ -197,7 +197,7 @@ export default function SettingsPage() {
                   <select
                     value={language}
                     onChange={(event) => setLanguage(event.target.value)}
-                    className="w-full rounded-md border border-zinc-200 bg-transparent px-3 py-2 text-sm text-zinc-950 outline-none focus-visible:ring-1 focus-visible:ring-zinc-950 dark:border-zinc-800 dark:text-zinc-50 dark:focus-visible:ring-zinc-300"
+                    className="w-full rounded-md border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-900 outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-50 dark:focus-visible:ring-cyan-400"
                   >
                     {languageOptions.map((item) => (
                       <option key={item} value={item} className="bg-white text-zinc-950 dark:bg-zinc-900 dark:text-zinc-50">
@@ -214,7 +214,7 @@ export default function SettingsPage() {
                   <select
                     value={country}
                     onChange={(event) => setCountry(event.target.value)}
-                    className="w-full rounded-md border border-zinc-200 bg-transparent px-3 py-2 text-sm text-zinc-950 outline-none focus-visible:ring-1 focus-visible:ring-zinc-950 dark:border-zinc-800 dark:text-zinc-50 dark:focus-visible:ring-zinc-300"
+                    className="w-full rounded-md border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-900 outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-50 dark:focus-visible:ring-cyan-400"
                   >
                     {countryOptions.map((item) => (
                       <option key={item} value={item} className="bg-white text-zinc-950 dark:bg-zinc-900 dark:text-zinc-50">
@@ -229,7 +229,7 @@ export default function SettingsPage() {
                   <select
                     value={timezone}
                     onChange={(event) => setTimezone(event.target.value)}
-                    className="w-full rounded-md border border-zinc-200 bg-transparent px-3 py-2 text-sm text-zinc-950 outline-none focus-visible:ring-1 focus-visible:ring-zinc-950 dark:border-zinc-800 dark:text-zinc-50 dark:focus-visible:ring-zinc-300"
+                    className="w-full rounded-md border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-900 outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-50 dark:focus-visible:ring-cyan-400"
                   >
                     {timezoneOptions.map((item) => (
                       <option key={item} value={item} className="bg-white text-zinc-950 dark:bg-zinc-900 dark:text-zinc-50">
@@ -270,7 +270,7 @@ export default function SettingsPage() {
                 <select
                   value={startPage}
                   onChange={(event) => setStartPage(event.target.value)}
-                  className="w-full rounded-md border border-zinc-200 bg-transparent px-3 py-2 text-sm text-zinc-950 outline-none focus-visible:ring-1 focus-visible:ring-zinc-950 dark:border-zinc-800 dark:text-zinc-50 dark:focus-visible:ring-zinc-300"
+                  className="w-full rounded-md border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-900 outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-50 dark:focus-visible:ring-cyan-400"
                 >
                   {startPageOptions.map((item) => (
                     <option key={item} value={item} className="bg-white text-zinc-950 dark:bg-zinc-900 dark:text-zinc-50">

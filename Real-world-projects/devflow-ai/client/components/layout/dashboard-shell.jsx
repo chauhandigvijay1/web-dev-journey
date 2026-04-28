@@ -150,28 +150,28 @@ export default function DashboardShell({ children }) {
 
   const settingsMenu = (
     <div
-      className={`space-y-1 rounded-md border border-zinc-200 bg-white p-2 text-sm shadow-lg dark:border-zinc-800 dark:bg-zinc-950 ${
+      className={`space-y-1 rounded-md border border-zinc-200 bg-white p-2 text-sm shadow-lg dark:border-zinc-800 dark:bg-zinc-900 ${
         sidebarCollapsed ? "absolute bottom-0 left-full z-50 ml-2 w-44" : "mb-2"
       }`}
     >
       <Link
         href="/account"
         onClick={() => setMenuOpen(false)}
-        className="block w-full rounded-md px-2 py-2 text-left text-zinc-700 transition-colors hover:bg-zinc-100 dark:text-zinc-200 dark:hover:bg-zinc-900"
+        className="block w-full rounded-md px-2 py-2 text-left text-zinc-700 transition-colors hover:bg-zinc-100 dark:text-zinc-300 dark:hover:bg-zinc-800 dark:hover:text-zinc-50"
       >
         Account
       </Link>
       <Link
         href="/settings"
         onClick={() => setMenuOpen(false)}
-        className="block w-full rounded-md px-2 py-2 text-left text-zinc-700 transition-colors hover:bg-zinc-100 dark:text-zinc-200 dark:hover:bg-zinc-900"
+        className="block w-full rounded-md px-2 py-2 text-left text-zinc-700 transition-colors hover:bg-zinc-100 dark:text-zinc-300 dark:hover:bg-zinc-800 dark:hover:text-zinc-50"
       >
         Settings
       </Link>
       <Link
         href="/settings/billing"
         onClick={() => setMenuOpen(false)}
-        className="block w-full rounded-md px-2 py-2 text-left text-zinc-700 transition-colors hover:bg-zinc-100 dark:text-zinc-200 dark:hover:bg-zinc-900"
+        className="block w-full rounded-md px-2 py-2 text-left text-zinc-700 transition-colors hover:bg-zinc-100 dark:text-zinc-300 dark:hover:bg-zinc-800 dark:hover:text-zinc-50"
       >
         Billing
       </Link>
@@ -179,9 +179,9 @@ export default function DashboardShell({ children }) {
   );
 
   return (
-    <div className="flex h-screen overflow-hidden bg-zinc-50 text-zinc-950 dark:bg-zinc-950 dark:text-zinc-100">
+    <div className="flex h-screen overflow-hidden bg-zinc-50 text-zinc-900 dark:bg-zinc-950 dark:text-zinc-50">
       <aside
-        className={`relative z-20 flex h-screen flex-col overflow-visible border-r border-zinc-200 bg-white/90 p-3 backdrop-blur-sm dark:border-zinc-800 dark:bg-zinc-950/95 ${
+        className={`relative z-20 flex h-screen flex-col overflow-visible border-r border-zinc-200 bg-zinc-50/90 p-3 backdrop-blur-md dark:border-zinc-800 dark:bg-zinc-950/95 ${
           isResizing ? "" : "transition-[width] duration-300 ease-out"
         }`}
         style={{ width: sidebarCollapsed ? 64 : sidebarWidth }}
@@ -218,8 +218,8 @@ export default function DashboardShell({ children }) {
                   key={chat._id}
                   className={`group relative flex items-center gap-1 rounded-md text-sm transition-colors ${
                     isActive
-                      ? "bg-zinc-100 font-medium text-zinc-950 dark:bg-zinc-800 dark:text-zinc-50 before:absolute before:left-0 before:top-1/2 before:h-4 before:w-[3px] before:-translate-y-1/2 before:rounded-r-full before:bg-cyan-500 dark:before:bg-cyan-400"
-                      : "text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-800/50 dark:hover:text-zinc-100"
+                      ? "bg-zinc-200/50 font-medium text-zinc-900 dark:bg-zinc-900/80 dark:text-zinc-50 before:absolute before:left-0 before:top-1/2 before:h-4 before:w-[3px] before:-translate-y-1/2 before:rounded-r-full before:bg-cyan-500 dark:before:bg-cyan-400"
+                      : "text-zinc-600 hover:bg-zinc-200/50 hover:text-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-900/50 dark:hover:text-zinc-100"
                   }`}
                 >
                   <Link
@@ -253,7 +253,7 @@ export default function DashboardShell({ children }) {
             <button
               type="button"
               onClick={() => setMenuOpen((prev) => !prev)}
-              className={`relative z-50 inline-flex h-9 items-center justify-center gap-2 rounded-md border border-zinc-200 bg-transparent px-2 text-xs font-medium text-zinc-700 shadow-sm transition hover:bg-zinc-100 hover:text-zinc-950 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-zinc-950 dark:border-zinc-800 dark:text-zinc-200 dark:hover:bg-zinc-800 dark:hover:text-zinc-50 dark:focus-visible:ring-zinc-300 ${
+              className={`relative z-50 inline-flex h-9 items-center justify-center gap-2 rounded-md border border-zinc-200 bg-transparent px-2 text-xs font-medium text-zinc-700 shadow-sm transition hover:bg-zinc-200/50 hover:text-zinc-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 dark:border-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-900/50 dark:hover:text-zinc-50 dark:focus-visible:ring-cyan-400 ${
                 sidebarCollapsed ? "w-full" : ""
               }`}
               aria-expanded={menuOpen}
