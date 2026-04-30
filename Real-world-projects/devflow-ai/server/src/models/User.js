@@ -36,6 +36,8 @@ const userSchema = new mongoose.Schema(
       lastReset: { type: Date, default: Date.now },
     },
     usedCoupons: { type: [String], default: [] },
+    isDeleted: { type: Boolean, default: false },
+    deletedAt: { type: Date },
   },
   { timestamps: true }
 );

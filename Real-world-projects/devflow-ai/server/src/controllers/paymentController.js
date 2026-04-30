@@ -223,9 +223,36 @@ const applyCoupon = asyncHandler(async (req, res) => {
   res.json({ success: true, data: coupon });
 });
 
+// Cancel active subscription immediately.
+const cancelSubscription = asyncHandler(async (req, res) => {
+  const user = await User.findById(req.user._id);
+  if (!user) throw new AppError("User not found", 404);
+
+  ensureSubscriptionShape(user);
+  
+  if (user.subscription.plan !== "pro") {
+    throw new AppError("You do not have an active Pro subscription to cancel.", 400);
+  }
+
+  user.subscription.plan = "free";
+  user.subscription.status = "canceled";
+  user.subscription.expiresAt = undefined;
+  user.subscription.offerCode = "";
+  
+  // Immediately enforce free limits
+  if (user.usage && user.usage.dailyCount > PLAN_LIMIT) {
+     user.usage.dailyCount = PLAN_LIMIT;
+  }
+
+  await user.save();
+
+  res.json({ success: true, message: "Subscription cancelled successfully." });
+});
+
 module.exports = {
   createOrder,
   verifyPayment,
   getBillingStatus,
   applyCoupon,
+  cancelSubscription,
 };

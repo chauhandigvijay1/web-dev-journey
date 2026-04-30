@@ -102,6 +102,7 @@ const login = asyncHandler(async (req, res) => {
   }
   const user = await User.findOne({
     $or: [{ email: loginValue }, { username: loginValue }],
+    isDeleted: { $ne: true },
   }).select("+password");
 
   if (!user || !(await user.comparePassword(password))) {
@@ -160,7 +161,7 @@ const updateProfile = asyncHandler(async (req, res) => {
 const forgotPassword = asyncHandler(async (req, res) => {
   const { email } = req.body;
   const normalizedEmail = String(email).trim().toLowerCase();
-  const user = await User.findOne({ email: normalizedEmail });
+  const user = await User.findOne({ email: normalizedEmail, isDeleted: { $ne: true } });
   if (!user) {
     res.json({ success: true, message: "If account exists, reset instructions are generated." });
     return;
@@ -210,6 +211,27 @@ const resetPassword = asyncHandler(async (req, res) => {
   res.json({ success: true, message: "Password reset successful." });
 });
 
+const deleteAccount = asyncHandler(async (req, res) => {
+  const user = await User.findById(req.user._id);
+  if (!user || user.isDeleted) {
+    throw new AppError("User not found", 404);
+  }
+
+  const timestamp = Date.now();
+  user.isDeleted = true;
+  user.deletedAt = new Date();
+  
+  // Free up email and username so user can sign up again
+  user.email = `${user.email}_deleted_${timestamp}`;
+  if (user.username) {
+    user.username = `${user.username}_deleted_${timestamp}`;
+  }
+
+  await user.save({ validateBeforeSave: false });
+  
+  res.json({ success: true, message: "Account deleted successfully." });
+});
+
 module.exports = {
   register,
   signup,
@@ -218,4 +240,5 @@ module.exports = {
   updateProfile,
   forgotPassword,
   resetPassword,
+  deleteAccount,
 };

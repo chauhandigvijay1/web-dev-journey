@@ -7,6 +7,7 @@ const {
   updateProfile,
   forgotPassword,
   resetPassword,
+  deleteAccount,
 } = require("../controllers/authController");
 const { protect } = require("../middleware/authMiddleware");
 const validateRequest = require("../middleware/validateRequest");
@@ -27,6 +28,7 @@ router.post("/login", loginValidator, validateRequest, login);
 router.post("/forgot-password", forgotPasswordValidator, validateRequest, forgotPassword);
 router.post("/reset-password", resetPasswordValidator, validateRequest, resetPassword);
 router.get("/me", protect, me);
+router.delete("/me", protect, deleteAccount);
 router.put("/update", protect, updateProfileValidator, validateRequest, updateProfile);
 
 module.exports = router;

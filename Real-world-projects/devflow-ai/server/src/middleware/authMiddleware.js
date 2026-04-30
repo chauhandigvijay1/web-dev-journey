@@ -15,7 +15,7 @@ const protect = asyncHandler(async (req, _res, next) => {
   const decoded = jwt.verify(token, env.jwtSecret);
   const user = await User.findById(decoded.id);
 
-  if (!user) {
+  if (!user || user.isDeleted) {
     throw new AppError("User not found", 401);
   }
 

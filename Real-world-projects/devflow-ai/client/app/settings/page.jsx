@@ -63,6 +63,10 @@ export default function SettingsPage() {
   const [emailUpdates, setEmailUpdates] = useState(true);
   const [compactMode, setCompactMode] = useState(false);
   const [activeTile, setActiveTile] = useState("personalization");
+  const [showDeletePrompt, setShowDeletePrompt] = useState(false);
+  const [deleteConfirmText, setDeleteConfirmText] = useState("");
+  const [deleting, setDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState("");
   const [messageByTile, setMessageByTile] = useState({
     personalization: "",
     preferences: "",
@@ -139,6 +143,24 @@ export default function SettingsPage() {
     persistAllSettings();
     setMessageByTile((prev) => ({ ...prev, preferences: "Preferences saved." }));
     setTimeout(() => setMessageByTile((prev) => ({ ...prev, preferences: "" })), 1200);
+  };
+
+  const onDeleteAccount = async () => {
+    if (deleteConfirmText !== "DELETE") {
+      setDeleteError("Please type DELETE to confirm.");
+      return;
+    }
+    if (deleting) return;
+    setDeleting(true);
+    setDeleteError("");
+    try {
+      await api.delete("/api/auth/me");
+      localStorage.removeItem("devflow_token");
+      window.location.href = "/login";
+    } catch (error) {
+      setDeleteError(error?.response?.data?.message || "Failed to delete account.");
+      setDeleting(false);
+    }
   };
 
   return (
@@ -346,7 +368,53 @@ export default function SettingsPage() {
               </a>
             </p>
           </SettingsTile>
+          <SettingsTile
+            id="danger"
+            title="Danger Zone"
+            subtitle="Permanently delete your account and data."
+            activeTile={activeTile}
+            setActiveTile={setActiveTile}
+          >
+            <div className="space-y-4">
+              <p className="text-sm text-zinc-600 dark:text-zinc-300">
+                Once you delete your account, there is no going back. Please be certain.
+              </p>
+              <Button variant="destructive" onClick={() => setShowDeletePrompt(true)}>
+                Delete Account
+              </Button>
+            </div>
+          </SettingsTile>
         </div>
+
+        {showDeletePrompt && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+            <div className="w-full max-w-sm rounded-xl border bg-white p-5 dark:bg-zinc-900">
+              <h3 className="text-lg font-semibold text-red-600">Delete Account?</h3>
+              <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-300">
+                This action cannot be undone. Your account access will be removed. Type <strong>DELETE</strong> below to confirm.
+              </p>
+              <Input
+                className="mt-4"
+                placeholder="DELETE"
+                value={deleteConfirmText}
+                onChange={(e) => setDeleteConfirmText(e.target.value)}
+              />
+              {deleteError && <p className="mt-2 text-sm text-red-500">{deleteError}</p>}
+              <div className="mt-4 flex justify-end gap-2">
+                <Button variant="outline" disabled={deleting} onClick={() => { setShowDeletePrompt(false); setDeleteConfirmText(""); setDeleteError(""); }}>
+                  Keep Account
+                </Button>
+                <Button
+                  variant="destructive"
+                  disabled={deleting || deleteConfirmText !== "DELETE"}
+                  onClick={onDeleteAccount}
+                >
+                  {deleting ? "Deleting..." : "Delete Account"}
+                </Button>
+              </div>
+            </div>
+          </div>
+        )}
       </DashboardShell>
     </ProtectedRoute>
   );

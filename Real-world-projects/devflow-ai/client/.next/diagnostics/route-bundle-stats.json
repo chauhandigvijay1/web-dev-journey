@@ -19,12 +19,12 @@
   },
   {
     "route": "/settings",
-    "firstLoadUncompressedJsBytes": 661934,
+    "firstLoadUncompressedJsBytes": 663750,
     "firstLoadChunkPaths": [
       ".next\\static\\chunks\\0pssxpsfalxmk.js",
       ".next\\static\\chunks\\0lrhb0c1k60f-.js",
       ".next\\static\\chunks\\0t2xr05rlu96l.js",
-      ".next\\static\\chunks\\0cf26bwqtfn89.js",
+      ".next\\static\\chunks\\0yt493ule-imo.js",
       ".next\\static\\chunks\\12o7es-.mq0dl.js",
       ".next\\static\\chunks\\10nkmomhlqgte.js",
       ".next\\static\\chunks\\08~t6epd-nazn.js",
@@ -36,12 +36,12 @@
   },
   {
     "route": "/settings/billing",
-    "firstLoadUncompressedJsBytes": 659321,
+    "firstLoadUncompressedJsBytes": 660605,
     "firstLoadChunkPaths": [
       ".next\\static\\chunks\\0pssxpsfalxmk.js",
       ".next\\static\\chunks\\0lrhb0c1k60f-.js",
       ".next\\static\\chunks\\0t2xr05rlu96l.js",
-      ".next\\static\\chunks\\11_.ue~j.4k5o.js",
+      ".next\\static\\chunks\\14gse9_xiahms.js",
       ".next\\static\\chunks\\12o7es-.mq0dl.js",
       ".next\\static\\chunks\\10nkmomhlqgte.js",
       ".next\\static\\chunks\\08~t6epd-nazn.js",

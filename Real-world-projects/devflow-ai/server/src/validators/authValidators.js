@@ -4,9 +4,24 @@ const strongPasswordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/;
 // Letters and numbers only (no spaces or special characters)
 const usernameRegex = /^[a-zA-Z0-9]{3,40}$/;
 
+const disposableDomains = [
+  "mailinator.com", "10minutemail.com", "guerrillamail.com", 
+  "tempmail.com", "temp-mail.org", "yopmail.com", 
+  "throwawaymail.com", "getnada.com", "trashmail.com"
+];
+
+const checkDisposableEmail = (value) => {
+  if (!value) return true;
+  const domain = value.split("@")[1]?.toLowerCase();
+  if (domain && disposableDomains.includes(domain)) {
+    throw new Error("Disposable email addresses are not allowed. Please use a valid email.");
+  }
+  return true;
+};
+
 const registerValidator = [
   body("name").trim().isLength({ min: 2 }).withMessage("Name must be at least 2 characters"),
-  body("email").isEmail().normalizeEmail().withMessage("Valid email is required"),
+  body("email").isEmail().normalizeEmail().withMessage("Valid email is required").custom(checkDisposableEmail),
   body("password")
     .matches(strongPasswordRegex)
     .withMessage(
@@ -24,7 +39,7 @@ const signupValidator = [
     .withMessage(
       "Username must be 3–40 characters and use only letters and numbers (no special characters)"
     ),
-  body("email").isEmail().normalizeEmail().withMessage("Valid email is required"),
+  body("email").isEmail().normalizeEmail().withMessage("Valid email is required").custom(checkDisposableEmail),
   body("password")
     .matches(strongPasswordRegex)
     .withMessage(

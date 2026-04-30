@@ -63,6 +63,8 @@ export default function BillingPage() {
   const [appliedCoupon, setAppliedCoupon] = useState(null);
   const [showExpiredPrompt, setShowExpiredPrompt] = useState(false);
   const [expiredPromptMessage, setExpiredPromptMessage] = useState("");
+  const [showCancelPrompt, setShowCancelPrompt] = useState(false);
+  const [canceling, setCanceling] = useState(false);
   const paymentWatchdogRef = useRef(null);
   const [billing, setBilling] = useState({
     plan: "free",
@@ -240,6 +242,23 @@ export default function BillingPage() {
     }
   };
 
+  const onCancelSubscription = async () => {
+    if (canceling) return;
+    setCanceling(true);
+    setError("");
+    setSuccess("");
+    try {
+      await api.post("/api/payment/cancel");
+      await fetchBilling();
+      setSuccess("Subscription cancelled successfully.");
+      setShowCancelPrompt(false);
+    } catch (cancelError) {
+      setError(getFriendlyError(cancelError, "Failed to cancel subscription."));
+    } finally {
+      setCanceling(false);
+    }
+  };
+
   const onApplyCoupon = async () => {
     const normalized = couponCode.trim().toUpperCase();
     return applyCouponCode(normalized);
@@ -373,21 +392,57 @@ export default function BillingPage() {
                 {error && <p className="text-sm text-red-500">{error}</p>}
                 {success && <p className="text-sm text-emerald-500">{success}</p>}
 
-                <Button
-                  onClick={onUpgrade}
-                  disabled={upgrading || billing.plan === "pro"}
-                  className="w-full sm:w-auto"
-                >
-                  {billing.plan === "pro"
-                    ? "You are on Pro"
-                    : upgrading
-                      ? "Processing..."
-                      : `Upgrade to Pro - ${displayPriceText}`}
-                </Button>
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+                  <Button
+                    onClick={onUpgrade}
+                    disabled={upgrading || billing.plan === "pro"}
+                    className="w-full sm:w-auto"
+                  >
+                    {billing.plan === "pro"
+                      ? "You are on Pro"
+                      : upgrading
+                        ? "Processing..."
+                        : `Upgrade to Pro - ${displayPriceText}`}
+                  </Button>
+                  
+                  {billing.plan === "pro" && (
+                    <Button
+                      variant="destructive"
+                      onClick={() => setShowCancelPrompt(true)}
+                      disabled={canceling || upgrading}
+                      className="w-full sm:w-auto"
+                    >
+                      Cancel Subscription
+                    </Button>
+                  )}
+                </div>
               </div>
             )}
           </div>
         </div>
+        
+        {showCancelPrompt && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+            <div className="w-full max-w-sm rounded-xl border bg-white p-5 dark:bg-zinc-900">
+              <h3 className="text-lg font-semibold text-red-600">Cancel Subscription?</h3>
+              <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-300">
+                Are you sure you want to cancel your subscription? Your premium benefits will be removed immediately.
+              </p>
+              <div className="mt-4 flex justify-end gap-2">
+                <Button variant="outline" disabled={canceling} onClick={() => setShowCancelPrompt(false)}>
+                  Keep Subscription
+                </Button>
+                <Button
+                  variant="destructive"
+                  disabled={canceling}
+                  onClick={onCancelSubscription}
+                >
+                  {canceling ? "Canceling..." : "Cancel Subscription"}
+                </Button>
+              </div>
+            </div>
+          </div>
+        )}
         {showExpiredPrompt && (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
             <div className="w-full max-w-sm rounded-xl border bg-white p-5 dark:bg-zinc-900">

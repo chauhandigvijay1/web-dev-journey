@@ -43,9 +43,11 @@ Watch the complete project walkthrough to see DevFlow AI in action:
 
 ## ⚡ Features
 
-### 🔐 Secure Authentication
+### 🔐 Secure Authentication & Privacy
 - JWT-based authentication flow with secure password hashing.
-- Complete lifecycle: Signup, Login, Forgot Password, and Reset Password.
+- Complete lifecycle: Signup, Login, Forgot Password, and Reset Password with strict token expirations.
+- **Account Deletion:** Users can permanently soft-delete their accounts via a secure double-confirmation dialog, instantly revoking all access while preserving essential analytics.
+- **Disposable Email Prevention:** Built-in blocklist to prevent registrations from fake/temporary email providers.
 - Unique username validation and session persistence.
 
 ### 🤖 AI Chat System
@@ -57,6 +59,7 @@ Watch the complete project walkthrough to see DevFlow AI in action:
 ### 📊 Usage Limits & Billing
 - Granular free-tier limits with backend validation to prevent abuse.
 - Razorpay integration for seamless upgrades to the Pro plan.
+- **Subscription Management:** Users can cancel their Pro subscription instantly via the settings dashboard, immediately reverting to the free tier limits safely.
 - Real-time billing state management synchronized with the backend.
 
 ### ⚙️ Personalization
