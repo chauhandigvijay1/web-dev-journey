@@ -35,6 +35,7 @@ const userSchema = new mongoose.Schema(
       dailyCount: { type: Number, default: 0 },
       lastReset: { type: Date, default: Date.now },
     },
+    usedCoupons: { type: [String], default: [] },
   },
   { timestamps: true }
 );

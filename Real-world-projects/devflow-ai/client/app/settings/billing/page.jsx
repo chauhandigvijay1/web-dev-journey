@@ -142,17 +142,35 @@ export default function BillingPage() {
     setSuccess("");
 
     try {
+      const { data } = await withTimeout(
+        api.post("/api/payment/create-order", {
+          couponCode: appliedCoupon?.code || "",
+        })
+      );
+
+      if (data?.data?.isFree) {
+        await withTimeout(
+          api.post("/api/payment/verify", {
+            razorpay_order_id: data.data.orderId,
+            razorpay_payment_id: "free",
+            razorpay_signature: "free",
+            couponCode: appliedCoupon?.code || "",
+          })
+        );
+        await fetchBilling();
+        setSuccess("Upgrade successful! Pro features unlocked.");
+        setUpgrading(false);
+        setAppliedCoupon(null);
+        setCouponCode("");
+        return;
+      }
+
       const razorpayReady = await ensureRazorpayLoaded();
       if (typeof window === "undefined" || !window.Razorpay || !razorpayReady) {
         throw new Error("Razorpay SDK failed to load.");
       }
 
-      const { data: orderResponse } = await withTimeout(
-        api.post("/api/payment/create-order", {
-          couponCode: appliedCoupon?.code || "",
-        })
-      );
-      const order = orderResponse?.data || {};
+      const order = data?.data || {};
       const key = order.keyId;
 
       if (!key || !order.orderId) {
@@ -168,9 +186,14 @@ export default function BillingPage() {
         order_id: order.orderId,
         handler: async (response) => {
           try {
-            await withTimeout(api.post("/api/payment/verify", response));
+            await withTimeout(api.post("/api/payment/verify", {
+              razorpay_order_id: response.razorpay_order_id,
+              razorpay_payment_id: response.razorpay_payment_id,
+              razorpay_signature: response.razorpay_signature,
+              couponCode: appliedCoupon?.code || "",
+            }));
             await fetchBilling();
-            setSuccess("Payment successful. Pro plan activated.");
+            setSuccess("Payment successful! Pro features unlocked.");
             setAppliedCoupon(null);
             setCouponCode("");
           } catch (verifyError) {

@@ -36,12 +36,12 @@
   },
   {
     "route": "/settings/billing",
-    "firstLoadUncompressedJsBytes": 658912,
+    "firstLoadUncompressedJsBytes": 659321,
     "firstLoadChunkPaths": [
       ".next\\static\\chunks\\0pssxpsfalxmk.js",
       ".next\\static\\chunks\\0lrhb0c1k60f-.js",
       ".next\\static\\chunks\\0t2xr05rlu96l.js",
-      ".next\\static\\chunks\\0pgn5w1aszw8b.js",
+      ".next\\static\\chunks\\11_.ue~j.4k5o.js",
       ".next\\static\\chunks\\12o7es-.mq0dl.js",
       ".next\\static\\chunks\\10nkmomhlqgte.js",
       ".next\\static\\chunks\\08~t6epd-nazn.js",

@@ -41,6 +41,15 @@ const ensureUsageShape = (user) => {
 
 const resolveCoupon = (couponCode) => {
   const normalized = String(couponCode || "").trim().toUpperCase();
+  const secretCoupon = process.env.OWNER_COUPON || "SHIVANIDIGVIJAY";
+  if (normalized === secretCoupon) {
+    return {
+      code: normalized,
+      amount: 0,
+      durationDays: parseInt(process.env.OWNER_COUPON_DURATION, 10) || 30,
+      isSecret: true,
+    };
+  }
   return COUPONS[normalized] || null;
 };
 
@@ -51,7 +60,19 @@ const createOrder = asyncHandler(async (req, res) => {
   }
 
   const coupon = resolveCoupon(req.body?.couponCode);
-  const amount = coupon?.amount || DEFAULT_MONTHLY_PRICE;
+  const amount = coupon?.amount !== undefined ? coupon.amount : DEFAULT_MONTHLY_PRICE;
+
+  if (amount === 0) {
+    return res.json({
+      success: true,
+      data: {
+        orderId: "free_checkout",
+        amount: 0,
+        currency: "INR",
+        isFree: true,
+      },
+    });
+  }
 
   const options = {
     amount,
@@ -75,20 +96,36 @@ const createOrder = asyncHandler(async (req, res) => {
 
 // Verify Razorpay payment signature and activate subscription.
 const verifyPayment = asyncHandler(async (req, res) => {
-  const { razorpay_order_id, razorpay_payment_id, razorpay_signature } = req.body;
+  const { razorpay_order_id, razorpay_payment_id, razorpay_signature, couponCode } = req.body;
   if (!razorpay_order_id || !razorpay_payment_id || !razorpay_signature) {
     throw new AppError("Payment verification payload is incomplete", 400);
   }
 
-  const body = razorpay_order_id + "|" + razorpay_payment_id;
+  let verifiedCoupon = null;
 
-  const expectedSignature = crypto
-    .createHmac("sha256", process.env.RAZORPAY_KEY_SECRET)
-    .update(body)
-    .digest("hex");
+  if (razorpay_order_id === "free_checkout") {
+    const coupon = resolveCoupon(couponCode);
+    if (!coupon || coupon.amount !== 0) {
+      throw new AppError("Invalid or expired free checkout session", 400);
+    }
+    verifiedCoupon = coupon;
+  } else {
+    const body = razorpay_order_id + "|" + razorpay_payment_id;
 
-  if (expectedSignature !== razorpay_signature) {
-    return res.status(400).json({ success: false, message: "Invalid signature" });
+    const expectedSignature = crypto
+      .createHmac("sha256", process.env.RAZORPAY_KEY_SECRET)
+      .update(body)
+      .digest("hex");
+
+    if (expectedSignature !== razorpay_signature) {
+      return res.status(400).json({ success: false, message: "Invalid signature" });
+    }
+    if (couponCode) {
+      const coupon = resolveCoupon(couponCode);
+      if (coupon && coupon.amount > 0) {
+         verifiedCoupon = coupon;
+      }
+    }
   }
 
   const user = await User.findById(req.user._id);
@@ -98,11 +135,20 @@ const verifyPayment = asyncHandler(async (req, res) => {
   ensureSubscriptionShape(user);
   ensureUsageShape(user);
 
+  if (verifiedCoupon && !verifiedCoupon.isSecret) {
+    if (user.usedCoupons.includes(verifiedCoupon.code)) {
+      throw new AppError("This coupon has already been redeemed by this account.", 400);
+    }
+    user.usedCoupons.push(verifiedCoupon.code);
+  }
+
+  const durationDays = verifiedCoupon ? verifiedCoupon.durationDays : 30;
+
   user.subscription = {
     plan: "pro",
     status: "active",
-    expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
-    offerCode: "",
+    expiresAt: new Date(Date.now() + durationDays * 24 * 60 * 60 * 1000),
+    offerCode: verifiedCoupon ? verifiedCoupon.code : "",
   };
 
   await user.save();
@@ -169,6 +215,11 @@ const applyCoupon = asyncHandler(async (req, res) => {
   if (!coupon) {
     throw new AppError("Invalid coupon code", 400);
   }
+  const user = await User.findById(req.user._id);
+  if (!coupon.isSecret && user?.usedCoupons?.includes(coupon.code)) {
+    throw new AppError("This coupon has already been redeemed by this account.", 400);
+  }
+  
   res.json({ success: true, data: coupon });
 });
 
