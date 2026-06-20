@@ -20,6 +20,7 @@ import { JOB_STATUSES, isJobStatus, type Job, type JobStatus } from "@/lib/job-t
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Inbox, Briefcase } from "lucide-react";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -277,15 +278,18 @@ export function JobsKanban() {
 
   if (jobs.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center rounded-xl border border-dashed bg-muted/20 px-6 py-16 text-center">
-        <p className="text-sm font-medium text-foreground">No jobs yet</p>
-        <p className="mt-1 max-w-sm text-sm text-muted-foreground">
-          Track applications by adding a job from a URL or manual entry.
+      <div className="flex min-h-[400px] flex-col items-center justify-center rounded-xl border border-dashed bg-muted/10 px-6 py-16 text-center">
+        <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary/10 mb-4">
+          <Briefcase className="h-6 w-6 text-primary" />
+        </div>
+        <h3 className="text-lg font-semibold text-foreground tracking-tight">No applications tracked yet</h3>
+        <p className="mt-1.5 max-w-sm text-sm text-muted-foreground">
+          Start building your pipeline by adding a job manually or pasting a URL.
         </p>
-        <Button className="mt-6 gap-1" asChild>
+        <Button className="mt-6 gap-2 px-6" asChild>
           <Link href="/dashboard/add-job">
             <Plus className="h-4 w-4" />
-            Add job
+            Add your first job
           </Link>
         </Button>
       </div>
@@ -305,10 +309,15 @@ export function JobsKanban() {
           sources={sources}
         />
         {filteredJobs.length === 0 ? (
-          <div className="rounded-xl border border-dashed bg-muted/20 px-6 py-12 text-center">
-            <p className="text-sm font-medium text-foreground">No jobs match your filters</p>
-            <p className="mt-1 text-sm text-muted-foreground">Adjust filters or clear selections to see jobs.</p>
-            <Button type="button" variant="outline" size="sm" className="mt-4" onClick={() => setFilters(defaultKanbanFilters)}>
+          <div className="flex min-h-[300px] flex-col items-center justify-center rounded-xl border border-dashed bg-muted/10 px-6 py-12 text-center">
+            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-muted mb-4">
+              <Inbox className="h-5 w-5 text-muted-foreground" />
+            </div>
+            <h3 className="text-base font-medium text-foreground tracking-tight">No jobs match your filters</h3>
+            <p className="mt-1.5 max-w-sm text-sm text-muted-foreground">
+              Try adjusting your search criteria or clear your current filters.
+            </p>
+            <Button type="button" variant="outline" size="sm" className="mt-5" onClick={() => setFilters(defaultKanbanFilters)}>
               Clear filters
             </Button>
           </div>

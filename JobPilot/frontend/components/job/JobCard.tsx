@@ -15,6 +15,13 @@ import { useAppSelector } from "@/store/hooks";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { MoreHorizontal, Edit, Trash2 } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 function StarRow({ score }: { score: number }) {
   const count = Math.min(5, Math.max(0, Math.ceil(Number(score) / 20)));
@@ -76,15 +83,33 @@ export function JobCard({ job, onEdit, onDelete }: JobCardProps) {
             </h3>
             <p className="line-clamp-1 text-xs text-muted-foreground">{job.company || "-"}</p>
           </Link>
-          <div className="flex shrink-0 flex-col items-end gap-1">
-            <Badge variant="outline" className="capitalize">
-              {job.status}
-            </Badge>
-            {!job.isGhosted && ghosted ? (
-              <span className="rounded-full bg-muted px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
-                Ghosted
-              </span>
-            ) : null}
+          <div className="flex shrink-0 items-start gap-2">
+            <div className="flex flex-col items-end gap-1">
+              <Badge variant="outline" className="capitalize">
+                {job.status}
+              </Badge>
+              {!job.isGhosted && ghosted ? (
+                <span className="rounded-full bg-muted px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
+                  Ghosted
+                </span>
+              ) : null}
+            </div>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" className="h-6 w-6 p-0 text-muted-foreground hover:text-foreground" onPointerDown={(e) => e.stopPropagation()}>
+                  <span className="sr-only">Open menu</span>
+                  <MoreHorizontal className="h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" onPointerDown={(e) => e.stopPropagation()}>
+                <DropdownMenuItem onClick={onEdit}>
+                  <Edit className="mr-2 h-4 w-4" /> Edit
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={onDelete} className="text-destructive focus:bg-destructive/10 focus:text-destructive">
+                  <Trash2 className="mr-2 h-4 w-4" /> Delete
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         </div>
 
@@ -109,20 +134,7 @@ export function JobCard({ job, onEdit, onDelete }: JobCardProps) {
           <StarRow score={job.confidenceScore ?? 0} />
         </div>
 
-        <div className="flex gap-1 border-t border-border/60 pt-2" onPointerDown={(event) => event.stopPropagation()}>
-          <Button type="button" size="sm" variant="secondary" className="h-8 flex-1 text-xs" onClick={onEdit}>
-            Edit
-          </Button>
-          <Button
-            type="button"
-            size="sm"
-            variant="ghost"
-            className="h-8 flex-1 text-xs text-destructive hover:bg-destructive/10 hover:text-destructive"
-            onClick={onDelete}
-          >
-            Delete
-          </Button>
-        </div>
+
       </CardContent>
     </Card>
   );

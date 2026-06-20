@@ -1,10 +1,11 @@
 "use client";
 
-import { memo } from "react";
-import { Search } from "lucide-react";
+import { memo, useState } from "react";
+import { Search, SlidersHorizontal } from "lucide-react";
 import { JOB_STATUSES, type JobStatus } from "@/lib/job-types";
 import type { KanbanFilterState, KanbanSort } from "@/lib/kanban-filters";
 import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
@@ -52,6 +53,16 @@ function FilterBarInner({
   jobTypes,
   sources,
 }: FilterBarProps) {
+  const [showAdvanced, setShowAdvanced] = useState(false);
+  const activeAdvancedCount = [
+    filters.company,
+    filters.place,
+    filters.country,
+    filters.workMode,
+    filters.jobType,
+    filters.source,
+  ].filter(Boolean).length;
+
   return (
     <div className="rounded-xl border bg-card/50 p-4 shadow-sm">
       <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
@@ -99,19 +110,39 @@ function FilterBarInner({
           <Label htmlFor="filter-sort" className="text-xs text-muted-foreground">
             Sort
           </Label>
-          <select
-            id="filter-sort"
-            className={cn(selectClass, "sm:max-w-none")}
-            value={sort}
-            onChange={(event) => onSortChange(event.target.value as KanbanSort)}
-          >
-            {(Object.keys(SORT_LABEL) as KanbanSort[]).map((key) => (
-              <option key={key} value={key}>
-                {SORT_LABEL[key]}
-              </option>
-            ))}
-          </select>
+          <div className="flex gap-2">
+            <select
+              id="filter-sort"
+              className={cn(selectClass, "flex-1")}
+              value={sort}
+              onChange={(event) => onSortChange(event.target.value as KanbanSort)}
+            >
+              {(Object.keys(SORT_LABEL) as KanbanSort[]).map((key) => (
+                <option key={key} value={key}>
+                  {SORT_LABEL[key]}
+                </option>
+              ))}
+            </select>
+            <Button
+              type="button"
+              variant={activeAdvancedCount > 0 ? "default" : "outline"}
+              className="h-9 px-3"
+              onClick={() => setShowAdvanced(!showAdvanced)}
+            >
+              <SlidersHorizontal className="h-4 w-4 sm:mr-2" />
+              <span className="hidden sm:inline">Filters</span>
+              {activeAdvancedCount > 0 && (
+                <span className="ml-1.5 rounded bg-primary-foreground/20 px-1.5 py-0.5 text-[10px] font-medium leading-none text-primary-foreground">
+                  {activeAdvancedCount}
+                </span>
+              )}
+            </Button>
+          </div>
         </div>
+      </div>
+
+      {showAdvanced && (
+        <div className="mt-4 grid gap-3 border-t border-border/50 pt-4 sm:grid-cols-2 xl:grid-cols-3 animate-in fade-in slide-in-from-top-2">
 
         <div className="space-y-1.5">
           <Label htmlFor="filter-company" className="text-xs text-muted-foreground">
@@ -211,7 +242,8 @@ function FilterBarInner({
             ))}
           </select>
         </div>
-      </div>
+        </div>
+      )}
     </div>
   );
 }
