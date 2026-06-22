@@ -54,43 +54,89 @@ Track applications, organize progress with Kanban workflow, receive reminders, a
 ### 🤖 AI Features
 
 * AI Follow-up Message Generator
-
 ### ⏰ Reminder System
 
 * Automated Reminder Scheduler
 * Email Follow-up Alerts
 
-### 📊 Analytics
+### JobPilot AI - Career Operating System
 
-* Total Applications
-* Offer / Reject Metrics
-* Search Progress Insights
+JobPilot is not just a job tracker. It is a persistent **AI Career Operating System**.
 
-### 🎨 UI / UX
+It uses AI to parse your resume, build a persistent **Career Brain**, discover high-quality job matches, optimize your resume, generate personalized cover letters, prepare you for interviews, and act as your ultimate Career CRM.
 
-* Responsive Design
-* Dark / Light / Gradient Themes
-* Smooth Dashboard Experience
+## Core Features
 
----
+- **Career Brain Engine:** A persistent memory of your skills, experiences, GitHub, LinkedIn, portfolio, and career goals.
+- **Auto Job Hunter:** Automatically scrapes, matches, and alerts you to jobs tailored to your Career Brain.
+- **AI Career Coach:**
+  - Contextual Interview Preparation
+  - ATS Resume Tailoring
+  - Personalized Cover Letter Generation
+  - Company Intelligence & Recruiter Discovery
+  - Rejection Analysis
+- **Daily Career Brief:** Emailed digest of your best matches and follow-ups due.
+- **Skill Gap Engine:** Identifies the skills you lack across your top-matched jobs.
+- **Career Strategy Dashboard:** Full metrics on your application funnel and follow-ups.
 
-## 🧱 Tech Stack
+## Architecture
 
-### Frontend
+- **Frontend:** Next.js (App Router), TailwindCSS, shadcn/ui.
+- **Backend:** Node.js, Express, MongoDB, Mongoose.
+- **AI Layer:** Groq API (Llama 3 / Mixtral) for intelligent parsing, generation, and coaching.
+- **Scraping Engine:** TinyFish API for raw job data extraction.
+- **Scheduler:** Node-cron for background job discovery and email dispatches.
 
-* Next.js 14
-* React.js
-* Tailwind CSS
-* Axios
+## Environment Variables
 
-### Backend
+### Backend (`.env`)
+**Required:**
+- `MONGO_URI=`
+- `JWT_SECRET=`
+- `GROQ_API_KEY=` (For all AI features)
+- `TINYFISH_API_KEY=` (For Auto Hunter extraction)
+- `FRONTEND_URL=`
 
-* Node.js
-* Express.js
-* MongoDB Atlas
-* Mongoose
-* JWT
-* Nodemailer
+**Optional:**
+- `SMTP_HOST=`, `SMTP_PORT=`, `SMTP_USER=`, `SMTP_PASS=`, `SMTP_FROM=` (For email reminders and daily briefs)
+- `CLOUDINARY_CLOUD_NAME=`, `CLOUDINARY_API_KEY=`, `CLOUDINARY_API_SECRET=` (For resume uploads)
+- `GOOGLE_CLIENT_ID=`, `GOOGLE_CLIENT_SECRET=` (For Google OAuth)
+
+### Frontend (`.env.local`)
+**Required:**
+- `NEXT_PUBLIC_API_URL=`
+
+## Installation
+
+1. Clone the repo and install dependencies:
+   ```bash
+   cd frontend && npm install
+   cd ../backend && npm install
+   ```
+2. Set up the Environment Variables as listed above.
+3. Run the development servers:
+   ```bash
+   # Terminal 1
+   cd backend && npm run dev
+   # Terminal 2
+   cd frontend && npm run dev
+   ```
+
+## Deployment
+
+- **Frontend:** Deployable to Vercel. Ensure `NEXT_PUBLIC_API_URL` is set to your production backend URL.
+- **Backend:** Deployable to Render or Heroku. Ensure MongoDB Atlas IP access allows the deployment server.
+
+## Troubleshooting
+
+- **AI features failing:** Ensure `GROQ_API_KEY` is valid and has sufficient quota.
+- **Auto Hunter not finding jobs:** Ensure `TINYFISH_API_KEY` is configured.
+- **Emails not sending:** Verify `SMTP_*` variables are correct.
+
+## Future Roadmap (Phases 4 & 5)
+- **JobPilot Companion Extension:** A Chrome/Edge extension to save jobs with 1-click.
+- **Universal Job Import:** AI-driven ingestion of any job posting URL on the internet.
+- **Opportunity Prioritization Engine:** Rank pipeline by Career Readiness Score.ler
 
 ---
 

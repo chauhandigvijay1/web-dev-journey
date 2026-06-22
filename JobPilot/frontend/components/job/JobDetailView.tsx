@@ -126,11 +126,18 @@ export function JobDetailView({ jobId }: { jobId: string }) {
   const [flagSaving, setFlagSaving] = useState<"pin" | "important" | "ghost" | null>(null);
   const [statusSaving, setStatusSaving] = useState(false);
   const [aiOpen, setAiOpen] = useState(false);
-  const [aiKind, setAiKind] = useState<"email" | "summary" | "interview">("email");
+  const [aiKind, setAiKind] = useState<"email" | "summary" | "interview" | "cover-letter" | "tailor-resume" | "company-intelligence" | "recruiter-discovery" | "rejection-analysis">("email");
   const [aiLoading, setAiLoading] = useState(false);
   const [aiError, setAiError] = useState<string | null>(null);
   const [aiOutput, setAiOutput] = useState("");
   const [aiCopied, setAiCopied] = useState(false);
+
+  // CRM State
+  const [newContactName, setNewContactName] = useState("");
+  const [newContactRole, setNewContactRole] = useState("Recruiter");
+  const [newContactEmail, setNewContactEmail] = useState("");
+  const [newContactLinkedin, setNewContactLinkedin] = useState("");
+  const [addingContact, setAddingContact] = useState(false);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -139,24 +146,16 @@ export function JobDetailView({ jobId }: { jobId: string }) {
       const { data } = await api.get<{ success: boolean; data?: { job: Job }; message?: string }>(
         `/jobs/${jobId}`
       );
-      if (!data.success || !data.data?.job) {
-        setError(data.message ?? "Could not load job");
-        setJob(null);
-        return;
-      }
-      const j = data.data.job;
-      setJob(j);
-      setNotes(j.notes ?? "");
+      if (!data.success || !data.data?.job) throw new Error(data.message ?? "Not found");
+      setJob(data.data.job);
+      setNotes(data.data.job.notes ?? "");
       setNotesDirty(false);
     } catch (e) {
-      const msg =
-        axios.isAxiosError(e) &&
-        e.response?.data &&
-        typeof (e.response.data as { message?: string }).message === "string"
-          ? (e.response.data as { message: string }).message
-          : null;
-      setError(msg ?? "Could not load job");
-      setJob(null);
+      setError(
+        axios.isAxiosError(e) && typeof e.response?.data?.message === "string"
+          ? e.response.data.message
+          : "Could not load job details."
+      );
     } finally {
       setLoading(false);
     }
@@ -170,18 +169,49 @@ export function JobDetailView({ jobId }: { jobId: string }) {
     setJob((prev) => (prev ? { ...prev, ...patch } : null));
   }, []);
 
-  async function patchJob(body: Record<string, unknown>) {
-    const { data } = await api.put<{ success: boolean; data?: { job: Job }; message?: string }>(
+  const patchJob = async (body: Partial<Job>) => {
+    const { data } = await api.patch<{ success: boolean; data?: { job: Job }; message?: string }>(
       `/jobs/${jobId}`,
       body
     );
     if (!data.success || !data.data?.job) throw new Error(data.message ?? "Update failed");
-    const j = data.data.job;
-    setJob(j);
+    
+    // Update local contacts immediately if they changed
+    if (body.contacts) {
+      setJob(prev => prev ? { ...prev, contacts: data.data!.job.contacts } : null);
+    }
+    
     const updatingNotes = Object.prototype.hasOwnProperty.call(body, "notes");
     if (updatingNotes || !notesDirty) {
-      setNotes(j.notes ?? "");
+      setNotes(data.data.job.notes ?? "");
       if (updatingNotes) setNotesDirty(false);
+    }
+  };
+
+  async function addContact() {
+    if (!job || !newContactName || addingContact) return;
+    setAddingContact(true);
+    
+    const newContact = {
+      name: newContactName,
+      role: newContactRole,
+      email: newContactEmail,
+      linkedin: newContactLinkedin,
+      status: "Contacted"
+    };
+    
+    const updatedContacts = [...(job.contacts || []), newContact];
+    
+    try {
+      await patchJob({ contacts: updatedContacts });
+      setNewContactName("");
+      setNewContactEmail("");
+      setNewContactLinkedin("");
+      setNewContactRole("Recruiter");
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setAddingContact(false);
     }
   }
 
@@ -251,7 +281,7 @@ export function JobDetailView({ jobId }: { jobId: string }) {
     }
   }
 
-  async function runAi(kind: "email" | "summary" | "interview") {
+  async function runAi(kind: "email" | "summary" | "interview" | "cover-letter" | "tailor-resume" | "company-intelligence" | "recruiter-discovery" | "rejection-analysis") {
     if (!job) return;
     setAiKind(kind);
     setAiError(null);
@@ -274,9 +304,44 @@ export function JobDetailView({ jobId }: { jobId: string }) {
         );
         if (!data.success || typeof data.data !== "string") throw new Error(data.message ?? "Request failed");
         setAiOutput(data.data);
-      } else {
+      } else if (kind === "interview") {
         const { data } = await api.post<{ success: boolean; data?: string; message?: string }>(
           "/ai/interview-questions",
+          { jobId: job._id }
+        );
+        if (!data.success || typeof data.data !== "string") throw new Error(data.message ?? "Request failed");
+        setAiOutput(data.data);
+      } else if (kind === "cover-letter") {
+        const { data } = await api.post<{ success: boolean; data?: string; message?: string }>(
+          "/ai/cover-letter",
+          { jobId: job._id }
+        );
+        if (!data.success || typeof data.data !== "string") throw new Error(data.message ?? "Request failed");
+        setAiOutput(data.data);
+      } else if (kind === "tailor-resume") {
+        const { data } = await api.post<{ success: boolean; data?: string; message?: string }>(
+          "/ai/tailor-resume",
+          { jobId: job._id }
+        );
+        if (!data.success || typeof data.data !== "string") throw new Error(data.message ?? "Request failed");
+        setAiOutput(data.data);
+      } else if (kind === "company-intelligence") {
+        const { data } = await api.post<{ success: boolean; data?: string; message?: string }>(
+          "/ai/company-intelligence",
+          { companyName: job.company }
+        );
+        if (!data.success || typeof data.data !== "string") throw new Error(data.message ?? "Request failed");
+        setAiOutput(data.data);
+      } else if (kind === "recruiter-discovery") {
+        const { data } = await api.post<{ success: boolean; data?: string; message?: string }>(
+          "/ai/recruiter-discovery",
+          { companyName: job.company }
+        );
+        if (!data.success || typeof data.data !== "string") throw new Error(data.message ?? "Request failed");
+        setAiOutput(data.data);
+      } else {
+        const { data } = await api.post<{ success: boolean; data?: string; message?: string }>(
+          "/ai/rejection-analysis",
           { jobId: job._id }
         );
         if (!data.success || typeof data.data !== "string") throw new Error(data.message ?? "Request failed");
@@ -649,8 +714,61 @@ export function JobDetailView({ jobId }: { jobId: string }) {
               <span className="text-xs text-muted-foreground">Saved</span>
             ) : null}
           </div>
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
+
+        {/* Career CRM Card */}
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base">Career CRM</CardTitle>
+            <CardDescription>Track networking contacts and recruiters</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {job.contacts && job.contacts.length > 0 ? (
+              <div className="grid gap-4 md:grid-cols-2">
+                {job.contacts.map((contact, idx) => (
+                  <div key={contact._id || idx} className="rounded-lg border bg-card text-card-foreground p-3 shadow-sm text-sm flex flex-col gap-1">
+                    <div className="font-semibold">{contact.name}</div>
+                    <div className="text-muted-foreground">{contact.role}</div>
+                    {contact.email && <div className="text-muted-foreground break-all">{contact.email}</div>}
+                    {contact.linkedin && <div className="text-muted-foreground break-all text-blue-500"><a href={contact.linkedin} target="_blank" rel="noreferrer">LinkedIn</a></div>}
+                    <Badge variant="secondary" className="w-fit mt-1">{contact.status}</Badge>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-sm text-muted-foreground">No contacts added yet.</p>
+            )}
+
+            <div className="flex flex-col gap-2 mt-4 pt-4 border-t">
+              <div className="grid grid-cols-2 gap-2">
+                <Input
+                  placeholder="Name"
+                  value={newContactName}
+                  onChange={(e) => setNewContactName(e.target.value)}
+                />
+                <Input
+                  placeholder="Role (e.g. Recruiter)"
+                  value={newContactRole}
+                  onChange={(e) => setNewContactRole(e.target.value)}
+                />
+                <Input
+                  placeholder="Email"
+                  value={newContactEmail}
+                  onChange={(e) => setNewContactEmail(e.target.value)}
+                />
+                <Input
+                  placeholder="LinkedIn URL"
+                  value={newContactLinkedin}
+                  onChange={(e) => setNewContactLinkedin(e.target.value)}
+                />
+              </div>
+              <Button onClick={() => void addContact()} disabled={addingContact || !newContactName}>
+                {addingContact ? "Adding..." : "Add Contact"}
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
 
       {job.descriptionSummary?.trim() ? (
         <Card>
@@ -714,6 +832,81 @@ export function JobDetailView({ jobId }: { jobId: string }) {
               <MessageSquareText className="h-4 w-4" />
             )}
             Generate interview questions
+          </Button>
+          <Button
+            type="button"
+            variant="secondary"
+            size="sm"
+            className="gap-2"
+            disabled={aiLoading}
+            onClick={() => void runAi("cover-letter")}
+          >
+            {aiLoading && aiKind === "cover-letter" ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <FileText className="h-4 w-4" />
+            )}
+            Generate cover letter
+          </Button>
+          <Button
+            type="button"
+            variant="secondary"
+            size="sm"
+            className="gap-2"
+            disabled={aiLoading}
+            onClick={() => void runAi("tailor-resume")}
+          >
+            {aiLoading && aiKind === "tailor-resume" ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <FileText className="h-4 w-4" />
+            )}
+            Tailor resume
+          </Button>
+          <Button
+            type="button"
+            variant="secondary"
+            size="sm"
+            className="gap-2"
+            disabled={aiLoading}
+            onClick={() => void runAi("company-intelligence")}
+          >
+            {aiLoading && aiKind === "company-intelligence" ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <FileText className="h-4 w-4" />
+            )}
+            Company Intelligence
+          </Button>
+          <Button
+            type="button"
+            variant="secondary"
+            size="sm"
+            className="gap-2"
+            disabled={aiLoading}
+            onClick={() => void runAi("recruiter-discovery")}
+          >
+            {aiLoading && aiKind === "recruiter-discovery" ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <FileText className="h-4 w-4" />
+            )}
+            Recruiter Discovery
+          </Button>
+          <Button
+            type="button"
+            variant="secondary"
+            size="sm"
+            className="gap-2"
+            disabled={aiLoading}
+            onClick={() => void runAi("rejection-analysis")}
+          >
+            {aiLoading && aiKind === "rejection-analysis" ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <FileText className="h-4 w-4" />
+            )}
+            Rejection Analyzer
           </Button>
         </CardContent>
       </Card>

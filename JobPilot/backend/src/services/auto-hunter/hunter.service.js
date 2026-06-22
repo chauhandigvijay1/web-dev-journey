@@ -683,6 +683,22 @@ export async function getResumeProfileForUser(user) {
   return sanitizeResumeProfile(profile);
 }
 
+export async function updateResumeProfileForUser(user, input) {
+  const parsedDataUpdates = {};
+  if (input.githubUrl !== undefined) parsedDataUpdates['parsedData.githubUrl'] = input.githubUrl;
+  if (input.linkedinUrl !== undefined) parsedDataUpdates['parsedData.linkedinUrl'] = input.linkedinUrl;
+  if (input.portfolioUrl !== undefined) parsedDataUpdates['parsedData.portfolioUrl'] = input.portfolioUrl;
+  if (input.careerGoals !== undefined) parsedDataUpdates['parsedData.careerGoals'] = input.careerGoals;
+
+  const profile = await ResumeProfile.findOneAndUpdate(
+    { user: user._id },
+    { $set: parsedDataUpdates },
+    { new: true }
+  ).lean();
+  
+  return sanitizeResumeProfile(profile);
+}
+
 export async function getJobHunterPreferencesForUser(user) {
   const profile = await ResumeProfile.findOne({ user: user._id }).lean();
   const { document, value } = await getOrCreateJobPreferences(user, profile);

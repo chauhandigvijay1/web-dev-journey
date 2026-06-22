@@ -35,6 +35,7 @@ const nav = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { href: "/dashboard/jobs", label: "Jobs", icon: Briefcase },
   { href: "/dashboard/auto-hunter", label: "AI Hunter", icon: Sparkles },
+  { href: "/dashboard/strategy", label: "Strategy", icon: ListTodo },
   { href: "/dashboard/analytics", label: "Analytics", icon: BarChart3 },
   { href: "/dashboard/reminders", label: "Reminders", icon: ListTodo },
   { href: "/dashboard/settings", label: "Settings", icon: Settings },

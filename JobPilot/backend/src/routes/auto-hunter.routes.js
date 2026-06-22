@@ -17,6 +17,7 @@ import {
   unsaveAutoHunterMatch,
   updateJobHunterPreferences,
   uploadResumeProfile,
+  updateResumeProfile,
 } from "../controllers/auto-hunter.controller.js";
 
 export const autoHunterRouter = Router();
@@ -25,6 +26,7 @@ autoHunterRouter.use(protect);
 
 autoHunterRouter.get("/overview", asyncHandler(getAutoHunterOverview));
 autoHunterRouter.get("/resume", asyncHandler(getResumeProfile));
+autoHunterRouter.patch("/resume", asyncHandler(updateResumeProfile));
 autoHunterRouter.post("/resume", uploadResumeMemory, asyncHandler(uploadResumeProfile));
 autoHunterRouter.get("/preferences", asyncHandler(getJobHunterPreferences));
 autoHunterRouter.patch("/preferences", asyncHandler(updateJobHunterPreferences));

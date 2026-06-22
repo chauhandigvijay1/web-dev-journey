@@ -34,6 +34,10 @@ export type ResumeParsedData = {
   totalYearsExperience: number;
   suggestedResumeImprovements: string[];
   parserModel: string;
+  githubUrl?: string;
+  linkedinUrl?: string;
+  portfolioUrl?: string;
+  careerGoals?: string;
 };
 
 export type ResumeProfile = {

@@ -35,4 +35,14 @@ export type Job = {
   workMode?: string;
   descriptionSummary?: string;
   originalApplyLink?: string;
+  priorityScore?: number;
+  contacts?: Array<{
+    _id?: string;
+    name: string;
+    role: string;
+    email: string;
+    linkedin: string;
+    status: string;
+    lastContactDate?: string;
+  }>;
 };

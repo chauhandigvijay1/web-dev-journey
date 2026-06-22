@@ -17,11 +17,12 @@ const STATUS_LABEL: Record<JobStatus, string> = {
 };
 
 const SORT_LABEL: Record<KanbanSort, string> = {
-  latest: "Latest",
-  bestMatch: "Best match",
-  salaryHighToLow: "Salary high-low",
-  salaryLowToHigh: "Salary low-high",
-  followup: "Upcoming follow-up",
+  latest: "Latest updated",
+  bestMatch: "Match score",
+  priority: "Priority score",
+  salaryHighToLow: "Salary (High to Low)",
+  salaryLowToHigh: "Salary (Low to High)",
+  followup: "Follow-up due",
 };
 
 const selectClass =

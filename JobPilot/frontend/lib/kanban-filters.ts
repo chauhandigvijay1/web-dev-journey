@@ -3,6 +3,7 @@ import { JOB_STATUSES, isJobStatus, type Job, type JobStatus } from "@/lib/job-t
 export type KanbanSort =
   | "latest"
   | "bestMatch"
+  | "priority"
   | "salaryHighToLow"
   | "salaryLowToHigh"
   | "followup";
@@ -188,6 +189,8 @@ export function sortJobsInColumn(jobs: Job[], sort: KanbanSort): Job[] {
         return latestTime(right) - latestTime(left);
       case "bestMatch":
         return (right.confidenceScore ?? 0) - (left.confidenceScore ?? 0);
+      case "priority":
+        return (right.priorityScore ?? 50) - (left.priorityScore ?? 50);
       case "salaryHighToLow": {
         const leftSalary = salarySortValue(left);
         const rightSalary = salarySortValue(right);

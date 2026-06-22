@@ -35,7 +35,21 @@ const jobSchema = new mongoose.Schema(
     followUpDate: { type: Date, default: null },
     reminderLastSentAt: { type: Date, default: null },
     reminderLastSentForDate: { type: String, trim: true, default: "" },
-  },
+    priorityScore: { type: Number, default: 50 }, // 0-100 score for Opportunity Prioritization Engine
+    contacts: [
+      {
+        name: { type: String, trim: true, required: true },
+        role: { type: String, trim: true, default: "Recruiter" },
+        email: { type: String, trim: true, default: "" },
+        linkedin: { type: String, trim: true, default: "" },
+        status: {
+          type: String,
+          enum: ["Contacted", "Replied", "Follow Up", "Interview Scheduled", "Closed"],
+          default: "Contacted"
+        },
+        lastContactDate: { type: Date, default: Date.now },
+      }
+    ],
   { timestamps: true }
 );
 

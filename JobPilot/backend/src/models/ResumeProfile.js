@@ -16,6 +16,10 @@ const parsedResumeSchema = new mongoose.Schema(
     suggestedResumeImprovements: [{ type: String, trim: true }],
     parserModel: { type: String, trim: true, default: "" },
     textHash: { type: String, trim: true, default: "" },
+    githubUrl: { type: String, trim: true, default: "" },
+    linkedinUrl: { type: String, trim: true, default: "" },
+    portfolioUrl: { type: String, trim: true, default: "" },
+    careerGoals: { type: String, trim: true, default: "" },
   },
   { _id: false }
 );

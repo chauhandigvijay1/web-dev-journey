@@ -95,3 +95,66 @@ export function buildAutoHunterMatchEmail({ userName, match }) {
     text,
   };
 }
+
+export function buildDailyCareerBriefEmail({ userName, matches, followUps, alerts }) {
+  const dashboardUrl = `${env.frontendUrl}/dashboard`;
+  
+  const html = `
+    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background:#f4f7fb;padding:24px 12px;font-family:Arial,sans-serif;color:#0f172a;">
+      <tr>
+        <td align="center">
+          <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:640px;background:#ffffff;border-radius:24px;overflow:hidden;border:1px solid #e2e8f0;">
+            <tr>
+              <td style="padding:32px;background:linear-gradient(135deg,#0f172a,#2563eb);color:#ffffff;">
+                <div style="font-size:12px;letter-spacing:0.16em;text-transform:uppercase;opacity:0.82;">Daily Career Brief</div>
+                <h1 style="margin:12px 0 0;font-size:28px;line-height:1.2;">Good morning, ${escapeHtml(userName)}</h1>
+              </td>
+            </tr>
+            <tr>
+              <td style="padding:28px 32px 32px;">
+                <p style="margin:0 0 16px;font-size:15px;line-height:1.7;color:#334155;">Here is your daily career digest.</p>
+                
+                ${
+                  matches.length
+                    ? `<div style="margin-top:22px;"><p style="margin:0 0 10px;font-size:16px;font-weight:700;color:#0f172a;">🔥 Top Job Matches</p><ul style="margin:0;padding-left:18px;color:#334155;">${matches
+                        .map((m) => `<li style="margin-bottom:8px;"><strong>${escapeHtml(m.title)}</strong> at ${escapeHtml(m.company)} (Score: ${m.match?.score}%)</li>`)
+                        .join("")}</ul></div>`
+                    : ""
+                }
+                
+                ${
+                  followUps.length
+                    ? `<div style="margin-top:22px;"><p style="margin:0 0 10px;font-size:16px;font-weight:700;color:#0f172a;">👋 Follow-ups Due</p><ul style="margin:0;padding-left:18px;color:#334155;">${followUps
+                        .map((f) => `<li style="margin-bottom:8px;"><strong>${escapeHtml(f.title)}</strong> at ${escapeHtml(f.company)}</li>`)
+                        .join("")}</ul></div>`
+                    : ""
+                }
+
+                <div style="margin:28px 0 18px;">
+                  <a href="${escapeHtml(dashboardUrl)}" style="display:inline-block;background:#2563eb;color:#ffffff;text-decoration:none;padding:12px 18px;border-radius:999px;font-weight:600;">Open Dashboard</a>
+                </div>
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+    </table>
+  `;
+
+  const text = [
+    `Good morning, ${userName}`,
+    "",
+    "Here is your daily career digest.",
+    "",
+    matches.length ? `Top Matches:\n${matches.map(m => `- ${m.title} at ${m.company} (${m.match?.score}%)`).join("\n")}` : "",
+    followUps.length ? `Follow-ups Due:\n${followUps.map(f => `- ${f.title} at ${f.company}`).join("\n")}` : "",
+    "",
+    `Dashboard: ${dashboardUrl}`
+  ].filter(Boolean).join("\n");
+
+  return {
+    subject: `Your Daily Career Brief: ${matches.length} new matches`,
+    html,
+    text,
+  };
+}

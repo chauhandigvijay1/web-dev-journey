@@ -11,6 +11,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
+import { CareerBrainForm } from "@/components/auto-hunter/career-brain-form";
 
 type ResumeResponse = {
   profile: ResumeProfile;
@@ -161,6 +162,8 @@ export default function AutoHunterResumePage() {
 
       {profile ? (
         <>
+          <CareerBrainForm profile={profile} onUpdate={setProfile} />
+
           <div className="grid gap-6 xl:grid-cols-[1.2fr_0.8fr]">
             <Card className="border-border/70 bg-card/85 shadow-sm backdrop-blur-sm">
               <CardHeader>

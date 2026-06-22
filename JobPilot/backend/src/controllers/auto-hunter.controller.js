@@ -12,6 +12,7 @@ import {
   trackAutoHunterMatchForUser,
   unsaveAutoHunterMatchForUser,
   updateJobHunterPreferencesForUser,
+  updateResumeProfileForUser,
 } from "../services/auto-hunter/hunter.service.js";
 
 export async function uploadResumeProfile(req, res) {
@@ -27,6 +28,11 @@ export async function uploadResumeProfile(req, res) {
 
 export async function getResumeProfile(req, res) {
   const profile = await getResumeProfileForUser(req.user);
+  return res.json({ success: true, data: { profile } });
+}
+
+export async function updateResumeProfile(req, res) {
+  const profile = await updateResumeProfileForUser(req.user, req.body ?? {});
   return res.json({ success: true, data: { profile } });
 }
 
