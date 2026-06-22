@@ -34,6 +34,7 @@
     "nodemailer": "^8.0.5",
     "pdf-parse": "^2.4.5",
     "pdf2json": "^4.0.3",
+    "puppeteer": "^25.1.0",
     "word-extractor": "^1.0.4"
   },
   "devDependencies": {

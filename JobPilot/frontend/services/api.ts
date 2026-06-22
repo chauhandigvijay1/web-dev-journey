@@ -37,13 +37,7 @@ async function refreshAccessToken(): Promise<string | null> {
 
   if (!refreshPromise) {
     refreshPromise = api
-      .post<{ success: boolean; data?: { token: string; user?: StoredUser } }>(
-        "/auth/refresh",
-        null,
-        {
-          headers: { "Content-Type": "application/json" },
-        }
-      )
+      .post<{ success: boolean; data?: { token: string; user?: StoredUser } }>("/auth/refresh")
       .then(({ data }) => {
         if (!data.success || !data.data?.token) {
           clearStoredAuth();
@@ -81,7 +75,11 @@ api.interceptors.request.use((config) => {
     }
   }
   if (config.data instanceof FormData) {
-    delete config.headers["Content-Type"];
+    if (config.headers && typeof config.headers.delete === "function") {
+      config.headers.delete("Content-Type");
+    } else if (config.headers) {
+      delete config.headers["Content-Type"];
+    }
   }
   return config;
 });

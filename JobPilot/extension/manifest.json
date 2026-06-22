@@ -5,7 +5,8 @@
   "description": "Your AI Career Operating System directly in your browser. One-click save, auto job detection, and ATS resume tailoring.",
   "permissions": [
     "activeTab",
-    "storage"
+    "storage",
+    "scripting"
   ],
   "host_permissions": [
     "*://*.linkedin.com/*",
@@ -15,6 +16,8 @@
     "*://*.lever.co/*",
     "*://*.workday.com/*",
     "*://localhost:*/*",
+    "https://jobpilot-client-chi.vercel.app/*",
+    "https://web-dev-journey-cnee.onrender.com/*",
     "https://*.jobpilot.com/*"
   ],
   "background": {

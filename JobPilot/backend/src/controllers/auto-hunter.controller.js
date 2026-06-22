@@ -20,7 +20,7 @@ export async function uploadResumeProfile(req, res) {
     return res.status(400).json({ success: false, message: "Resume file is required" });
   }
 
-  const runInitialScan = req.body?.runInitialScan !== false && req.body?.runInitialScan !== "false";
+  const runInitialScan = req.body?.runInitialScan === true || req.body?.runInitialScan === "true";
   const result = await saveResumeProfileForUser(req.user, req.file, { runInitialScan });
 
   return res.status(201).json({ success: true, data: result });

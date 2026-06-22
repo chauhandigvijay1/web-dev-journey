@@ -64,7 +64,6 @@ export default function AutoHunterResumePage() {
     try {
       const formData = new FormData();
       formData.append("resume", file);
-      formData.append("runInitialScan", "true");
       const { data } = await api.post<{ success: boolean; data?: ResumeResponse; message?: string }>(
         "/auto-hunter/resume",
         formData
@@ -152,7 +151,7 @@ export default function AutoHunterResumePage() {
               {uploading ? (
                 <div className="inline-flex items-center gap-2 text-xs text-muted-foreground">
                   <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                  Parsing resume and running the initial match scan...
+                  Parsing and uploading resume...
                 </div>
               ) : null}
             </div>

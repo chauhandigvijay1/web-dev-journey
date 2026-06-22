@@ -169,7 +169,7 @@ async function extractPdfText(buffer) {
     // Fallback to pdf2json for LaTeX or complex PDFs
     try {
       const PDFParser = await importModule("pdf2json");
-      return new Promise((resolve, reject) => {
+      return await new Promise((resolve, reject) => {
         const pdfParser = new PDFParser(this, 1);
         
         pdfParser.on("pdfParser_dataError", errData => reject(errData.parserError));
@@ -180,7 +180,7 @@ async function extractPdfText(buffer) {
         
         pdfParser.parseBuffer(buffer);
       });
-    } catch (fallbackError) {
+    } catch {
       const error = new Error("PDF resume could not be parsed");
       error.statusCode = 422;
       throw error;
@@ -306,7 +306,7 @@ ${trimmedText}`;
         },
         { role: "user", content: prompt },
       ],
-      { temperature: 0.1, max_tokens: 2200 }
+      { temperature: 0.1, max_tokens: 2200, timeoutMs: 12_000 }
     );
 
     parsed = normalizeParsedResume(extractJsonObject(response), trimmedText);

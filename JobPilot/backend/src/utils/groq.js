@@ -26,7 +26,7 @@ export async function groqChat(messages, options = {}) {
           Authorization: `Bearer ${key}`,
           "Content-Type": "application/json",
         },
-        timeout: 90_000,
+        timeout: options.timeoutMs ?? 90_000,
         validateStatus: () => true,
       }
     );

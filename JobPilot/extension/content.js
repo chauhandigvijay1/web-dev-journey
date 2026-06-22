@@ -1,16 +1,73 @@
 // JobPilot Content Script for scraping jobs
 
+function syncJobPilotToken() {
+  if (!window.location.hostname.includes("jobpilot-client-chi.vercel.app") && window.location.hostname !== "localhost") {
+    return;
+  }
+
+  try {
+    const token = window.localStorage?.getItem("jobpilot_token");
+    if (token) {
+      const apiBaseUrl =
+        window.location.hostname === "localhost"
+          ? "http://localhost:5051/api"
+          : "https://web-dev-journey-cnee.onrender.com/api";
+      chrome.runtime.sendMessage({ action: "SYNC_AUTH_TOKEN", token, apiBaseUrl });
+    }
+  } catch {
+    // Ignore pages where storage access is unavailable.
+  }
+}
+
+syncJobPilotToken();
+
 function extractText(selector) {
   const el = document.querySelector(selector);
-  return el ? el.innerText.trim() : "";
+  return el ? (el.innerText || el.textContent || "").trim() : "";
+}
+
+function extractFirstText(selectors) {
+  for (const selector of selectors) {
+    const value = extractText(selector);
+    if (value) return value;
+  }
+  return "";
 }
 
 function parseLinkedIn() {
+  const title = extractFirstText([
+    '.job-details-jobs-unified-top-card__job-title',
+    '.jobs-unified-top-card__job-title',
+    '.top-card-layout__title',
+    'h1',
+  ]);
+  const company = extractFirstText([
+    '.job-details-jobs-unified-top-card__company-name',
+    '.jobs-unified-top-card__company-name',
+    '.topcard__org-name-link',
+    '.topcard__flavor',
+    '[data-tracking-control-name="public_jobs_topcard-org-name"]',
+  ]);
+  const location = extractFirstText([
+    '.job-details-jobs-unified-top-card__primary-description-container .tvm__text--low-emphasis',
+    '.job-details-jobs-unified-top-card__bullet',
+    '.jobs-unified-top-card__bullet',
+    '.topcard__flavor--bullet',
+    '.sub-nav-cta__meta-text',
+  ]);
+  const description = extractFirstText([
+    '#job-details',
+    '.jobs-description__content',
+    '.jobs-box__html-content',
+    '.description__text',
+    '.show-more-less-html__markup',
+  ]);
+
   return {
-    title: extractText('.job-details-jobs-unified-top-card__job-title'),
-    company: extractText('.job-details-jobs-unified-top-card__company-name'),
-    location: extractText('.job-details-jobs-unified-top-card__bullet'),
-    description: extractText('#job-details'),
+    title,
+    company,
+    location,
+    description,
     skills: []
   };
 }

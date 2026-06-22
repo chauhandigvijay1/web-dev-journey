@@ -1,9 +1,12 @@
 import request from "supertest";
 import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from "vitest";
 import axios from "axios";
+import JSZip from "jszip";
 import { app } from "../../src/app.js";
+import { ResumeProfile } from "../../src/models/ResumeProfile.js";
 import { getMailOutbox } from "../../src/services/mail.service.js";
 import { runReminderSweep } from "../../src/services/reminder.service.js";
+import * as cloudinaryUpload from "../../src/utils/cloudinaryUpload.js";
 import { startTestDatabase, resetTestDatabase, stopTestDatabase } from "../helpers/database.js";
 
 describe("API integration", () => {
@@ -36,6 +39,38 @@ describe("API integration", () => {
     };
   }
 
+  async function createTextDocx(text) {
+    const zip = new JSZip();
+    zip.file(
+      "[Content_Types].xml",
+      `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">
+  <Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>
+  <Default Extension="xml" ContentType="application/xml"/>
+  <Override PartName="/word/document.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/>
+</Types>`
+    );
+    zip.folder("_rels").file(
+      ".rels",
+      `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">
+  <Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="word/document.xml"/>
+</Relationships>`
+    );
+    zip.folder("word").file(
+      "document.xml",
+      `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main">
+  <w:body>
+    <w:p><w:r><w:t>${text}</w:t></w:r></w:p>
+    <w:sectPr/>
+  </w:body>
+</w:document>`
+    );
+
+    return zip.generateAsync({ type: "nodebuffer" });
+  }
+
   it("registers, protects routes, and refreshes access tokens", async () => {
     const { agent, token, register } = await registerUser();
 
@@ -54,6 +89,49 @@ describe("API integration", () => {
 
     const unauthorized = await request(app).get("/api/auth/me");
     expect(unauthorized.status).toBe(401);
+  });
+
+  it("rejects literal JSON null before auth refresh reaches the route", async () => {
+    const response = await request(app)
+      .post("/api/auth/refresh")
+      .set("Content-Type", "application/json")
+      .send("null");
+
+    expect(response.status).toBe(400);
+    expect(response.body.message).toContain("not valid JSON");
+  });
+
+  it("uploads, parses, and stores a multipart resume profile without running an initial scan", async () => {
+    const { token } = await registerUser();
+    vi.spyOn(cloudinaryUpload, "uploadToCloudinary").mockResolvedValue("https://cdn.example/resume.pdf");
+
+    const resumeText = [
+      "Asha Sharma",
+      "Software Engineer",
+      "Skills: React, Node.js, MongoDB, TypeScript",
+      "Experience: 3 years building APIs and dashboards.",
+      "Education: Bachelor of Technology",
+      "Projects: Built applicant tracking dashboards, REST APIs, analytics charts, and automated reminders.",
+      "Preferred roles: Frontend Engineer, Full Stack Developer, Backend Engineer.",
+    ].join(" ");
+
+    const response = await request(app)
+      .post("/api/auto-hunter/resume")
+      .set("Authorization", `Bearer ${token}`)
+      .attach("resume", await createTextDocx(resumeText), {
+        filename: "resume.docx",
+        contentType: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+      });
+
+    expect(response.status).toBe(201);
+    expect(response.body.success).toBe(true);
+    expect(response.body.data.profile.resumeUrl).toBe("https://cdn.example/resume.pdf");
+    expect(response.body.data.profile.fileName).toBe("resume.docx");
+    expect(response.body.data.initialScan).toBeNull();
+
+    const saved = await ResumeProfile.findOne({ fileName: "resume.docx" }).lean();
+    expect(saved?.extractedText).toContain("Software Engineer");
+    expect(saved?.parsedData?.skills).toEqual(expect.arrayContaining(["React", "Node.js", "MongoDB"]));
   });
 
   it("creates jobs with enriched fields", async () => {
