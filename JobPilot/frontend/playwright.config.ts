@@ -18,14 +18,14 @@ export default defineConfig({
       cwd: backendDir,
       url: "http://localhost:5051/api/health",
       timeout: 120_000,
-      reuseExistingServer: false,
+      reuseExistingServer: true,
     },
     {
       command: "node tests/e2e/fixture-server.mjs",
       cwd: frontendDir,
       url: "http://127.0.0.1:4010/job-posting",
       timeout: 60_000,
-      reuseExistingServer: false,
+      reuseExistingServer: true,
     },
     {
       command:
@@ -33,7 +33,7 @@ export default defineConfig({
       cwd: frontendDir,
       url: "http://localhost:3000",
       timeout: 120_000,
-      reuseExistingServer: false,
+      reuseExistingServer: true,
     },
   ],
 });

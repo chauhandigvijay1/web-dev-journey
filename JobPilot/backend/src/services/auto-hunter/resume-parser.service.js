@@ -158,11 +158,33 @@ async function extractPdfText(buffer) {
   try {
     const pdfParse = await importModule("pdf-parse");
     const result = await pdfParse(buffer);
-    return cleanText(result?.text || "", env.autoHunterResumeMaxChars);
+    const parsedText = result?.text?.trim() || "";
+    
+    // If text is extracted successfully, return it
+    if (parsedText.length > 50) {
+      return cleanText(parsedText, env.autoHunterResumeMaxChars);
+    }
+    throw new Error("Text too short, fallback needed");
   } catch {
-    const error = new Error("PDF resume could not be parsed");
-    error.statusCode = 422;
-    throw error;
+    // Fallback to pdf2json for LaTeX or complex PDFs
+    try {
+      const PDFParser = await importModule("pdf2json");
+      return new Promise((resolve, reject) => {
+        const pdfParser = new PDFParser(this, 1);
+        
+        pdfParser.on("pdfParser_dataError", errData => reject(errData.parserError));
+        pdfParser.on("pdfParser_dataReady", pdfData => {
+          const rawText = pdfParser.getRawTextContent();
+          resolve(cleanText(rawText || "", env.autoHunterResumeMaxChars));
+        });
+        
+        pdfParser.parseBuffer(buffer);
+      });
+    } catch (fallbackError) {
+      const error = new Error("PDF resume could not be parsed");
+      error.statusCode = 422;
+      throw error;
+    }
   }
 }
 
