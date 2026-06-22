@@ -50,6 +50,7 @@ const jobSchema = new mongoose.Schema(
         lastContactDate: { type: Date, default: Date.now },
       }
     ],
+  },
   { timestamps: true }
 );
 

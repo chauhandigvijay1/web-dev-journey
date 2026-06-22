@@ -94,23 +94,6 @@ It uses AI to parse your resume, build a persistent **Career Brain**, discover h
 - `MONGO_URI=`
 - `JWT_SECRET=`
 - `GROQ_API_KEY=` (For all AI features)
-- `TINYFISH_API_KEY=` (For Auto Hunter extraction)
-- `FRONTEND_URL=`
-
-**Optional:**
-- `SMTP_HOST=`, `SMTP_PORT=`, `SMTP_USER=`, `SMTP_PASS=`, `SMTP_FROM=` (For email reminders and daily briefs)
-- `CLOUDINARY_CLOUD_NAME=`, `CLOUDINARY_API_KEY=`, `CLOUDINARY_API_SECRET=` (For resume uploads)
-- `GOOGLE_CLIENT_ID=`, `GOOGLE_CLIENT_SECRET=` (For Google OAuth)
-
-### Frontend (`.env.local`)
-**Required:**
-- `NEXT_PUBLIC_API_URL=`
-
-## Installation
-
-1. Clone the repo and install dependencies:
-   ```bash
-   cd frontend && npm install
    cd ../backend && npm install
    ```
 2. Set up the Environment Variables as listed above.
