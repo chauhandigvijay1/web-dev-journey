@@ -18,41 +18,67 @@ function syncJobPilotToken() {
 
 syncJobPilotToken();
 
-function extractText(selector) {
-  const el = document.querySelector(selector);
+function t(el) {
   return el ? (el.innerText || el.textContent || "").trim() : "";
 }
 
-function extractFirstText(selectors) {
-  for (const selector of selectors) {
-    const value = extractText(selector);
-    if (value) return value;
+function $(sel) {
+  const el = document.querySelector(sel);
+  return el ? t(el) : "";
+}
+
+function $$(sel) {
+  const els = document.querySelectorAll(sel);
+  return Array.from(els).map(el => t(el)).filter(Boolean);
+}
+
+function first(selectors) {
+  for (const s of selectors) {
+    const v = $(s);
+    if (v) return v;
   }
   return "";
 }
 
-function extractAllText(selectors) {
-  for (const selector of selectors) {
-    const els = document.querySelectorAll(selector);
-    if (els.length > 0) {
-      return Array.from(els).map(el => (el.innerText || el.textContent || "").trim()).filter(Boolean).join(", ");
+function clean(str) {
+  return (str || "").replace(/\s+/g, " ").trim();
+}
+
+function findMeta(prop) {
+  return document.querySelector(`meta[property="${prop}"]`)?.getAttribute("content")
+    || document.querySelector(`meta[name="${prop}"]`)?.getAttribute("content")
+    || "";
+}
+
+function titleFromUrl() {
+  const path = window.location.pathname;
+  const segments = path.replace(/\/+$/, "").split("/").filter(Boolean);
+  for (let i = segments.length - 1; i >= 0; i--) {
+    const seg = decodeURIComponent(segments[i])
+      .replace(/[-_]/g, " ")
+      .replace(/(?:job|position|career|opening|vacancy|req|id)-\d+/gi, "")
+      .trim();
+    if (seg.length > 10 && seg.length < 150) {
+      return seg.replace(/\b(job|position|hiring|career|opening|vacancy)\b/gi, "").trim();
     }
   }
   return "";
 }
 
-function parseJsonLd() {
-  const scripts = document.querySelectorAll('script[type="application/ld+json"]');
-  for (const script of scripts) {
+function extractFromLdJson() {
+  for (const script of document.querySelectorAll('script[type="application/ld+json"]')) {
     try {
       const data = JSON.parse(script.textContent);
-      const jobs = Array.isArray(data) ? data : [data];
-      for (const item of jobs) {
-        if (item["@type"] === "JobPosting" || (item["@type"] && item["@type"].includes("JobPosting"))) {
+      for (const item of [data].flat()) {
+        const type = item["@type"];
+        if (!type || (!type.includes("JobPosting") && type !== "WebPage")) continue;
+        if (type.includes("JobPosting")) {
+          const loc = item.jobLocation;
+          const address = loc?.address;
           return {
             title: clean(item.title),
             company: item.hiringOrganization?.name || clean(item.hiringOrganization?.["@id"]),
-            location: item.jobLocation?.address?.addressLocality || item.jobLocation?.address?.streetAddress || clean(item.jobLocation?.name),
+            location: address?.addressLocality || address?.streetAddress || clean(loc?.name),
             description: clean(item.description),
             skills: item.skills ? (Array.isArray(item.skills) ? item.skills.map(s => clean(s)).filter(Boolean) : [clean(item.skills)]) : [],
           };
@@ -65,254 +91,166 @@ function parseJsonLd() {
   return null;
 }
 
-function parseMetaTags() {
-  const title = document.querySelector('meta[property="og:title"]')?.getAttribute("content")
-    || document.querySelector('meta[name="twitter:title"]')?.getAttribute("content")
-    || "";
-  const description = document.querySelector('meta[property="og:description"]')?.getAttribute("content")
-    || document.querySelector('meta[name="description"]')?.getAttribute("content")
-    || "";
-  const url = document.querySelector('meta[property="og:url"]')?.getAttribute("content")
-    || window.location.href;
-  return { title: clean(title), description: clean(description), originalUrl: url };
+function extractFromMicrodata() {
+  const container = document.querySelector('[itemtype*="JobPosting"], [itemscope][itemtype*="JobPosting"]');
+  if (!container) return null;
+  const g = (sel) => t(container.querySelector(sel));
+  return {
+    title: g('[itemprop="title"]') || g('[itemprop="name"]'),
+    company: g('[itemprop="hiringOrganization"] [itemprop="name"]'),
+    location: g('[itemprop="jobLocation"] [itemprop="addressLocality"]'),
+    description: clean(t(container.querySelector('[itemprop="description"]'))),
+    skills: [],
+  };
 }
 
-function clean(str) {
-  return (str || "").replace(/\s+/g, " ").trim();
+function findLogoCompany() {
+  const imgs = document.querySelectorAll('img[alt*="logo" i], img[class*="logo" i], header img[alt], nav img[alt]');
+  for (const img of imgs) {
+    const alt = (img.alt || "").trim();
+    if (alt && !alt.match(/logo|icon|avatar|profile|menu/i) && alt.length < 60) return alt;
+  }
+  const text = document.body.innerText;
+  const knownDomains = {
+    "linkedin.com": "LinkedIn",
+    "indeed.com": "Indeed",
+    "naukri.com": "Naukri",
+    "wellfound.com": "Wellfound",
+    "internshala.com": "Internshala",
+    "cutshort.io": "Cutshort",
+    "instahyre.com": "Instahyre",
+    "hirect.in": "Hirect",
+    "apna.co": "Apna",
+    "timesjobs.com": "TimesJobs",
+    "shine.com": "Shine",
+    "monster.com": "Monster",
+    "glassdoor.com": "Glassdoor",
+    "upwork.com": "Upwork",
+    "freelancer.com": "Freelancer",
+    "turing.com": "Turing",
+  };
+  for (const [domain, name] of Object.entries(knownDomains)) {
+    if (window.location.hostname.includes(domain)) return name;
+    const brandMatch = text.match(new RegExp(`${name}\\s+(?:is|hiring|seeks|looking)`, "i"));
+    if (brandMatch) return name;
+  }
+  return "";
+}
+
+function findCompanyFromPage() {
+  const text = document.body.innerText.slice(0, 5000);
+  const patterns = [
+    new RegExp("(?:at|for|with)\\s+([A-Z][A-Za-z0-9&.\\s]{2,50}?)\\s+(?:is\\s+(?:hiring|looking|seeking)|has\\s+(?:an?|the)\\s+(?:open|opportunity|position)|are\\s+hiring)", "i"),
+    new RegExp("([A-Z][A-Za-z0-9&.\\s]{2,40}?)\\s+(?:is|are)\\s+hiring", "i"),
+    new RegExp("(?:company|organization|firm|startup)\\s*[:\\-]?\\s*([A-Z][A-Za-z0-9&.\\s]{2,40})", "i"),
+  ];
+  for (const re of patterns) {
+    const m = text.match(re);
+    if (m) return clean(m[1]);
+  }
+  return "";
+}
+
+function findLocationFromPage() {
+  const text = document.body.innerText;
+  const patterns = [
+    /(?:location|locality|place|office|based)\s*[:\\-]?\s*([A-Z][A-Za-z\s,]{2,60}?)(?:\d|remote|hybrid|on.?site|in\s+office)/i,
+    /(?:remote|hybrid|on.?site|in\s+office)\s*[:\\-]?\s*([A-Z][A-Za-z\s,]{2,60})/i,
+    /\b(in|at)\s+([A-Z][a-z]+(?:\s[A-Z][a-z]+)?,\s*[A-Z]{2})\b/,
+  ];
+  for (const re of patterns) {
+    const m = text.match(re);
+    if (m) return clean(m[1] || m[2]);
+  }
+  return "";
+}
+
+function findDescriptionFromPage() {
+  const selectors = [
+    '[itemprop="description"]',
+    '[data-testid*="description"]',
+    '[data-qa*="description"]',
+    '[class*="description"]',
+    '[class*="job-description"]',
+    '[class*="job-desc"]',
+    '[class*="posting-description"]',
+    'article',
+    '[role="main"]',
+    'main',
+    '#content',
+    '#job-content',
+    '#job-description',
+  ];
+  for (const sel of selectors) {
+    const v = $(sel);
+    if (v && v.length > 50) return v;
+  }
+  const allText = document.body.innerText;
+  const idx = allText.search(/(?:about|description|responsibilities|requirements|qualifications|what you'll do|what we're looking for)/i);
+  if (idx > 0) return allText.slice(idx, idx + 4000).trim();
+  return allText.slice(0, 4000).trim();
 }
 
 function scrapePage() {
-  const jsonld = parseJsonLd();
+  const jsonld = extractFromLdJson();
   if (jsonld && jsonld.title && jsonld.company) {
     return { ...jsonld, source: window.location.hostname, originalUrl: window.location.href };
   }
 
-  const hostname = window.location.hostname;
-  let extracted = { title: "", company: "", location: "", description: "", skills: [] };
-
-  if (hostname.includes("linkedin.com")) {
-    extracted.title = extractFirstText([
-      '.job-details-jobs-unified-top-card__job-title',
-      '.jobs-unified-top-card__job-title',
-      '.top-card-layout__title',
-      '.job-title',
-      'h1.job-title',
-      'h1',
-    ]);
-    extracted.company = extractFirstText([
-      '.job-details-jobs-unified-top-card__company-name',
-      '.jobs-unified-top-card__company-name',
-      '.topcard__org-name-link',
-      '.topcard__flavor',
-      '[data-tracking-control-name="public_jobs_topcard-org-name"]',
-      '.job-company-name',
-      '[data-anonymize="company-name"]',
-    ]);
-    extracted.location = extractFirstText([
-      '.job-details-jobs-unified-top-card__primary-description-container .tvm__text--low-emphasis',
-      '.job-details-jobs-unified-top-card__bullet',
-      '.jobs-unified-top-card__bullet',
-      '.topcard__flavor--bullet',
-      '.sub-nav-cta__meta-text',
-      '[data-anonymize="location"]',
-    ]);
-    extracted.description = extractFirstText([
-      '#job-details',
-      '.jobs-description__content',
-      '.jobs-box__html-content',
-      '.description__text',
-      '.show-more-less-html__markup',
-      '[data-anonymize="description"]',
-    ]);
-  } else if (hostname.includes("indeed.com")) {
-    extracted.title = extractFirstText([
-      '.jobsearch-JobInfoHeader-title',
-      'h1[data-testid="jobsearch-JobInfoHeader-title"]',
-      'h1',
-      '[data-testid="jobTitle"]',
-    ]);
-    extracted.company = extractFirstText([
-      '[data-testid="inlineHeader-companyName"]',
-      '[data-company-name]',
-      '.jobsearch-InlineCompanyRating div',
-    ]);
-    extracted.location = extractFirstText([
-      '[data-testid="inlineHeader-companyLocation"]',
-      '[data-testid="job-location"]',
-    ]);
-    extracted.description = extractFirstText([
-      '#jobDescriptionText',
-      '[data-testid="jobDescriptionText"]',
-      '#job-content',
-    ]);
-  } else if (hostname.includes("wellfound.com") || hostname.includes("angellist.com")) {
-    extracted.title = extractFirstText([
-      'h2[class*="title"]',
-      '[class*="title"][class*="styles"]',
-      'h1',
-    ]);
-    extracted.company = extractFirstText([
-      'h1[class*="name"]',
-      '[class*="company-name"]',
-      '[class*="styles_name"]',
-    ]);
-    extracted.location = extractFirstText([
-      '[class*="location"]',
-      '[class*="styles_location"]',
-    ]);
-    extracted.description = extractFirstText([
-      '[class*="description"]',
-      '[class*="styles_description"]',
-      '[data-test="job-description"]',
-    ]);
-  } else if (hostname.includes("naukri.com")) {
-    extracted.title = extractFirstText([
-      '.jd-header-title',
-      '[class*="title"]',
-      'h1',
-    ]);
-    extracted.company = extractFirstText([
-      '.jd-header-comp-name',
-      '[class*="company-name"]',
-      '.companyInfo',
-    ]);
-    extracted.location = extractFirstText([
-      '.loc',
-      '[class*="location"]',
-    ]);
-    extracted.description = extractFirstText([
-      '.job-desc',
-      '[class*="description"]',
-      '#jobDescription',
-    ]);
-  } else if (hostname.includes("greenhouse.io")) {
-    extracted.title = extractFirstText([
-      '.app-title h1',
-      '.posting-title h1',
-      'h1',
-    ]);
-    extracted.company = extractFirstText([
-      '.company-name',
-      '[class*="company"]',
-    ]);
-    extracted.location = extractFirstText([
-      '.location',
-      '[class*="location"]',
-    ]);
-    extracted.description = extractFirstText([
-      '#content',
-      '[data-qa="job-description"]',
-      '.posting-description',
-    ]);
-  } else if (hostname.includes("lever.co")) {
-    extracted.title = extractFirstText([
-      '.posting-headline h2',
-      '.posting-title h2',
-      'h1',
-    ]);
-    const logoImg = document.querySelector('.main-header-logo img');
-    extracted.company = logoImg ? (logoImg.alt || "") : extractFirstText(['[class*="company"]']);
-    extracted.location = extractFirstText([
-      '.sort-by-time',
-      '[class*="location"]',
-    ]);
-    extracted.description = extractFirstText([
-      '.section-wrapper[data-qa="job-description"]',
-      '[data-qa="job-description"]',
-    ]);
-  } else if (hostname.includes("ashbyhq.com")) {
-    extracted.title = extractFirstText(['h1', 'h2']);
-    extracted.company = extractFirstText([
-      '.ashby-job-posting-company-name',
-      '[class*="company"]',
-    ]);
-    extracted.location = extractFirstText([
-      '.ashby-job-posting-location',
-      '[class*="location"]',
-    ]);
-    extracted.description = extractFirstText([
-      '.ashby-job-posting-description',
-      '[class*="description"]',
-    ]);
-  } else if (hostname.includes("workday.com") || hostname.includes("myworkdayjobs.com")) {
-    extracted.title = extractFirstText([
-      '[data-automation-id="jobPostingHeader"]',
-      '[data-automation-id="jobTitle"]',
-      'h1',
-      '[data-automation-id="title"]',
-    ]);
-    extracted.company = extractFirstText([
-      '[data-automation-id="companyName"]',
-      '[data-automation-id="jobPostingHeader"] span',
-    ]);
-    extracted.location = extractFirstText([
-      '[data-automation-id="locations"]',
-      '[data-automation-id="location"]',
-    ]);
-    extracted.description = extractFirstText([
-      '[data-automation-id="jobPostingDescription"]',
-      '[data-automation-id="description"]',
-    ]);
-  } else if (hostname.includes("foundit")) {
-    extracted.title = extractFirstText([
-      '.job-title',
-      'h1',
-      '[class*="title"]',
-    ]);
-    extracted.company = extractFirstText([
-      '.company-name',
-      '[class*="company"]',
-    ]);
-    extracted.location = extractFirstText([
-      '.loc',
-      '[class*="location"]',
-    ]);
-    extracted.description = extractFirstText([
-      '.job-description-content',
-      '[class*="description"]',
-    ]);
-  } else if (hostname.includes("internshala.com")) {
-    extracted.title = extractFirstText([
-      '.profile_on_detail_page',
-      '[class*="profile"]',
-      'h1',
-    ]);
-    extracted.company = extractFirstText([
-      '.company_name',
-      '[class*="company"]',
-    ]);
-    extracted.location = extractFirstText([
-      '.location_link',
-      '[class*="location"]',
-    ]);
-    extracted.description = extractFirstText([
-      '.text-container',
-      '[class*="description"]',
-    ]);
+  const microdata = extractFromMicrodata();
+  if (microdata && microdata.title) {
+    return { ...microdata, source: window.location.hostname, originalUrl: window.location.href };
   }
 
-  const meta = parseMetaTags();
-  if (!extracted.title) {
-    extracted.title = meta.title;
-  }
-  if (!extracted.description && meta.description) {
-    extracted.description = meta.description;
+  const result = { title: "", company: "", location: "", description: "", skills: [] };
+
+  result.title = first([
+    'h1[class*="title"]',
+    'h1[data-testid*="title"]',
+    'h1',
+    'h2[class*="title"]',
+    '[class*="job-title"]',
+    '[class*="posting-title"]',
+    '[data-testid*="jobTitle"]',
+    '[itemprop="title"]',
+  ]);
+
+  if (!result.title) {
+    result.title = findMeta("og:title") || findMeta("twitter:title");
   }
 
-  if (!extracted.title) {
-    const h1 = document.querySelector("h1");
-    if (h1) extracted.title = h1.innerText.trim();
+  if (!result.title) {
+    result.title = titleFromUrl();
   }
 
-  if (!extracted.company) {
-    const text = document.body.innerText;
-    const match = text.match(/(?:at|for|with)\s+([A-Z][A-Za-z0-9\s&.]+?)(?:\s*(?:is|are|has|was)\s|[.,!?]|\s+(?:in|on|at)\s+(?:[A-Z][a-z]|the|our))/);
-    if (match) extracted.company = clean(match[1]);
+  result.company = first([
+    '[class*="company-name"]',
+    '[class*="company"]',
+    '[data-testid*="companyName"]',
+    '[data-testid*="company"]',
+    '[itemprop="hiringOrganization"] [itemprop="name"]',
+    '[itemprop="name"][class*="company"]',
+  ]);
+
+  if (!result.company) {
+    result.company = findLogoCompany() || findCompanyFromPage();
   }
+
+  result.location = first([
+    '[class*="location"]',
+    '[data-testid*="location"]',
+    '[itemprop="jobLocation"]',
+    '[itemprop="addressLocality"]',
+  ]);
+  if (!result.location) {
+    result.location = findLocationFromPage();
+  }
+
+  result.description = findDescriptionFromPage();
 
   return {
-    ...extracted,
-    source: hostname,
+    ...result,
+    source: window.location.hostname,
     originalUrl: window.location.href,
   };
 }
