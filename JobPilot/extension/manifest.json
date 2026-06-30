@@ -39,7 +39,32 @@
   },
   "content_scripts": [
     {
-      "matches": ["<all_urls>"],
+      "matches": [
+        "*://*.linkedin.com/*",
+        "*://*.indeed.com/*",
+        "*://*.wellfound.com/*",
+        "*://*.greenhouse.io/*",
+        "*://*.lever.co/*",
+        "*://*.ashbyhq.com/*",
+        "*://*.workday.com/*",
+        "*://*.myworkdayjobs.com/*",
+        "*://*.naukri.com/*",
+        "*://*.internshala.com/*",
+        "*://*.cutshort.io/*",
+        "*://*.instahyre.com/*",
+        "*://*.hirect.in/*",
+        "*://*.apna.co/*",
+        "*://*.timesjobs.com/*",
+        "*://*.shine.com/*",
+        "*://*.monster.com/*",
+        "*://*.glassdoor.com/*",
+        "*://*.turing.com/*",
+        "*://*.foundit.in/*",
+        "*://*.foundit.com/*",
+        "*://localhost:*/*",
+        "https://jobpilot-client-chi.vercel.app/*",
+        "https://web-dev-journey-cnee.onrender.com/*"
+      ],
       "js": ["content.js"]
     }
   ],

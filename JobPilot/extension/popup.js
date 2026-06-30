@@ -1,56 +1,117 @@
-function parseActiveTab(tabId) {
-  return new Promise((resolve) => {
-    chrome.tabs.sendMessage(tabId, { action: "PARSE_JOB" }, async (response) => {
-      if (chrome.runtime.lastError) {
-        try {
-          await chrome.scripting.executeScript({
-            target: { tabId },
-            files: ["content.js"],
-          });
-        } catch {
-          resolve(null);
-          return;
-        }
+const WEB_APP_URL = "https://jobpilot-client-chi.vercel.app";
 
-        chrome.tabs.sendMessage(tabId, { action: "PARSE_JOB" }, (retryResponse) => {
-          if (chrome.runtime.lastError) {
-            resolve(null);
-            return;
-          }
-          resolve(retryResponse);
-        });
-        return;
-      }
+const $ = (id) => document.getElementById(id);
 
-      resolve(response);
-    });
+function show(id) {
+  ["loading-state", "job-detected", "no-job", "signed-out", "save-section"].forEach((el) => {
+    $(el).style.display = el === id ? "block" : "none";
   });
 }
 
-document.getElementById("save-job-btn").addEventListener("click", async () => {
-  const statusMsg = document.getElementById("status-msg");
-  statusMsg.textContent = "Scraping page...";
+function setStatus(msg, type = "") {
+  const el = $("status-msg");
+  el.textContent = msg;
+  el.className = "status" + (type ? " " + type : "");
+}
+
+async function checkAuth() {
+  const result = await chrome.storage.local.get(["jobpilot_token", "jobpilot_token_exp"]);
+  const token = result.jobpilot_token;
+  const exp = result.jobpilot_token_exp;
+  if (!token) return false;
+  if (exp && Date.now() >= exp) {
+    await chrome.storage.local.remove(["jobpilot_token", "jobpilot_token_exp", "jobpilot_api_base_url"]);
+    return false;
+  }
+  return true;
+}
+
+async function parseCurrentTab() {
+  const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+  if (!tab?.id) return null;
 
   try {
-    const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+    const response = await chrome.tabs.sendMessage(tab.id, { action: "PARSE_JOB" });
+    if (response?.success && response.data) return response.data;
+  } catch {
+    try {
+      await chrome.scripting.executeScript({ target: { tabId: tab.id }, files: ["content.js"] });
+      const retry = await chrome.tabs.sendMessage(tab.id, { action: "PARSE_JOB" });
+      if (retry?.success && retry.data) return retry.data;
+    } catch {
+      return null;
+    }
+  }
+  return null;
+}
 
-    const response = await parseActiveTab(tab.id);
-    if (!response || !response.success || !response.data?.title) {
-      statusMsg.textContent = "Failed to parse job. Is this a supported job board?";
+async function init() {
+  const isAuthed = await checkAuth();
+  const jobData = await parseCurrentTab();
+
+  if (!jobData?.title) {
+    show("no-job");
+    if (isAuthed) {
+      $("save-section").style.display = "none";
+    } else {
+      show("signed-out");
+    }
+    return;
+  }
+
+  $("job-title").textContent = jobData.title;
+  $("job-company").textContent = jobData.company || "Unknown company";
+  $("job-location").textContent = jobData.location ? "📍 " + jobData.location : "";
+
+  if (!isAuthed) {
+    show("job-detected");
+    $("signed-out").style.display = "block";
+    $("save-section").style.display = "none";
+    return;
+  }
+
+  show("job-detected");
+  $("save-section").style.display = "block";
+  $("save-btn").disabled = false;
+}
+
+document.getElementById("sign-in-btn").addEventListener("click", () => {
+  chrome.tabs.create({ url: WEB_APP_URL + "/login" });
+  window.close();
+});
+
+document.getElementById("save-btn").addEventListener("click", async () => {
+  const btn = document.getElementById("save-btn");
+  btn.disabled = true;
+  btn.textContent = "Saving...";
+  setStatus("");
+
+  try {
+    const jobData = await parseCurrentTab();
+    if (!jobData?.title) {
+      setStatus("Could not parse this page.", "error");
+      btn.disabled = false;
+      btn.textContent = "Save to JobPilot";
       return;
     }
 
-    statusMsg.textContent = "Saving to JobPilot...";
-
-    chrome.runtime.sendMessage({ action: "SAVE_JOB", payload: response.data }, (bgRes) => {
-      if (bgRes && bgRes.success) {
-        statusMsg.textContent = "Job saved successfully!";
+    chrome.runtime.sendMessage({ action: "SAVE_JOB", payload: jobData }, (response) => {
+      if (chrome.runtime.lastError) {
+        setStatus("Extension error. Try again.", "error");
+      } else if (response?.success) {
+        setStatus("Job saved! View it on your dashboard.", "success");
+        btn.textContent = "Saved!";
       } else {
-        statusMsg.textContent = bgRes?.message || "Error saving job. Are you logged in?";
+        setStatus(response?.message || "Could not save job.", "error");
+        btn.disabled = false;
+        btn.textContent = "Save to JobPilot";
       }
     });
-  } catch (error) {
-    statusMsg.textContent = "An error occurred.";
-    console.error(error);
+  } catch {
+    setStatus("An error occurred.", "error");
+    btn.disabled = false;
+    btn.textContent = "Save to JobPilot";
   }
 });
+
+init();

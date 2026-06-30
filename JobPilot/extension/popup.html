@@ -2,37 +2,47 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>JobPilot Companion</title>
   <style>
     body {
-      width: 350px;
+      width: 360px;
       margin: 0;
-      padding: 16px;
+      padding: 0;
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
       background-color: #ffffff;
       color: #0f172a;
     }
+    .container { padding: 16px; }
     .header {
       display: flex;
       align-items: center;
-      gap: 12px;
-      margin-bottom: 16px;
+      gap: 10px;
+      margin-bottom: 14px;
     }
-    .header img {
-      width: 24px;
-      height: 24px;
-    }
-    h1 {
-      font-size: 16px;
-      margin: 0;
-      font-weight: 600;
-    }
-    p {
+    .header-icon {
+      width: 28px;
+      height: 28px;
+      background: #2563eb;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-weight: bold;
       font-size: 14px;
-      color: #334155;
-      line-height: 1.5;
-      margin-bottom: 16px;
     }
+    h1 { font-size: 15px; margin: 0; font-weight: 600; }
+    .subtitle { font-size: 12px; color: #64748b; margin: 0; }
+    .card {
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      padding: 12px;
+      margin-bottom: 12px;
+    }
+    .card-title { font-weight: 600; font-size: 13px; margin-bottom: 4px; }
+    .card-text { font-size: 12px; color: #475569; line-height: 1.4; margin: 0; }
     button {
       width: 100%;
       padding: 10px 14px;
@@ -42,32 +52,68 @@
       border-radius: 6px;
       font-weight: 500;
       cursor: pointer;
-      font-size: 14px;
+      font-size: 13px;
       transition: background-color 0.2s;
     }
-    button:hover {
-      background-color: #1d4ed8;
+    button:hover:not(:disabled) { background-color: #1d4ed8; }
+    button:disabled { opacity: 0.5; cursor: not-allowed; }
+    button.secondary {
+      background: transparent;
+      border: 1px solid #e2e8f0;
+      color: #0f172a;
     }
+    button.secondary:hover { background: #f1f5f9; }
     .status {
-      margin-top: 12px;
+      margin-top: 10px;
       font-size: 12px;
       color: #64748b;
       text-align: center;
     }
+    .status.error { color: #dc2626; }
+    .status.success { color: #16a34a; }
+    .divider { border-top: 1px solid #e2e8f0; margin: 12px 0; }
+    .flex { display: flex; }
+    .gap-2 { gap: 8px; }
+    .w-full { width: 100%; }
   </style>
 </head>
 <body>
-  <div class="header">
-    <div style="width:24px;height:24px;background:#2563eb;border-radius:6px;"></div>
-    <h1>JobPilot Companion</h1>
+  <div class="container">
+    <div class="header">
+      <div class="header-icon">J</div>
+      <div>
+        <h1>JobPilot Companion</h1>
+        <p class="subtitle">Save jobs from any board</p>
+      </div>
+    </div>
+
+    <div id="loading-state" class="card">
+      <p class="card-text">Checking page...</p>
+    </div>
+
+    <div id="job-detected" class="card" style="display:none">
+      <div class="card-title" id="job-title">Job Title</div>
+      <p class="card-text" id="job-company">Company</p>
+      <p class="card-text" id="job-location">Location</p>
+    </div>
+
+    <div id="no-job" class="card" style="display:none">
+      <p class="card-text">No job detected on this page. Navigate to a job posting to save it.</p>
+    </div>
+
+    <div id="signed-out" style="display:none">
+      <div class="card">
+        <p class="card-text">Sign in to save jobs to your Career OS.</p>
+      </div>
+      <button id="sign-in-btn" class="secondary">Sign in to JobPilot</button>
+    </div>
+
+    <div id="save-section" style="display:none">
+      <button id="save-btn" disabled>Save to JobPilot</button>
+    </div>
+
+    <div id="status-msg" class="status" role="status" aria-live="polite"></div>
   </div>
-  
-  <div id="content">
-    <p>We've detected a job posting on this page. Do you want to save it to your Career OS?</p>
-    <button id="save-job-btn">Save to JobPilot</button>
-  </div>
-  
-  <div class="status" id="status-msg"></div>
 
   <script src="popup.js"></script>
 </body>
