@@ -8,7 +8,7 @@ import {
 import { getPasswordValidationMessage } from "@/lib/auth-validation";
 import { getApiErrorMessage } from "@/lib/httpError";
 import { api } from "@/services/api";
-import { logout, setUser } from "@/store/authSlice";
+import { logoutAndClear, setUserWithStorage } from "@/store/authSlice";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import {
   ProfileSection,
@@ -39,6 +39,7 @@ type JobsResponse = {
 export default function SettingsPage() {
   const dispatch = useAppDispatch();
   const user = useAppSelector((state) => state.auth.user);
+  const token = useAppSelector((state) => state.auth.token);
   const authProviders = user?.authProviders ?? { password: true, google: false };
 
   const settings = useMemo(
@@ -124,7 +125,7 @@ export default function SettingsPage() {
         setError(data.message ?? "Could not update profile");
         return;
       }
-      dispatch(setUser(data.data.user));
+      dispatch(setUserWithStorage(data.data.user, token));
       setProfileMessage("Profile updated.");
     } catch (err) {
       setError(getApiErrorMessage(err, "Could not update profile"));
@@ -161,7 +162,7 @@ export default function SettingsPage() {
         setError(data.message ?? "Could not save preferences");
         return;
       }
-      dispatch(setUser(data.data.user));
+      dispatch(setUserWithStorage(data.data.user, token));
       setPreferencesMessage("Preferences saved.");
     } catch (err) {
       setError(getApiErrorMessage(err, "Could not save preferences"));
@@ -195,7 +196,7 @@ export default function SettingsPage() {
         setError(data.message ?? "Could not save profile image");
         return;
       }
-      dispatch(setUser(data.data.user));
+      dispatch(setUserWithStorage(data.data.user, token));
       setProfileMessage("Profile image updated.");
     } catch (err) {
       setError(getApiErrorMessage(err, "Could not upload image"));
@@ -297,7 +298,7 @@ export default function SettingsPage() {
 
   function handleLogout() {
     void api.post("/auth/logout").catch(() => undefined);
-    dispatch(logout());
+    dispatch(logoutAndClear());
     window.location.assign("/login");
   }
 

@@ -1,3 +1,29 @@
+const memoryStorage = new Map<string, string>();
+
+function safeGetItem(key: string): string | null {
+  try {
+    return localStorage.getItem(key);
+  } catch {
+    return memoryStorage.get(key) ?? null;
+  }
+}
+
+function safeSetItem(key: string, value: string): void {
+  try {
+    localStorage.setItem(key, value);
+  } catch {
+    memoryStorage.set(key, value);
+  }
+}
+
+function safeRemoveItem(key: string): void {
+  try {
+    localStorage.removeItem(key);
+  } catch {
+    memoryStorage.delete(key);
+  }
+}
+
 export const THEME_STORAGE_KEY = "jobpilot_theme";
 export const ACCENT_STORAGE_KEY = "jobpilot_accent";
 
@@ -158,22 +184,22 @@ export function normalizeAccent(value: string | null | undefined): AccentId {
 
 export function readStoredTheme(): ThemeId {
   if (typeof window === "undefined") return defaultTheme;
-  return normalizeTheme(window.localStorage.getItem(THEME_STORAGE_KEY));
+  return normalizeTheme(safeGetItem(THEME_STORAGE_KEY));
 }
 
 export function readStoredAccent(): AccentId {
   if (typeof window === "undefined") return defaultAccent;
-  return normalizeAccent(window.localStorage.getItem(ACCENT_STORAGE_KEY));
+  return normalizeAccent(safeGetItem(ACCENT_STORAGE_KEY));
 }
 
 export function persistTheme(theme: ThemeId) {
   if (typeof window === "undefined") return;
-  window.localStorage.setItem(THEME_STORAGE_KEY, theme);
+  safeSetItem(THEME_STORAGE_KEY, theme);
 }
 
 export function persistAccent(accent: AccentId) {
   if (typeof window === "undefined") return;
-  window.localStorage.setItem(ACCENT_STORAGE_KEY, accent);
+  safeSetItem(ACCENT_STORAGE_KEY, accent);
 }
 
 export function applyThemeToDocument(

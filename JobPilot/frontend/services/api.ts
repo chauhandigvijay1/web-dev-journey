@@ -7,6 +7,32 @@ import {
   writeStoredAuth,
 } from "@/lib/authStorage";
 
+const memoryStorage = new Map<string, string>();
+
+function safeGetItem(key: string): string | null {
+  try {
+    return localStorage.getItem(key);
+  } catch {
+    return memoryStorage.get(key) ?? null;
+  }
+}
+
+function safeSetItem(key: string, value: string): void {
+  try {
+    localStorage.setItem(key, value);
+  } catch {
+    memoryStorage.set(key, value);
+  }
+}
+
+function safeRemoveItem(key: string): void {
+  try {
+    localStorage.removeItem(key);
+  } catch {
+    memoryStorage.delete(key);
+  }
+}
+
 function resolveApiBase(): string {
   const fallback =
     process.env.NODE_ENV === "production"
@@ -49,7 +75,7 @@ async function refreshAccessToken(): Promise<string | null> {
         if (nextUser) {
           writeStoredAuth(data.data.token, nextUser);
         } else {
-          localStorage.setItem(AUTH_TOKEN_KEY, data.data.token);
+          safeSetItem(AUTH_TOKEN_KEY, data.data.token);
         }
 
         window.dispatchEvent(new Event("jobpilot:auth-updated"));
@@ -69,7 +95,7 @@ async function refreshAccessToken(): Promise<string | null> {
 
 api.interceptors.request.use((config) => {
   if (typeof window !== "undefined") {
-    const token = localStorage.getItem(AUTH_TOKEN_KEY);
+    const token = safeGetItem(AUTH_TOKEN_KEY);
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }

@@ -3,10 +3,17 @@ import { env } from "../config/env.js";
 import { logger } from "../utils/logger.js";
 
 const outbox = [];
+const OUTBOX_MAX = 1000;
 let missingConfigLogged = false;
+let cachedTransporter = null;
+let cachedTransporterHash = "";
 
 function hasMailConfig() {
   return Boolean(env.smtpHost && env.smtpPort && env.smtpUser && env.smtpPass && env.emailFrom);
+}
+
+function configHash() {
+  return `${env.smtpHost}:${env.smtpPort}:${env.smtpSecure}:${env.smtpUser}:${env.smtpPass}`;
 }
 
 function createTransporter() {
@@ -30,7 +37,13 @@ function createTransporter() {
 }
 
 export function getMailTransporter() {
-  return createTransporter();
+  const hash = configHash();
+  if (cachedTransporter && cachedTransporterHash === hash) {
+    return cachedTransporter;
+  }
+  cachedTransporter = createTransporter();
+  cachedTransporterHash = hash;
+  return cachedTransporter;
 }
 
 export function getMailOutbox() {
@@ -57,11 +70,15 @@ export async function sendMail(message, meta = {}) {
   };
   const info = await activeTransporter.sendMail(finalMessage);
 
-  outbox.push({
-    ...finalMessage,
-    meta,
-    messageId: info.messageId || finalMessage.messageId || "",
-  });
+  if (outbox.length < OUTBOX_MAX) {
+    outbox.push({
+      ...finalMessage,
+      meta,
+      messageId: info.messageId || finalMessage.messageId || "",
+    });
+  } else {
+    logger.warn("[mail] Outbox at capacity, skipping push");
+  }
 
   const previewUrl = nodemailer.getTestMessageUrl(info);
   logger.info("[mail] Message queued", {

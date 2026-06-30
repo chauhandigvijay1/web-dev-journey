@@ -510,13 +510,6 @@ export async function changePassword(req, res) {
     });
   }
 
-  if (currentPassword === newPassword) {
-    return res.status(400).json({
-      success: false,
-      message: "New password must be different from the current password",
-    });
-  }
-
   const user = await User.findById(req.user._id).select("+password");
   if (!user) {
     return res.status(404).json({ success: false, message: "User not found" });
@@ -531,6 +524,13 @@ export async function changePassword(req, res) {
   const matches = await bcrypt.compare(currentPassword, user.password);
   if (!matches) {
     return res.status(401).json({ success: false, message: "Current password is incorrect" });
+  }
+
+  if (currentPassword === newPassword) {
+    return res.status(400).json({
+      success: false,
+      message: "New password must be different from the current password",
+    });
   }
 
   user.password = newPassword;

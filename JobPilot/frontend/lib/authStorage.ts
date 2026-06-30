@@ -1,3 +1,29 @@
+const memoryStorage = new Map<string, string>();
+
+function safeGetItem(key: string): string | null {
+  try {
+    return localStorage.getItem(key);
+  } catch {
+    return memoryStorage.get(key) ?? null;
+  }
+}
+
+function safeSetItem(key: string, value: string): void {
+  try {
+    localStorage.setItem(key, value);
+  } catch {
+    memoryStorage.set(key, value);
+  }
+}
+
+function safeRemoveItem(key: string): void {
+  try {
+    localStorage.removeItem(key);
+  } catch {
+    memoryStorage.delete(key);
+  }
+}
+
 export const AUTH_TOKEN_KEY = "jobpilot_token";
 export const AUTH_USER_KEY = "jobpilot_user";
 
@@ -97,8 +123,8 @@ export function readStoredAuth(): { token: string | null; user: StoredUser | nul
     return { token: null, user: null };
   }
   try {
-    const token = localStorage.getItem(AUTH_TOKEN_KEY);
-    const raw = localStorage.getItem(AUTH_USER_KEY);
+    const token = safeGetItem(AUTH_TOKEN_KEY);
+    const raw = safeGetItem(AUTH_USER_KEY);
     if (!token || !raw) return { token: null, user: null };
     const user = normalizeStoredUser(JSON.parse(raw) as StoredUser);
     if (!user?.id) return { token: null, user: null };
@@ -109,11 +135,11 @@ export function readStoredAuth(): { token: string | null; user: StoredUser | nul
 }
 
 export function writeStoredAuth(token: string, user: StoredUser) {
-  localStorage.setItem(AUTH_TOKEN_KEY, token);
-  localStorage.setItem(AUTH_USER_KEY, JSON.stringify(normalizeStoredUser(user)));
+  safeSetItem(AUTH_TOKEN_KEY, token);
+  safeSetItem(AUTH_USER_KEY, JSON.stringify(normalizeStoredUser(user)));
 }
 
 export function clearStoredAuth() {
-  localStorage.removeItem(AUTH_TOKEN_KEY);
-  localStorage.removeItem(AUTH_USER_KEY);
+  safeRemoveItem(AUTH_TOKEN_KEY);
+  safeRemoveItem(AUTH_USER_KEY);
 }

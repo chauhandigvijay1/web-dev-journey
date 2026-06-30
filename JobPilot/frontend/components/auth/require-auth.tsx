@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import type { StoredUser } from "@/lib/authStorage";
 import { api } from "@/services/api";
-import { login } from "@/store/authSlice";
+import { loginWithStorage } from "@/store/authSlice";
 import { useAppDispatch } from "@/store/hooks";
 import { useAppSelector } from "@/store/hooks";
 
@@ -29,7 +29,7 @@ export function RequireAuth({ children }: { children: React.ReactNode }) {
       .then(({ data }) => {
         if (cancelled) return;
         if (data.success && data.data) {
-          dispatch(login(data.data));
+          dispatch(loginWithStorage(data.data));
           return;
         }
         router.replace("/login");

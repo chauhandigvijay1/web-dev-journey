@@ -7,6 +7,7 @@ import {
   LayoutDashboard,
   Briefcase,
   BarChart3,
+  Brain,
   ListTodo,
   Settings,
   Search,
@@ -27,13 +28,14 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { ReminderBell } from "@/components/dashboard/ReminderBell";
 import { api } from "@/services/api";
-import { logout } from "@/store/authSlice";
+import { logoutAndClear } from "@/store/authSlice";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 
 const nav = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { href: "/dashboard/jobs", label: "Jobs", icon: Briefcase },
   { href: "/dashboard/analytics", label: "Analytics", icon: BarChart3 },
+  { href: "/dashboard/career-brain", label: "Career Brain", icon: Brain },
   { href: "/dashboard/reminders", label: "Reminders", icon: ListTodo },
   { href: "/dashboard/settings", label: "Settings", icon: Settings },
 ];
@@ -55,7 +57,7 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
 
   function handleLogout() {
     void api.post("/auth/logout").catch(() => undefined);
-    dispatch(logout());
+    dispatch(logoutAndClear());
     router.replace("/login");
   }
 

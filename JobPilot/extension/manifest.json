@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "JobPilot Companion",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Your AI Career Operating System directly in your browser. One-click save, auto job detection, and ATS resume tailoring.",
   "homepage_url": "https://jobpilot-client-chi.vercel.app",
   "commands": {
@@ -16,7 +16,8 @@
   "permissions": [
     "activeTab",
     "storage",
-    "scripting"
+    "scripting",
+    "alarms"
   ],
   "host_permissions": [
     "*://*.linkedin.com/*",
@@ -40,6 +41,20 @@
     "*://*.turing.com/*",
     "*://*.foundit.in/*",
     "*://*.foundit.com/*",
+    "*://*.ziprecruiter.com/*",
+    "*://*.careerbuilder.com/*",
+    "*://*.simplyhired.com/*",
+    "*://*.dice.com/*",
+    "*://*.upwork.com/*",
+    "*://*.freelancer.com/*",
+    "*://*.reed.co.uk/*",
+    "*://*.totaljobs.com/*",
+    "*://*.cv-library.co.uk/*",
+    "*://*.stepstone.de/*",
+    "*://*.seek.com.au/*",
+    "*://*.jobstreet.com/*",
+    "*://*.bayt.com/*",
+    "*://*.grabjobs.co/*",
     "*://localhost:*/*",
     "https://jobpilot-client-chi.vercel.app/*",
     "https://web-dev-journey-cnee.onrender.com/*"
@@ -71,6 +86,20 @@
         "*://*.turing.com/*",
         "*://*.foundit.in/*",
         "*://*.foundit.com/*",
+        "*://*.ziprecruiter.com/*",
+        "*://*.careerbuilder.com/*",
+        "*://*.simplyhired.com/*",
+        "*://*.dice.com/*",
+        "*://*.upwork.com/*",
+        "*://*.freelancer.com/*",
+        "*://*.reed.co.uk/*",
+        "*://*.totaljobs.com/*",
+        "*://*.cv-library.co.uk/*",
+        "*://*.stepstone.de/*",
+        "*://*.seek.com.au/*",
+        "*://*.jobstreet.com/*",
+        "*://*.bayt.com/*",
+        "*://*.grabjobs.co/*",
         "*://localhost:*/*",
         "https://jobpilot-client-chi.vercel.app/*",
         "https://web-dev-journey-cnee.onrender.com/*"

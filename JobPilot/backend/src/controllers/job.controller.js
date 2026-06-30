@@ -18,27 +18,31 @@ export async function createJob(req, res) {
 }
 
 export async function getJobs(req, res) {
-  const page = Math.max(1, parseInt(req.query.page) || 1);
-  const limit = Math.min(200, Math.max(1, parseInt(req.query.limit) || 50));
-  const skip = (page - 1) * limit;
+  try {
+    const page = Math.max(1, parseInt(req.query.page) || 1);
+    const limit = Math.min(200, Math.max(1, parseInt(req.query.limit) || 50));
+    const skip = (page - 1) * limit;
 
-  const [jobs, total] = await Promise.all([
-    Job.find({ user: req.user._id }).sort({ createdAt: -1 }).skip(skip).limit(limit).lean(),
-    Job.countDocuments({ user: req.user._id }),
-  ]);
+    const [jobs, total] = await Promise.all([
+      Job.find({ user: req.user._id }).sort({ createdAt: -1 }).skip(skip).limit(limit).lean(),
+      Job.countDocuments({ user: req.user._id }),
+    ]);
 
-  return res.json({
-    success: true,
-    data: {
-      jobs,
-      pagination: {
-        page,
-        limit,
-        total,
-        pages: Math.ceil(total / limit),
+    return res.json({
+      success: true,
+      data: {
+        jobs,
+        pagination: {
+          page,
+          limit,
+          total,
+          pages: Math.ceil(total / limit),
+        },
       },
-    },
-  });
+    });
+  } catch (err) {
+    return res.status(500).json({ success: false, message: "Could not fetch jobs" });
+  }
 }
 
 export async function getSingleJob(req, res) {
@@ -89,8 +93,12 @@ export async function deleteJob(req, res) {
 }
 
 export async function getJobCount(req, res) {
-  const count = await Job.countDocuments({ user: req.user._id });
-  return res.json({ success: true, data: { count } });
+  try {
+    const count = await Job.countDocuments({ user: req.user._id });
+    return res.json({ success: true, data: { count } });
+  } catch (err) {
+    return res.status(500).json({ success: false, message: "Could not fetch job count" });
+  }
 }
 
 export async function deleteAllJobs(req, res) {

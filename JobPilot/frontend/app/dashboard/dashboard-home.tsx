@@ -32,6 +32,31 @@ export function DashboardHome() {
       .catch(() => undefined);
   }, [searchParams, router]);
 
+  function EmptyState() {
+    if (jobsCount === null) return null;
+    if (jobsCount! > 0) return null;
+    return (
+      <Card className="border-border/60 bg-card/50 shadow-sm">
+        <CardContent className="flex flex-col items-center gap-3 py-12 text-center">
+          <div className="inline-flex rounded-2xl bg-primary/10 p-4 text-primary">
+            <Briefcase className="h-8 w-8" />
+          </div>
+          <div>
+            <p className="text-base font-semibold text-foreground">No jobs tracked yet</p>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Add your first job to start organizing your search.
+            </p>
+          </div>
+          <Button asChild>
+            <Link href="/dashboard/add-job">
+              <Plus className="h-4 w-4 mr-2" /> Add your first job
+            </Link>
+          </Button>
+        </CardContent>
+      </Card>
+    );
+  }
+
   return (
     <div className="mx-auto max-w-5xl space-y-8">
       {showSaved ? (
@@ -70,7 +95,7 @@ export function DashboardHome() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold">{jobsCount !== null ? jobsCount : "-"}</div>
+            <div className="text-3xl font-bold">{jobsCount !== null ? jobsCount : <span className="animate-pulse text-muted-foreground">-</span>}</div>
             <p className="mt-1 text-xs text-muted-foreground">Jobs currently tracked</p>
             <Button variant="link" className="mt-4 h-auto p-0 text-primary" asChild>
               <Link href="/dashboard/jobs" className="flex items-center gap-1">
@@ -92,8 +117,8 @@ export function DashboardHome() {
               Manage your resume, skills, and career profile.
             </p>
             <Button variant="link" className="mt-4 h-auto p-0 text-violet-500 hover:text-violet-600" asChild>
-              <Link href="/dashboard/settings" className="flex items-center gap-1">
-                Manage profile <ArrowRight className="h-3 w-3" />
+              <Link href="/dashboard/career-brain" className="flex items-center gap-1">
+                Open career brain <ArrowRight className="h-3 w-3" />
               </Link>
             </Button>
           </CardContent>
@@ -118,6 +143,8 @@ export function DashboardHome() {
           </CardContent>
         </Card>
       </div>
+
+      <EmptyState />
     </div>
   );
 }

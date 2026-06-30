@@ -5,6 +5,16 @@ import { uploadToCloudinary } from "../utils/cloudinaryUpload.js";
 import { groqChat } from "../utils/groq.js";
 import { isNonEmptyString } from "../utils/auth.js";
 
+async function extractPdfText(buffer) {
+  try {
+    const pdfParse = (await import("pdf-parse")).default;
+    const data = await pdfParse(buffer);
+    return data.text || "";
+  } catch {
+    return "";
+  }
+}
+
 const ACCEPTED_MIME = new Set([
   "application/pdf",
   "application/msword",
@@ -23,14 +33,39 @@ function isValidUrl(value) {
 }
 
 async function parseResumeText(text) {
-  const prompt = `Extract structured information from this resume text. Return ONLY valid JSON matching this schema exactly:
+  const prompt = `Extract structured information from this resume text with maximum accuracy.
+
+CRITICAL RULES:
+- "name": Extract the person's full name exactly as written (first and last name).
+- "skills": ONLY include actual technical/professional skills. NEVER include random words, common English verbs, or generic nouns. Examples of valid skills: React, Python, AWS, Project Management, Data Analysis. Examples of invalid: "team", "work", "experience", "good", "responsible", "ability", "time", "development".
+- "experience": Each entry should include job title, company, dates, and key responsibilities/achievements.
+- "projects": Each entry should include project name, brief description, and ANY links (GitHub, live demo, website) mentioned with the project. If a URL appears near a project name, include the URL in the description.
+- "education": Include degree, institution, graduation year.
+- "contactInfo": Extract ALL contact details found — email, phone, LinkedIn URL, GitHub URL, portfolio URL. Pay special attention to URLs embedded in text even without explicit labels.
+- "links": Extract ALL URLs found anywhere in the resume — project links, portfolio links, social links, publication links. Include a brief context of what each link is for.
+
+Return ONLY valid JSON matching this schema exactly:
 {
+  "name": "Full Name",
   "summary": "2-3 sentence professional summary",
-  "skills": ["skill1", "skill2"],
-  "experience": ["experience1", "experience2"],
+  "skills": ["only real technical or professional skills, no random words"],
+  "experience": ["Job Title at Company (Date) - Key responsibilities and achievements"],
+  "projects": ["Project Name - Brief description (link: url if available)"],
   "techStack": ["tech1", "tech2"],
-  "education": ["education1", "education2"],
+  "education": ["Degree, Institution, Year"],
   "certifications": ["cert1", "cert2"],
+  "languages": ["language1", "language2"],
+  "contactInfo": {
+    "email": "email if found",
+    "phone": "phone if found",
+    "linkedin": "linkedin url if found",
+    "github": "github url if found",
+    "portfolio": "portfolio url if found"
+  },
+  "links": [
+    {"url": "https://...", "context": "what this link is for"}
+  ],
+  "achievements": ["achievement1", "achievement2"],
   "seniorityLevel": "entry|mid|senior|lead|executive",
   "totalYearsExperience": 0
 }
@@ -40,10 +75,10 @@ ${text.substring(0, 15000)}`;
 
   const response = await groqChat(
     [
-      { role: "system", content: "You are a precise resume parser. Output ONLY valid JSON." },
+      { role: "system", content: "You are a precise resume parser. Output ONLY valid JSON. CRITICAL: Do NOT fabricate skills. If a word is not clearly a technical or professional skill, do not include it." },
       { role: "user", content: prompt },
     ],
-    { max_tokens: 2000, temperature: 0.1 }
+    { max_tokens: 2500, temperature: 0.1 }
   );
 
   const jsonMatch = response.match(/\{[\s\S]*\}/);
@@ -60,19 +95,7 @@ async function extractTextFromBuffer(buffer, mimetype) {
     return buffer.toString("utf-8");
   }
   if (mimetype === "application/pdf") {
-    try {
-      const { default: PDFParser } = await import("pdf2json");
-      return await new Promise((resolve) => {
-        const parser = new PDFParser(null, 1);
-        parser.on("pdfParser_dataReady", () => {
-          resolve(parser.getRawTextContent() || "");
-        });
-        parser.on("pdfParser_dataError", () => resolve(""));
-        parser.parseBuffer(buffer);
-      });
-    } catch {
-      return "";
-    }
+    return extractPdfText(buffer);
   }
   if (
     mimetype === "application/vnd.openxmlformats-officedocument.wordprocessingml.document" ||
@@ -150,10 +173,23 @@ export async function uploadResumeToCareerBrain(req, res) {
         mimeType: mimetype,
         extractedText: extractedText.substring(0, 50000),
         parsedData: {
-          ...parsedData,
-          githubUrl: "",
-          linkedinUrl: "",
-          portfolioUrl: "",
+          name: parsedData.name || "",
+          summary: parsedData.summary || "",
+          skills: parsedData.skills || [],
+          experience: parsedData.experience || [],
+          projects: parsedData.projects || [],
+          techStack: parsedData.techStack || [],
+          education: parsedData.education || [],
+          certifications: parsedData.certifications || [],
+          languages: parsedData.languages || [],
+          achievements: parsedData.achievements || [],
+          seniorityLevel: parsedData.seniorityLevel || "",
+          totalYearsExperience: parsedData.totalYearsExperience || 0,
+          contactInfo: parsedData.contactInfo || { email: "", phone: "", linkedin: "", github: "", portfolio: "" },
+          links: parsedData.links || [],
+          githubUrl: parsedData.contactInfo?.github || "",
+          linkedinUrl: parsedData.contactInfo?.linkedin || "",
+          portfolioUrl: parsedData.contactInfo?.portfolio || "",
           careerGoals: "",
         },
         lastParsedAt: new Date(),

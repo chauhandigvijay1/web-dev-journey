@@ -24,33 +24,49 @@ export const authSlice = createSlice({
   name: "auth",
   initialState,
   reducers: {
-    hydrate(state) {
-      const { token, user } = readStoredAuth();
-      state.token = token;
-      state.user = user;
-      state.isAuthenticated = Boolean(token && user);
+    hydrate(state, action: PayloadAction<{ user: StoredUser | null; token: string | null }>) {
+      state.token = action.payload.token;
+      state.user = action.payload.user;
+      state.isAuthenticated = Boolean(action.payload.token && action.payload.user);
       state.hydrated = true;
     },
     login(state, action: PayloadAction<{ user: StoredUser; token: string }>) {
       state.user = action.payload.user;
       state.token = action.payload.token;
       state.isAuthenticated = true;
-      writeStoredAuth(action.payload.token, action.payload.user);
     },
     logout(state) {
       state.user = null;
       state.token = null;
       state.isAuthenticated = false;
-      clearStoredAuth();
     },
     setUser(state, action: PayloadAction<StoredUser>) {
       state.user = action.payload;
-      if (state.token) {
-        writeStoredAuth(state.token, action.payload);
-      }
     },
   },
 });
 
 export const { hydrate, login, logout, setUser } = authSlice.actions;
 export default authSlice.reducer;
+
+export function hydrateFromStorage() {
+  const { token, user } = readStoredAuth();
+  return hydrate({ token, user });
+}
+
+export function loginWithStorage(payload: { user: StoredUser; token: string }) {
+  writeStoredAuth(payload.token, payload.user);
+  return login(payload);
+}
+
+export function logoutAndClear() {
+  clearStoredAuth();
+  return logout();
+}
+
+export function setUserWithStorage(user: StoredUser, token: string | null) {
+  if (token) {
+    writeStoredAuth(token, user);
+  }
+  return setUser(user);
+}

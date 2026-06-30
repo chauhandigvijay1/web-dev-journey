@@ -83,7 +83,16 @@ export const env = {
   smtpPass: readString("SMTP_PASS"),
   emailFrom: readString("EMAIL_FROM") || readString("SMTP_FROM") || readString("SMTP_USER"),
   tinyfishApiKey: readString("TINYFISH_API_KEY"),
+  aiRateLimitWindowMinutes: readNumber("AI_RATE_LIMIT_WINDOW_MINUTES", 15, { min: 1, max: 60 }),
+  aiRateLimitMax: readNumber("AI_RATE_LIMIT_MAX", 20, { min: 1, max: 100 }),
 };
+
+if (env.jwtSecret && env.jwtSecret.length < 32) {
+  throw new Error("JWT_SECRET must be at least 32 characters long");
+}
+if (env.jwtRefreshSecret && env.jwtRefreshSecret.length < 32) {
+  throw new Error("JWT_REFRESH_SECRET must be at least 32 characters long");
+}
 
 export function assertSupportedTimezone(value) {
   try {

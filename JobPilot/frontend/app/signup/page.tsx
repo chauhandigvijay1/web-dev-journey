@@ -12,7 +12,7 @@ import {
 } from "@/lib/auth-validation";
 import { getApiErrorMessage } from "@/lib/httpError";
 import { api } from "@/services/api";
-import { login } from "@/store/authSlice";
+import { loginWithStorage } from "@/store/authSlice";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { AuthShell } from "@/components/auth/auth-shell";
 import { GoogleAuthButton } from "@/components/auth/google-auth-button";
@@ -55,7 +55,7 @@ export default function SignupPage() {
   }, [hydrated, isAuthenticated, router]);
 
   async function completeAuth(payload: AuthPayload) {
-    dispatch(login(payload));
+    dispatch(loginWithStorage(payload));
     router.replace("/dashboard");
   }
 

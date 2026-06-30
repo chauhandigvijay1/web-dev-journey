@@ -2,14 +2,20 @@ import express from "express";
 import cors from "cors";
 import cookieParser from "cookie-parser";
 import helmet from "helmet";
+import compression from "compression";
+import hpp from "hpp";
 import { env } from "./config/env.js";
 import { apiRateLimiter, sanitizeRequest } from "./middleware/security.middleware.js";
 import { apiRouter } from "./routes/index.js";
+import { requestId, logger } from "./utils/logger.js";
 
 export const app = express();
 
 app.disable("x-powered-by");
 app.set("trust proxy", 1);
+app.use(requestId);
+app.use(compression());
+app.use(hpp());
 
 const allowedOrigins = new Set(env.corsOrigins);
 
@@ -62,7 +68,12 @@ app.use((req, res) => {
 });
 
 app.use((err, req, res, _next) => {
-  console.error(err);
+  logger.error(err.message || "Unhandled error", {
+    reqId: req.id,
+    stack: env.isProduction ? undefined : err.stack,
+    method: req.method,
+    url: req.originalUrl,
+  });
 
   const status = err?.statusCode || (err.message === "Not allowed by CORS" ? 403 : 500);
   res.status(status).json({

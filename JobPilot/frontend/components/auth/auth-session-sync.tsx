@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
-import { login, logout } from "@/store/authSlice";
+import { loginWithStorage, logoutAndClear } from "@/store/authSlice";
 import { readStoredAuth } from "@/lib/authStorage";
 import { useAppDispatch } from "@/store/hooks";
 
@@ -14,10 +14,10 @@ export function AuthSessionSync() {
     function syncFromStorage() {
       const stored = readStoredAuth();
       if (stored.user && stored.token) {
-        dispatch(login({ user: stored.user, token: stored.token }));
+        dispatch(loginWithStorage({ user: stored.user, token: stored.token }));
         return;
       }
-      dispatch(logout());
+      dispatch(logoutAndClear());
     }
 
     window.addEventListener("jobpilot:auth-updated", syncFromStorage);

@@ -1,3 +1,10 @@
+import crypto from "node:crypto";
+
+export function requestId(req, _res, next) {
+  req.id = crypto.randomUUID();
+  next();
+}
+
 function serializeMeta(meta) {
   if (!meta) return "";
   try {
@@ -8,7 +15,8 @@ function serializeMeta(meta) {
 }
 
 function write(level, message, meta) {
-  const line = `[${new Date().toISOString()}] [${level}] ${message}${serializeMeta(meta)}`;
+  const reqId = meta?.reqId || "";
+  const line = `[${new Date().toISOString()}] [${level}]${reqId ? ` [${reqId}]` : ""} ${message}${serializeMeta(meta)}`;
   if (level === "ERROR") {
     console.error(line);
     return;

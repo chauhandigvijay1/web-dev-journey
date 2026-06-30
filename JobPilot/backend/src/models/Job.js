@@ -47,7 +47,7 @@ const jobSchema = new mongoose.Schema(
           enum: ["Contacted", "Replied", "Follow Up", "Interview Scheduled", "Closed"],
           default: "Contacted"
         },
-        lastContactDate: { type: Date, default: Date.now },
+        lastContactDate: { type: Date, default: () => Date.now() },
       }
     ],
   },

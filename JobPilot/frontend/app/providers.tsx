@@ -4,7 +4,7 @@ import { useEffect, useRef } from "react";
 import { ThemeProvider } from "@/components/theme/theme-provider";
 import { Provider } from "react-redux";
 import { makeStore, type AppStore } from "@/store/store";
-import { hydrate } from "@/store/authSlice";
+import { hydrateFromStorage } from "@/store/authSlice";
 
 export function Providers({ children }: { children: React.ReactNode }) {
   const storeRef = useRef<AppStore>();
@@ -14,7 +14,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
   const dispatch = storeRef.current.dispatch;
 
   useEffect(() => {
-    dispatch(hydrate());
+    dispatch(hydrateFromStorage());
   }, [dispatch]);
 
   return (

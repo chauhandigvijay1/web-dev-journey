@@ -467,22 +467,27 @@ export async function runReminderSweep({
     let skipped = 0;
     let failed = 0;
 
-    while (processed < env.reminderBatchSize) {
-      const reminder = await claimNextReminder(now);
-      if (!reminder) break;
+    let batchProcessed;
+    do {
+      batchProcessed = 0;
+      while (batchProcessed < env.reminderBatchSize) {
+        const reminder = await claimNextReminder(now);
+        if (!reminder) break;
 
-      processed++;
+        batchProcessed++;
+        processed++;
 
-      const result = await processOneReminder(
-        reminder,
-        now,
-        logger
-      );
+        const result = await processOneReminder(
+          reminder,
+          now,
+          logger
+        );
 
-      sent += result.sent || 0;
-      skipped += result.skipped || 0;
-      failed += result.failed || 0;
-    }
+        sent += result.sent || 0;
+        skipped += result.skipped || 0;
+        failed += result.failed || 0;
+      }
+    } while (batchProcessed === env.reminderBatchSize);
 
     logger.info("[reminders] Sweep complete", {
       processed,

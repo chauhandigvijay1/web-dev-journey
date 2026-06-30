@@ -1,0 +1,13 @@
+{
+  "name": "JobPilot",
+  "short_name": "JobPilot",
+  "description": "AI-powered job application tracker with Kanban boards, smart reminders, and browser extension for one-click saving from 50+ job portals.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#2563eb",
+  "orientation": "portrait-primary",
+  "icons": [
+    { "src": "/favicon.svg", "type": "image/svg+xml", "sizes": "any" }
+  ]
+}

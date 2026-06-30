@@ -2,13 +2,17 @@ import mongoose from "mongoose";
 
 const parsedResumeSchema = new mongoose.Schema(
   {
+    name: { type: String, trim: true, default: "" },
     summary: { type: String, trim: true, default: "" },
     skills: [{ type: String, trim: true }],
     experience: [{ type: String, trim: true }],
+    projects: [{ type: String, trim: true }],
     techStack: [{ type: String, trim: true }],
     preferredRoles: [{ type: String, trim: true }],
     education: [{ type: String, trim: true }],
     certifications: [{ type: String, trim: true }],
+    languages: [{ type: String, trim: true }],
+    achievements: [{ type: String, trim: true }],
     keywords: [{ type: String, trim: true }],
     seniorityLevel: { type: String, trim: true, default: "" },
     locationPreference: { type: String, trim: true, default: "" },
@@ -20,8 +24,15 @@ const parsedResumeSchema = new mongoose.Schema(
     linkedinUrl: { type: String, trim: true, default: "" },
     portfolioUrl: { type: String, trim: true, default: "" },
     careerGoals: { type: String, trim: true, default: "" },
+    contactInfo: {
+      email: { type: String, trim: true, default: "" },
+      phone: { type: String, trim: true, default: "" },
+      linkedin: { type: String, trim: true, default: "" },
+      github: { type: String, trim: true, default: "" },
+      portfolio: { type: String, trim: true, default: "" },
+    },
   },
-  { _id: false }
+  { _id: false, strict: false }
 );
 
 const resumeProfileSchema = new mongoose.Schema(

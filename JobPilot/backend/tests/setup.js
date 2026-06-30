@@ -1,6 +1,6 @@
 process.env.NODE_ENV = "test";
-process.env.JWT_SECRET = "test-access-secret";
-process.env.JWT_REFRESH_SECRET = "test-refresh-secret";
+process.env.JWT_SECRET = "test-access-secret-0123456789abcdef";
+process.env.JWT_REFRESH_SECRET = "test-refresh-secret-0123456789abcdef";
 process.env.JWT_ACCESS_TTL = "15m";
 process.env.JWT_REFRESH_TTL = "30d";
 process.env.EMAIL_FROM = "qa@jobpilot.test";
