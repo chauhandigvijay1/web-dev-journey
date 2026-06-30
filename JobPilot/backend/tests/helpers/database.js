@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
 import { MongoMemoryServer } from "mongodb-memory-server";
-import { clearMailOutbox, resetMailTransporter } from "../../src/services/mail.service.js";
+import { clearMailOutbox } from "../../src/services/mail.service.js";
 
 let mongoServer;
 
@@ -15,12 +15,10 @@ export async function startTestDatabase() {
   }
 
   clearMailOutbox();
-  resetMailTransporter();
 }
 
 export async function resetTestDatabase() {
   clearMailOutbox();
-  resetMailTransporter();
 
   if (mongoose.connection.readyState !== 1) return;
   const { collections } = mongoose.connection;
@@ -29,7 +27,6 @@ export async function resetTestDatabase() {
 
 export async function stopTestDatabase() {
   clearMailOutbox();
-  resetMailTransporter();
 
   if (mongoose.connection.readyState !== 0) {
     await mongoose.disconnect();

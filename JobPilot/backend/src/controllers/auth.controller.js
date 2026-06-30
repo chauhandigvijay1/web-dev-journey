@@ -535,9 +535,12 @@ export async function changePassword(req, res) {
 
   user.password = newPassword;
   user.hasPassword = true;
+  user.tokenVersion = (user.tokenVersion || 0) + 1;
   await user.save();
 
-  return res.json({ success: true, message: "Password updated successfully" });
+  await clearUserSession(user);
+
+  return res.json({ success: true, message: "Password updated. Please sign in again." });
 }
 
 export async function refreshAuthSession(req, res) {

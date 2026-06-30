@@ -121,8 +121,8 @@ export async function ensureSessionUsername(user) {
 
 export async function createAuthSession(user) {
   const sessionId = crypto.randomUUID();
-  const accessToken = generateAccessToken(user._id);
-  const refreshToken = generateRefreshToken(user._id, sessionId);
+  const accessToken = generateAccessToken(user._id, user.tokenVersion);
+  const refreshToken = generateRefreshToken(user._id, sessionId, user.tokenVersion);
   const decodedRefresh = verifyRefreshToken(refreshToken);
 
   user.refreshTokenHash = hashToken(refreshToken);
@@ -177,6 +177,10 @@ export async function refreshUserSession(req, user) {
 
   const decoded = verifyRefreshToken(providedToken);
   if (decoded.sessionId !== user.refreshSessionId) {
+    return null;
+  }
+
+  if (decoded.tokenVersion !== undefined && decoded.tokenVersion < (user.tokenVersion || 0)) {
     return null;
   }
 

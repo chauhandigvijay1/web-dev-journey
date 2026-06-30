@@ -2,14 +2,14 @@ import crypto from "crypto";
 import jwt from "jsonwebtoken";
 import { env } from "../config/env.js";
 
-export function generateAccessToken(userId) {
-  return jwt.sign({ userId: String(userId), type: "access" }, env.jwtSecret, {
+export function generateAccessToken(userId, tokenVersion = 0) {
+  return jwt.sign({ userId: String(userId), type: "access", tokenVersion }, env.jwtSecret, {
     expiresIn: env.jwtAccessTtl,
   });
 }
 
-export function generateRefreshToken(userId, sessionId) {
-  return jwt.sign({ userId: String(userId), type: "refresh", sessionId }, env.jwtRefreshSecret, {
+export function generateRefreshToken(userId, sessionId, tokenVersion = 0) {
+  return jwt.sign({ userId: String(userId), type: "refresh", sessionId, tokenVersion }, env.jwtRefreshSecret, {
     expiresIn: env.jwtRefreshTtl,
   });
 }

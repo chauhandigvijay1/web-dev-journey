@@ -2,7 +2,6 @@ import nodemailer from "nodemailer";
 import { env } from "../config/env.js";
 import { logger } from "../utils/logger.js";
 
-let transporter;
 const outbox = [];
 let missingConfigLogged = false;
 
@@ -31,14 +30,7 @@ function createTransporter() {
 }
 
 export function getMailTransporter() {
-  if (!transporter) {
-    transporter = createTransporter();
-  }
-  return transporter;
-}
-
-export function resetMailTransporter() {
-  transporter = undefined;
+  return createTransporter();
 }
 
 export function getMailOutbox() {

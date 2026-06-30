@@ -175,6 +175,34 @@
 
 ---
 
+## Phase 9 — Production Hardening
+
+### 1. Password change invalidates all sessions
+- **Problem**: `changePassword` saved new password but did not clear existing sessions — old JWT tokens remained valid
+- **Fix**: Added `tokenVersion` field to User model, included in both access + refresh tokens. Auth middleware and refresh flow verify `tokenVersion` match. Password change bumps version + clears session.
+- **Files**: `backend/src/models/User.js`, `backend/src/utils/jwt.js`, `backend/src/services/auth.service.js`, `backend/src/middleware/auth.middleware.js`, `backend/src/controllers/auth.controller.js`
+
+### 2. SMTP config refreshed on each send
+- **Problem**: `getMailTransporter()` cached the nodemailer transporter indefinitely — env changes were ignored until restart
+- **Fix**: Removed module-level `transporter` cache; `getMailTransporter()` now creates a fresh transporter per call
+- **Files**: `backend/src/services/mail.service.js`, `backend/tests/helpers/database.js`
+
+### 3. Username generation optimized (10K → 2 queries max)
+- **Problem**: `ensureUniqueUsername` looped 1..9999 with individual DB queries to find an available suffix
+- **Fix**: After candidate list, does ONE `$regex` query to find all `base+N` usernames, loads them into a Set, then iterates in-memory. Falls to timestamp-based fallback if 9999 suffixes exhausted.
+- **Files**: `backend/src/utils/auth.js`
+
+### 4. Jobs count endpoint added
+- **Problem**: Frontend fetched ALL jobs just to display a count badge
+- **Fix**: Added `GET /api/jobs/count` returning `{ success: true, data: { count: N } }`
+- **Files**: `backend/src/controllers/job.controller.js`, `backend/src/routes/job.routes.js`
+
+### Verification
+- **Backend tests**: 21/21 pass (5 files — new count endpoint test)
+- **Frontend build**: Compiles clean (12 routes, no warnings)
+
+---
+
 ## Key Decisions
 - Use `useRef` pattern for Google auth callbacks instead of `useCallback` — stabilizes GIS initialization
 - Created shared `useJobs` hook with module-level cache instead of React Query/SWR — avoids new dependency
@@ -186,14 +214,10 @@
 ---
 
 ## Remaining Issues (not addressed)
-1. Password change doesn't invalidate sessions
-2. SMTP config cached forever (never re-checks)
-3. Username generation loops 10K queries
-4. Jobs count fetches ALL jobs instead of a count endpoint
-5. `JobDetailView.tsx` (1021 lines) and `settings/page.tsx` (897 lines) — SRP violations
-6. Frontend components: 0% test coverage
-7. Extension: 0% test coverage
-8. E2E: 0% (Playwright config exists, no tests)
+1. `JobDetailView.tsx` (1021 lines) and `settings/page.tsx` (897 lines) — SRP violations (cosmetic only)
+2. Frontend component tests: 0% coverage
+3. Extension tests: 0% coverage
+4. E2E tests: 0% (Playwright config exists, no tests)
 
 ---
 

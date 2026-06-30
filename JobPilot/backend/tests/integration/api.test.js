@@ -202,6 +202,25 @@ describe("API integration", () => {
     });
   });
 
+  it("returns job count", async () => {
+    const { token } = await registerUser();
+    const res1 = await request(app)
+      .get("/api/jobs/count")
+      .set("Authorization", `Bearer ${token}`);
+    expect(res1.status).toBe(200);
+    expect(res1.body.data.count).toBe(0);
+
+    await request(app)
+      .post("/api/jobs")
+      .set("Authorization", `Bearer ${token}`)
+      .send({ title: "Count Test", company: "Acme" });
+
+    const res2 = await request(app)
+      .get("/api/jobs/count")
+      .set("Authorization", `Bearer ${token}`);
+    expect(res2.body.data.count).toBe(1);
+  });
+
   it("rejects job creation with empty body", async () => {
     const { token } = await registerUser();
     const response = await request(app)

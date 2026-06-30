@@ -144,7 +144,8 @@ After deployment, verify each of these flows:
 - [ ] Open a non-job page (e.g. Google) → popup shows "No job detected"
 
 ### Tests
-- [ ] Run `cd backend && npm test` → 20 tests pass (5 files)
+- [ ] Run `cd backend && npm test` → 21 tests pass (5 files)
+- [ ] `GET /api/jobs/count` returns `{ data: { count: N } }`
 - [ ] Run `cd frontend && npm run build` → builds without errors
 
 ## Tech Stack

@@ -9,6 +9,7 @@ import {
   deleteJob,
   deleteAllJobs,
   extractJobFromUrl,
+  getJobCount,
 } from "../controllers/job.controller.js";
 
 export const jobRouter = Router();
@@ -16,6 +17,7 @@ export const jobRouter = Router();
 jobRouter.use(protect);
 
 jobRouter.post("/extract", asyncHandler(extractJobFromUrl));
+jobRouter.get("/count", asyncHandler(getJobCount));
 
 jobRouter
   .route("/")

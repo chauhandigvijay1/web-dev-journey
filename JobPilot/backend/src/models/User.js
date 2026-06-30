@@ -46,6 +46,7 @@ const userSchema = new mongoose.Schema(
     bio: { type: String, trim: true, default: "" },
     emailNotifications: { type: Boolean, default: true },
     settings: { type: userSettingsSchema, default: () => ({}) },
+    tokenVersion: { type: Number, default: 0 },
     refreshTokenHash: { type: String, select: false, default: "" },
     refreshSessionId: { type: String, select: false, default: "" },
     refreshTokenExpiresAt: { type: Date, select: false, default: null },

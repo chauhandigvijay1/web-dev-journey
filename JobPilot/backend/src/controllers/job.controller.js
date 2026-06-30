@@ -88,6 +88,11 @@ export async function deleteJob(req, res) {
   }
 }
 
+export async function getJobCount(req, res) {
+  const count = await Job.countDocuments({ user: req.user._id });
+  return res.json({ success: true, data: { count } });
+}
+
 export async function deleteAllJobs(req, res) {
   const deletedCount = await deleteAllJobsForUser(req.user);
   return res.json({
