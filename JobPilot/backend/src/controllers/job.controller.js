@@ -9,13 +9,36 @@ import {
 } from "../services/job.service.js";
 
 export async function createJob(req, res) {
-  const job = await createJobForUser(req.user, req.body ?? {});
-  return res.status(201).json({ success: true, data: { job } });
+  try {
+    const job = await createJobForUser(req.user, req.body ?? {});
+    return res.status(201).json({ success: true, data: { job } });
+  } catch (err) {
+    return res.status(err.statusCode || 400).json({ success: false, message: err.message || "Could not create job" });
+  }
 }
 
 export async function getJobs(req, res) {
-  const jobs = await Job.find({ user: req.user._id }).sort({ createdAt: -1 }).lean();
-  return res.json({ success: true, data: { jobs } });
+  const page = Math.max(1, parseInt(req.query.page) || 1);
+  const limit = Math.min(200, Math.max(1, parseInt(req.query.limit) || 50));
+  const skip = (page - 1) * limit;
+
+  const [jobs, total] = await Promise.all([
+    Job.find({ user: req.user._id }).sort({ createdAt: -1 }).skip(skip).limit(limit).lean(),
+    Job.countDocuments({ user: req.user._id }),
+  ]);
+
+  return res.json({
+    success: true,
+    data: {
+      jobs,
+      pagination: {
+        page,
+        limit,
+        total,
+        pages: Math.ceil(total / limit),
+      },
+    },
+  });
 }
 
 export async function getSingleJob(req, res) {
@@ -31,8 +54,12 @@ export async function getSingleJob(req, res) {
 }
 
 export async function updateJob(req, res) {
-  const job = await updateJobForUser(req.user, req.params.id, req.body ?? {});
-  return res.json({ success: true, data: { job } });
+  try {
+    const job = await updateJobForUser(req.user, req.params.id, req.body ?? {});
+    return res.json({ success: true, data: { job } });
+  } catch (err) {
+    return res.status(err.statusCode || 400).json({ success: false, message: err.message || "Could not update job" });
+  }
 }
 
 export async function extractJobFromUrl(req, res) {
@@ -53,8 +80,12 @@ export async function extractJobFromUrl(req, res) {
 }
 
 export async function deleteJob(req, res) {
-  await deleteJobForUser(req.user, req.params.id);
-  return res.json({ success: true, data: { deleted: true } });
+  try {
+    await deleteJobForUser(req.user, req.params.id);
+    return res.json({ success: true, data: { deleted: true } });
+  } catch (err) {
+    return res.status(err.statusCode || 400).json({ success: false, message: err.message || "Could not delete job" });
+  }
 }
 
 export async function deleteAllJobs(req, res) {
