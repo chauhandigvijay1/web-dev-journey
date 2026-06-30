@@ -22,6 +22,15 @@ describe("auth.service", () => {
     expect(settings.notifications.weeklySummaryEnabled).toBe(true);
   });
 
+  it("normalizes settings with null and empty input", () => {
+    expect(normalizeSettings(null)).toBeTruthy();
+    expect(normalizeSettings(undefined)).toBeTruthy();
+    expect(normalizeSettings({})).toBeTruthy();
+    const s = normalizeSettings({});
+    expect(s.productivity.defaultFollowUpDays).toBe(5);
+    expect(s.notifications.timezone).toBe("UTC");
+  });
+
   it("builds a safe public user payload", () => {
     const user = {
       _id: "user-1",

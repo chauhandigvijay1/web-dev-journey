@@ -41,6 +41,22 @@ describe("job extraction", () => {
     expect(extracted.originalApplyLink).toBe("https://careers.acme.com/jobs/123");
   });
 
+  it("rejects private network URLs", async () => {
+    const { extractJobFieldsFromUrl } = await import("../../src/services/job-extraction/index.js");
+
+    const localhost = await extractJobFieldsFromUrl("http://localhost:27017/");
+    expect(localhost.warning).toContain("private network");
+
+    const privateIp = await extractJobFieldsFromUrl("http://192.168.1.1/admin");
+    expect(privateIp.warning).toContain("private network");
+
+    const nonHttp = await extractJobFieldsFromUrl("ftp://example.com/file");
+    expect(nonHttp.warning).toContain("http and https");
+
+    const invalid = await extractJobFieldsFromUrl("not-a-url");
+    expect(invalid.warning).toContain("Invalid URL");
+  });
+
   it("uses domain and fallback selectors for public job pages", () => {
     const html = `
       <html>

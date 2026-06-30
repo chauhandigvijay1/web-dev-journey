@@ -176,6 +176,59 @@ describe("API integration", () => {
     expect(response.body.data.job.workMode).toBe("Remote");
   });
 
+  it("returns paginated job listings", async () => {
+    const { token } = await registerUser();
+    await request(app)
+      .post("/api/jobs")
+      .set("Authorization", `Bearer ${token}`)
+      .send({ title: "Job 1", company: "Acme" });
+    await request(app)
+      .post("/api/jobs")
+      .set("Authorization", `Bearer ${token}`)
+      .send({ title: "Job 2", company: "Acme" });
+
+    const response = await request(app)
+      .get("/api/jobs")
+      .set("Authorization", `Bearer ${token}`)
+      .query({ page: 1, limit: 1 });
+
+    expect(response.status).toBe(200);
+    expect(response.body.data.jobs).toHaveLength(1);
+    expect(response.body.data.pagination).toEqual({
+      page: 1,
+      limit: 1,
+      total: 2,
+      pages: 2,
+    });
+  });
+
+  it("rejects job creation with empty body", async () => {
+    const { token } = await registerUser();
+    const response = await request(app)
+      .post("/api/jobs")
+      .set("Authorization", `Bearer ${token}`)
+      .send({});
+    expect(response.status).toBe(400);
+    expect(response.body.success).toBe(false);
+  });
+
+  it("rejects private network URLs in extraction", async () => {
+    const { token } = await registerUser();
+    const response = await request(app)
+      .post("/api/jobs/extract")
+      .set("Authorization", `Bearer ${token}`)
+      .send({ url: "http://localhost:27017/" });
+    expect(response.status).toBe(200);
+    expect(response.body.data.warning).toContain("private network");
+  });
+
+  it("returns health status with DB info", async () => {
+    const response = await request(app).get("/api/health");
+    expect(response.status).toBe(200);
+    expect(response.body.success).toBe(true);
+    expect(response.body.data.db).toBe("connected");
+  });
+
   it("extracts job fields from a fetched public page", async () => {
     const { token } = await registerUser();
     vi.spyOn(axios, "get").mockResolvedValue({

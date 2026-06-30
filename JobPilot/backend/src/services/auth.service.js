@@ -34,7 +34,8 @@ function parseBoundedInteger(value, fallback, min, max) {
   return number;
 }
 
-export function normalizeSettings(settings = {}) {
+export function normalizeSettings(settings) {
+  if (!settings || typeof settings !== "object") settings = {};
   const rawTimezone = settings.notifications?.timezone;
   const timezone =
     typeof rawTimezone === "string" && assertSupportedTimezone(rawTimezone.trim())
