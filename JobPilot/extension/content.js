@@ -1,22 +1,46 @@
-function syncJobPilotToken() {
-  if (!window.location.hostname.includes("jobpilot-client-chi.vercel.app") && window.location.hostname !== "localhost") {
-    return;
-  }
+function isJobPilotApp() {
+  return window.location.hostname.includes("jobpilot-client-chi.vercel.app") || window.location.hostname === "localhost";
+}
+
+function getApiBaseUrl() {
+  return window.location.hostname === "localhost"
+    ? "http://localhost:5051/api"
+    : "https://web-dev-journey-cnee.onrender.com/api";
+}
+
+function syncToken() {
   try {
     const token = window.localStorage?.getItem("jobpilot_token");
     if (token) {
-      const apiBaseUrl =
-        window.location.hostname === "localhost"
-          ? "http://localhost:5051/api"
-          : "https://web-dev-journey-cnee.onrender.com/api";
-      chrome.runtime.sendMessage({ action: "SYNC_AUTH_TOKEN", token, apiBaseUrl });
+      chrome.runtime.sendMessage({ action: "SYNC_AUTH_TOKEN", token, apiBaseUrl: getApiBaseUrl() });
     }
   } catch {
-    // Ignore pages where storage access is unavailable.
+    // storage unavailable
   }
 }
 
-syncJobPilotToken();
+syncToken();
+
+window.addEventListener("jobpilot:auth-updated", syncToken);
+window.addEventListener("storage", (e) => {
+  if (e.key === "jobpilot_token" && e.newValue) {
+    chrome.runtime.sendMessage({ action: "SYNC_AUTH_TOKEN", token: e.newValue, apiBaseUrl: getApiBaseUrl() });
+  }
+});
+
+chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+  if (request.action === "REQUEST_TOKEN_SYNC") {
+    syncToken();
+    sendResponse({ synced: true });
+    return false;
+  }
+
+  if (request.action === "PARSE_JOB") {
+    const jobData = scrapePage();
+    sendResponse({ success: true, data: jobData });
+    return false;
+  }
+});
 
 function t(el) {
   return el ? (el.innerText || el.textContent || "").trim() : "";
@@ -25,11 +49,6 @@ function t(el) {
 function $(sel) {
   const el = document.querySelector(sel);
   return el ? t(el) : "";
-}
-
-function $$(sel) {
-  const els = document.querySelectorAll(sel);
-  return Array.from(els).map(el => t(el)).filter(Boolean);
 }
 
 function first(selectors) {
@@ -71,18 +90,16 @@ function extractFromLdJson() {
       const data = JSON.parse(script.textContent);
       for (const item of [data].flat()) {
         const type = item["@type"];
-        if (!type || (!type.includes("JobPosting") && type !== "WebPage")) continue;
-        if (type.includes("JobPosting")) {
-          const loc = item.jobLocation;
-          const address = loc?.address;
-          return {
-            title: clean(item.title),
-            company: item.hiringOrganization?.name || clean(item.hiringOrganization?.["@id"]),
-            location: address?.addressLocality || address?.streetAddress || clean(loc?.name),
-            description: clean(item.description),
-            skills: item.skills ? (Array.isArray(item.skills) ? item.skills.map(s => clean(s)).filter(Boolean) : [clean(item.skills)]) : [],
-          };
-        }
+        if (!type || !type.includes("JobPosting")) continue;
+        const loc = item.jobLocation;
+        const address = loc?.address;
+        return {
+          title: clean(item.title),
+          company: item.hiringOrganization?.name || clean(item.hiringOrganization?.["@id"]),
+          location: address?.addressLocality || address?.streetAddress || clean(loc?.name),
+          description: clean(item.description),
+          skills: item.skills ? (Array.isArray(item.skills) ? item.skills.map(s => clean(s)).filter(Boolean) : [clean(item.skills)]) : [],
+        };
       }
     } catch {
       // continue
@@ -102,39 +119,6 @@ function extractFromMicrodata() {
     description: clean(t(container.querySelector('[itemprop="description"]'))),
     skills: [],
   };
-}
-
-function findLogoCompany() {
-  const imgs = document.querySelectorAll('img[alt*="logo" i], img[class*="logo" i], header img[alt], nav img[alt]');
-  for (const img of imgs) {
-    const alt = (img.alt || "").trim();
-    if (alt && !alt.match(/logo|icon|avatar|profile|menu/i) && alt.length < 60) return alt;
-  }
-  const text = document.body.innerText;
-  const knownDomains = {
-    "linkedin.com": "LinkedIn",
-    "indeed.com": "Indeed",
-    "naukri.com": "Naukri",
-    "wellfound.com": "Wellfound",
-    "internshala.com": "Internshala",
-    "cutshort.io": "Cutshort",
-    "instahyre.com": "Instahyre",
-    "hirect.in": "Hirect",
-    "apna.co": "Apna",
-    "timesjobs.com": "TimesJobs",
-    "shine.com": "Shine",
-    "monster.com": "Monster",
-    "glassdoor.com": "Glassdoor",
-    "upwork.com": "Upwork",
-    "freelancer.com": "Freelancer",
-    "turing.com": "Turing",
-  };
-  for (const [domain, name] of Object.entries(knownDomains)) {
-    if (window.location.hostname.includes(domain)) return name;
-    const brandMatch = text.match(new RegExp(`${name}\\s+(?:is|hiring|seeks|looking)`, "i"));
-    if (brandMatch) return name;
-  }
-  return "";
 }
 
 function findCompanyFromPage() {
@@ -233,7 +217,7 @@ function scrapePage() {
   ]);
 
   if (!result.company) {
-    result.company = findLogoCompany() || findCompanyFromPage();
+    result.company = findCompanyFromPage();
   }
 
   result.location = first([
@@ -254,10 +238,3 @@ function scrapePage() {
     originalUrl: window.location.href,
   };
 }
-
-chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-  if (request.action === "PARSE_JOB") {
-    const jobData = scrapePage();
-    sendResponse({ success: true, data: jobData });
-  }
-});

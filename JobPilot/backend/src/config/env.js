@@ -61,7 +61,7 @@ export const env = {
   corsOrigins: Array.from(new Set(readList("CORS_ORIGINS", defaultCorsOrigins).map((value) => value.replace(/\/+$/, "")))),
   jwtSecret: requiredString("JWT_SECRET"),
   jwtRefreshSecret: readString("JWT_REFRESH_SECRET") || requiredString("JWT_SECRET"),
-  jwtAccessTtl: readString("JWT_ACCESS_TTL") || "15m",
+  jwtAccessTtl: readString("JWT_ACCESS_TTL") || "7d",
   jwtRefreshTtl: readString("JWT_REFRESH_TTL") || "30d",
   authCookieName: readString("AUTH_COOKIE_NAME") || "jobpilot_refresh",
   defaultTimezone: readString("DEFAULT_TIMEZONE") || "UTC",
