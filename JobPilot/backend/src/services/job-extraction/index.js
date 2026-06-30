@@ -170,8 +170,76 @@ export function extractJobFieldsFromHtml(html, urlString) {
   };
 }
 
+function isPrivateHostname(hostname) {
+  const normalized = hostname.replace(/^www\./, "").toLowerCase();
+  if (normalized === "localhost" || normalized === "127.0.0.1" || normalized === "::1") return true;
+  if (/^(127\.\d+\.\d+\.\d+|10\.\d+\.\d+\.\d+|172\.(1[6-9]|2\d|3[01])\.\d+\.\d+|192\.168\.\d+\.\d+|169\.254\.\d+\.\d+|0\.0\.0\.0)$/.test(normalized)) return true;
+  return false;
+}
+
 export async function extractJobFieldsFromUrl(urlString) {
-  const url = new URL(urlString);
+  let url;
+  try {
+    url = new URL(urlString);
+  } catch {
+    return {
+      title: "",
+      company: "",
+      location: "",
+      locations: [],
+      salary: "",
+      jobType: "",
+      experience: "",
+      skills: [],
+      qualification: "",
+      applyDeadline: "",
+      workMode: "",
+      descriptionSummary: "",
+      originalApplyLink: urlString,
+      source: "",
+      warning: "Invalid URL provided.",
+    };
+  }
+
+  if (url.protocol !== "http:" && url.protocol !== "https:") {
+    return {
+      title: "",
+      company: "",
+      location: "",
+      locations: [],
+      salary: "",
+      jobType: "",
+      experience: "",
+      skills: [],
+      qualification: "",
+      applyDeadline: "",
+      workMode: "",
+      descriptionSummary: "",
+      originalApplyLink: url.href,
+      source: hostnameLabel(url.href),
+      warning: "Only http and https URLs are supported.",
+    };
+  }
+
+  if (isPrivateHostname(url.hostname)) {
+    return {
+      title: "",
+      company: "",
+      location: "",
+      locations: [],
+      salary: "",
+      jobType: "",
+      experience: "",
+      skills: [],
+      qualification: "",
+      applyDeadline: "",
+      workMode: "",
+      descriptionSummary: "",
+      originalApplyLink: url.href,
+      source: hostnameLabel(url.href),
+      warning: "Cannot fetch URLs from private networks.",
+    };
+  }
 
   try {
     const response = await axios.get(url.href, {

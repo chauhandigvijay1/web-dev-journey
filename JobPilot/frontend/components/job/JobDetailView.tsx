@@ -705,7 +705,7 @@ export function JobDetailView({ jobId }: { jobId: string }) {
                     <div className="font-semibold">{contact.name}</div>
                     <div className="text-muted-foreground">{contact.role}</div>
                     {contact.email && <div className="text-muted-foreground break-all">{contact.email}</div>}
-                    {contact.linkedin && <div className="text-muted-foreground break-all text-blue-500"><a href={contact.linkedin} target="_blank" rel="noreferrer">LinkedIn</a></div>}
+                    {contact.linkedin && contact.linkedin.startsWith("https://") && <div className="text-muted-foreground break-all text-blue-500"><a href={contact.linkedin} target="_blank" rel="noreferrer">LinkedIn</a></div>}
                     <Badge variant="secondary" className="w-fit mt-1">{contact.status}</Badge>
                   </div>
                 ))}

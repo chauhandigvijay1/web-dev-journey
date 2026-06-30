@@ -28,7 +28,6 @@ app.use(
       const normalizedOrigin = origin?.replace(/\/+$/, "");
       if (
         !origin ||
-        normalizedOrigin === "null" ||
         normalizedOrigin?.startsWith("chrome-extension://") ||
         isLoopbackOrigin(normalizedOrigin) ||
         allowedOrigins.has(normalizedOrigin)
