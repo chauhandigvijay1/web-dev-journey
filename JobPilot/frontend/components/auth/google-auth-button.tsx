@@ -41,11 +41,13 @@ export function GoogleAuthButton({
   const containerRef = useRef<HTMLDivElement>(null);
   const [scriptLoaded, setScriptLoaded] = useState(false);
   const [pending, setPending] = useState(false);
+  const onCredentialRef = useRef(onCredential);
+  const onErrorRef = useRef(onError);
+  onCredentialRef.current = onCredential;
+  onErrorRef.current = onError;
 
   const renderGoogleButton = useCallback(() => {
-    if (!scriptLoaded || !clientId || !containerRef.current || !window.google) {
-      return;
-    }
+    if (!scriptLoaded || !clientId || !containerRef.current || !window.google) return;
 
     const element = containerRef.current;
     element.innerHTML = "";
@@ -56,19 +58,18 @@ export function GoogleAuthButton({
       cancel_on_tap_outside: true,
       callback: async (response) => {
         if (!response.credential) {
-          onError("Google sign-in did not return a valid credential.");
+          onErrorRef.current("Google sign-in did not return a valid credential.");
           return;
         }
-
         setPending(true);
         try {
-          await onCredential(response.credential);
+          await onCredentialRef.current(response.credential);
         } catch (error) {
-          const message =
+          onErrorRef.current(
             error instanceof Error && error.message
               ? error.message
-              : "Could not complete Google sign-in.";
-          onError(message);
+              : "Could not complete Google sign-in."
+          );
         } finally {
           setPending(false);
         }
@@ -84,12 +85,11 @@ export function GoogleAuthButton({
       width: Math.max(240, Math.min(element.clientWidth || 360, 420)),
       logo_alignment: "left",
     });
-  }, [clientId, onCredential, onError, scriptLoaded]);
+  }, [clientId, scriptLoaded]);
 
   useEffect(() => {
     renderGoogleButton();
-    if (!clientId || !scriptLoaded) return undefined;
-
+    if (!clientId || !scriptLoaded) return;
     const handleResize = () => renderGoogleButton();
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
@@ -102,7 +102,6 @@ export function GoogleAuthButton({
         strategy="afterInteractive"
         onLoad={() => setScriptLoaded(true)}
       />
-
       {clientId ? (
         <div className={disabled || pending ? "pointer-events-none opacity-70" : ""}>
           <div ref={containerRef} className="min-h-10 w-full overflow-hidden rounded-full" />
@@ -112,7 +111,6 @@ export function GoogleAuthButton({
           Continue with Google
         </Button>
       )}
-
       {pending ? <p className="text-xs text-muted-foreground">Finishing Google sign-in...</p> : null}
       {!clientId ? (
         <p className="text-xs text-muted-foreground">
