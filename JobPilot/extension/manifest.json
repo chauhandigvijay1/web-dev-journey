@@ -14,11 +14,16 @@
     "*://*.wellfound.com/*",
     "*://*.greenhouse.io/*",
     "*://*.lever.co/*",
+    "*://*.ashbyhq.com/*",
     "*://*.workday.com/*",
+    "*://*.myworkdayjobs.com/*",
+    "*://*.naukri.com/*",
+    "*://*.internshala.com/*",
+    "*://*.foundit.in/*",
+    "*://*.foundit.com/*",
     "*://localhost:*/*",
     "https://jobpilot-client-chi.vercel.app/*",
-    "https://web-dev-journey-cnee.onrender.com/*",
-    "https://*.jobpilot.com/*"
+    "https://web-dev-journey-cnee.onrender.com/*"
   ],
   "background": {
     "service_worker": "background.js"

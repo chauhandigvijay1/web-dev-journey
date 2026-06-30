@@ -116,7 +116,7 @@ describe("API integration", () => {
     ].join(" ");
 
     const response = await request(app)
-      .post("/api/auto-hunter/resume")
+      .post("/api/career-brain/resume")
       .set("Authorization", `Bearer ${token}`)
       .attach("resume", await createTextDocx(resumeText), {
         filename: "resume.docx",
@@ -127,11 +127,26 @@ describe("API integration", () => {
     expect(response.body.success).toBe(true);
     expect(response.body.data.profile.resumeUrl).toBe("https://cdn.example/resume.pdf");
     expect(response.body.data.profile.fileName).toBe("resume.docx");
-    expect(response.body.data.initialScan).toBeNull();
 
     const saved = await ResumeProfile.findOne({ fileName: "resume.docx" }).lean();
     expect(saved?.extractedText).toContain("Software Engineer");
     expect(saved?.parsedData?.skills).toEqual(expect.arrayContaining(["React", "Node.js", "MongoDB"]));
+  });
+
+  it("uploads a PDF resume to career brain", async () => {
+    const { token } = await registerUser();
+    vi.spyOn(cloudinaryUpload, "uploadToCloudinary").mockResolvedValue("https://cdn.example/resume.pdf");
+
+    const pdfBuffer = Buffer.from("%PDF-1.4 test content", "utf-8");
+
+    const response = await request(app)
+      .post("/api/career-brain/resume")
+      .set("Authorization", `Bearer ${token}`)
+      .attach("resume", pdfBuffer, { filename: "resume.pdf", contentType: "application/pdf" });
+
+    expect(response.status).toBe(201);
+    expect(response.body.success).toBe(true);
+    expect(response.body.data.profile.fileName).toBe("resume.pdf");
   });
 
   it("creates jobs with enriched fields", async () => {

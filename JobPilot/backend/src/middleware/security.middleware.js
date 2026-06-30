@@ -63,12 +63,6 @@ export const authRateLimiter = createRateLimiter(
   "Too many authentication attempts. Please wait and try again."
 );
 
-export const autoHunterScanRateLimiter = createRateLimiter(
-  env.autoHunterScanRateLimitMax,
-  env.autoHunterScanRateLimitWindowMinutes,
-  "Too many job hunter scans. Please wait before running another scan."
-);
-
 export function sanitizeRequest(req, _res, next) {
   if (req.body && typeof req.body === "object") {
     req.body = sanitizeValue(req.body);

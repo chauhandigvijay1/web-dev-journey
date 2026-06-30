@@ -27,4 +27,5 @@ jobRouter
   .route("/:id")
   .get(asyncHandler(getSingleJob))
   .put(asyncHandler(updateJob))
+  .patch(asyncHandler(updateJob))
   .delete(asyncHandler(deleteJob));

@@ -2,10 +2,20 @@ import "dotenv/config";
 import mongoose from "mongoose";
 import { app } from "./app.js";
 import { env } from "./config/env.js";
-import { startAutoHunterScheduler } from "./services/auto-hunter/scheduler.service.js";
 import { startReminderScheduler } from "./services/reminder.service.js";
 import { backfillMissingUsernames } from "./utils/auth.js";
 import { logger } from "./utils/logger.js";
+
+// Never let an unhandled async rejection take the process down — transient network
+// blips to MongoDB/Atlas can surface as unhandled rejections from the driver and
+// would otherwise crash the API. Log and continue; route handlers already respond
+// with errors when the DB is unreachable.
+process.on("unhandledRejection", (reason) => {
+  logger.warn("Unhandled promise rejection", {
+    message: reason instanceof Error ? reason.message : String(reason),
+    name: reason?.name || "Unknown",
+  });
+});
 
 async function connectDatabase() {
   const uri = env.mongoUri;
@@ -15,8 +25,8 @@ async function connectDatabase() {
   }
   try {
     await mongoose.connect(uri, {
-      serverSelectionTimeoutMS: 5000,
-      connectTimeoutMS: 5000,
+      serverSelectionTimeoutMS: 10000,
+      connectTimeoutMS: 10000,
     });
     logger.info("MongoDB connected");
   } catch (err) {
@@ -26,10 +36,13 @@ async function connectDatabase() {
 
 await connectDatabase();
 if (mongoose.connection.readyState === 1) {
-  await backfillMissingUsernames(logger);
+  try {
+    await backfillMissingUsernames(logger);
+  } catch (err) {
+    logger.warn("Username backfill skipped", { message: err.message });
+  }
 }
 startReminderScheduler(logger);
-startAutoHunterScheduler(logger);
 
 app.listen(env.port, () => {
   logger.info("Server listening", { port: env.port });

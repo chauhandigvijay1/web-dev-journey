@@ -13,10 +13,26 @@ app.set("trust proxy", 1);
 
 const allowedOrigins = new Set(env.corsOrigins);
 
+function isLoopbackOrigin(origin) {
+  try {
+    const url = new URL(origin);
+    return ["localhost", "127.0.0.1", "::1"].includes(url.hostname);
+  } catch {
+    return false;
+  }
+}
+
 app.use(
   cors({
     origin(origin, callback) {
-      if (!origin || allowedOrigins.has(origin.replace(/\/+$/, ""))) {
+      const normalizedOrigin = origin?.replace(/\/+$/, "");
+      if (
+        !origin ||
+        normalizedOrigin === "null" ||
+        normalizedOrigin?.startsWith("chrome-extension://") ||
+        isLoopbackOrigin(normalizedOrigin) ||
+        allowedOrigins.has(normalizedOrigin)
+      ) {
         callback(null, true);
         return;
       }

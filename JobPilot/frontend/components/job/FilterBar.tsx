@@ -2,19 +2,14 @@
 
 import { memo, useState } from "react";
 import { Search, SlidersHorizontal } from "lucide-react";
-import { JOB_STATUSES, type JobStatus } from "@/lib/job-types";
+import { JOB_STATUSES, STATUS_LABELS, type JobStatus } from "@/lib/job-types";
 import type { KanbanFilterState, KanbanSort } from "@/lib/kanban-filters";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
-const STATUS_LABEL: Record<JobStatus, string> = {
-  applied: "Applied",
-  interview: "Interview",
-  offer: "Offer",
-  rejected: "Rejected",
-};
+const STATUS_LABEL = STATUS_LABELS;
 
 const SORT_LABEL: Record<KanbanSort, string> = {
   latest: "Latest updated",

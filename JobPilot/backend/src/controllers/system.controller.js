@@ -1,5 +1,4 @@
 import { env } from "../config/env.js";
-import { runAutoHunterSweep } from "../services/auto-hunter/scheduler.service.js";
 import { getMailOutbox } from "../services/mail.service.js";
 import { runReminderSweep } from "../services/reminder.service.js";
 
@@ -24,13 +23,5 @@ export function readMailOutbox(_req, res) {
     data: {
       messages: getMailOutbox(),
     },
-  });
-}
-
-export async function runAutoHunterNow(req, res) {
-  const result = await runAutoHunterSweep();
-  return res.json({
-    success: true,
-    data: result,
   });
 }

@@ -25,8 +25,8 @@ const jobSchema = new mongoose.Schema(
     originalApplyLink: { type: String, trim: true, default: "" },
     status: {
       type: String,
-      enum: ["applied", "interview", "offer", "rejected"],
-      default: "applied",
+      enum: ["saved", "applied", "oa", "interview", "offer", "rejected"],
+      default: "saved",
     },
     isPinned: { type: Boolean, default: false },
     isImportant: { type: Boolean, default: false },

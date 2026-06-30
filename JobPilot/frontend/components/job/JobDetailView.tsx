@@ -20,7 +20,7 @@ import {
   Upload,
 } from "lucide-react";
 import { api } from "@/services/api";
-import { JOB_STATUSES, isJobStatus, type Job, type JobStatus } from "@/lib/job-types";
+import { JOB_STATUSES, STATUS_LABELS, isJobStatus, type Job, type JobStatus } from "@/lib/job-types";
 import {
   formatFollowUpBadgeLabel,
   formatFollowUpLabel,
@@ -53,12 +53,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 
-const STATUS_LABEL: Record<JobStatus, string> = {
-  applied: "Applied",
-  interview: "Interview",
-  offer: "Offer",
-  rejected: "Rejected",
-};
+const STATUS_LABEL = STATUS_LABELS;
 
 function formatWhen(iso?: string) {
   if (!iso) return "-";
@@ -126,7 +121,7 @@ export function JobDetailView({ jobId }: { jobId: string }) {
   const [flagSaving, setFlagSaving] = useState<"pin" | "important" | "ghost" | null>(null);
   const [statusSaving, setStatusSaving] = useState(false);
   const [aiOpen, setAiOpen] = useState(false);
-  const [aiKind, setAiKind] = useState<"email" | "summary" | "interview" | "cover-letter" | "tailor-resume" | "company-intelligence" | "recruiter-discovery" | "rejection-analysis">("email");
+  const [aiKind, setAiKind] = useState<"email" | "summary" | "interview" | "cover-letter" | "tailor-resume">("email");
   const [aiLoading, setAiLoading] = useState(false);
   const [aiError, setAiError] = useState<string | null>(null);
   const [aiOutput, setAiOutput] = useState("");
@@ -281,7 +276,7 @@ export function JobDetailView({ jobId }: { jobId: string }) {
     }
   }
 
-  async function runAi(kind: "email" | "summary" | "interview" | "cover-letter" | "tailor-resume" | "company-intelligence" | "recruiter-discovery" | "rejection-analysis") {
+  async function runAi(kind: "email" | "summary" | "interview" | "cover-letter" | "tailor-resume") {
     if (!job) return;
     setAiKind(kind);
     setAiError(null);
@@ -321,27 +316,6 @@ export function JobDetailView({ jobId }: { jobId: string }) {
       } else if (kind === "tailor-resume") {
         const { data } = await api.post<{ success: boolean; data?: string; message?: string }>(
           "/ai/tailor-resume",
-          { jobId: job._id }
-        );
-        if (!data.success || typeof data.data !== "string") throw new Error(data.message ?? "Request failed");
-        setAiOutput(data.data);
-      } else if (kind === "company-intelligence") {
-        const { data } = await api.post<{ success: boolean; data?: string; message?: string }>(
-          "/ai/company-intelligence",
-          { companyName: job.company }
-        );
-        if (!data.success || typeof data.data !== "string") throw new Error(data.message ?? "Request failed");
-        setAiOutput(data.data);
-      } else if (kind === "recruiter-discovery") {
-        const { data } = await api.post<{ success: boolean; data?: string; message?: string }>(
-          "/ai/recruiter-discovery",
-          { companyName: job.company }
-        );
-        if (!data.success || typeof data.data !== "string") throw new Error(data.message ?? "Request failed");
-        setAiOutput(data.data);
-      } else {
-        const { data } = await api.post<{ success: boolean; data?: string; message?: string }>(
-          "/ai/rejection-analysis",
           { jobId: job._id }
         );
         if (!data.success || typeof data.data !== "string") throw new Error(data.message ?? "Request failed");
@@ -429,7 +403,7 @@ export function JobDetailView({ jobId }: { jobId: string }) {
     );
   }
 
-  const st = isJobStatus(job.status) ? job.status : "applied";
+  const st = isJobStatus(job.status) ? job.status : "saved";
   const followUpBucket = getFollowUpBucket(job.followUpDate);
 
   return (
@@ -863,51 +837,7 @@ export function JobDetailView({ jobId }: { jobId: string }) {
             )}
             Tailor resume
           </Button>
-          <Button
-            type="button"
-            variant="secondary"
-            size="sm"
-            className="gap-2"
-            disabled={aiLoading}
-            onClick={() => void runAi("company-intelligence")}
-          >
-            {aiLoading && aiKind === "company-intelligence" ? (
-              <Loader2 className="h-4 w-4 animate-spin" />
-            ) : (
-              <FileText className="h-4 w-4" />
-            )}
-            Company Intelligence
-          </Button>
-          <Button
-            type="button"
-            variant="secondary"
-            size="sm"
-            className="gap-2"
-            disabled={aiLoading}
-            onClick={() => void runAi("recruiter-discovery")}
-          >
-            {aiLoading && aiKind === "recruiter-discovery" ? (
-              <Loader2 className="h-4 w-4 animate-spin" />
-            ) : (
-              <FileText className="h-4 w-4" />
-            )}
-            Recruiter Discovery
-          </Button>
-          <Button
-            type="button"
-            variant="secondary"
-            size="sm"
-            className="gap-2"
-            disabled={aiLoading}
-            onClick={() => void runAi("rejection-analysis")}
-          >
-            {aiLoading && aiKind === "rejection-analysis" ? (
-              <Loader2 className="h-4 w-4 animate-spin" />
-            ) : (
-              <FileText className="h-4 w-4" />
-            )}
-            Rejection Analyzer
-          </Button>
+
         </CardContent>
       </Card>
 

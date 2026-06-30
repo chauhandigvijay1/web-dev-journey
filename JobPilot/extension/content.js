@@ -188,7 +188,6 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
       ...extracted,
       source: hostname,
       originalUrl: window.location.href,
-      html: document.body.innerHTML.substring(0, 50000) // For Universal AI fallback
     };
 
     sendResponse({ success: true, data: jobData });

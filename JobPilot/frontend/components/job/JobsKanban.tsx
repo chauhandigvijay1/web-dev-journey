@@ -16,7 +16,7 @@ import { useDraggable, useDroppable } from "@dnd-kit/core";
 import { CSS } from "@dnd-kit/utilities";
 import { Plus } from "lucide-react";
 import { api } from "@/services/api";
-import { JOB_STATUSES, isJobStatus, type Job, type JobStatus } from "@/lib/job-types";
+import { JOB_STATUSES, STATUS_LABELS, isJobStatus, type Job, type JobStatus } from "@/lib/job-types";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -44,12 +44,7 @@ import { FilterBar } from "./FilterBar";
 import { JobCard } from "./JobCard";
 import { JobEditDialog } from "./JobEditDialog";
 
-const COLUMN_LABELS: Record<JobStatus, string> = {
-  applied: "Applied",
-  interview: "Interview",
-  offer: "Offer",
-  rejected: "Rejected",
-};
+const COLUMN_LABELS: Record<JobStatus, string> = STATUS_LABELS;
 
 function KanbanColumn({
   status,

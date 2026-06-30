@@ -227,7 +227,7 @@ export function groupByStatus(jobs: Job[]): Map<JobStatus, Job[]> {
   const groups = new Map<JobStatus, Job[]>();
   for (const status of JOB_STATUSES) groups.set(status, []);
   for (const job of jobs) {
-    const status = isJobStatus(job.status) ? job.status : "applied";
+    const status = isJobStatus(job.status) ? job.status : "saved";
     groups.get(status)?.push(job);
   }
   return groups;

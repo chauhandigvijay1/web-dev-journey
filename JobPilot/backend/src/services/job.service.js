@@ -4,7 +4,7 @@ import { parseFollowUpDate } from "../utils/followUpDate.js";
 import { cancelAllJobReminders, cancelJobReminders, syncJobReminders } from "./reminder.service.js";
 import { extractJobFieldsFromUrl } from "./job-extraction/index.js";
 
-export const JOB_STATUS_VALUES = new Set(["applied", "interview", "offer", "rejected"]);
+export const JOB_STATUS_VALUES = new Set(["saved", "applied", "oa", "interview", "offer", "rejected"]);
 
 function isNonEmptyString(value) {
   return typeof value === "string" && value.trim().length > 0;
@@ -107,7 +107,7 @@ export function normalizeJobPayload(body = {}, { partial = false } = {}) {
   }
 
   if (!partial || body.status !== undefined) {
-    const value = body.status == null || body.status === "" ? "applied" : normalizeString(body.status, 40).toLowerCase();
+    const value = body.status == null || body.status === "" ? "saved" : normalizeString(body.status, 40).toLowerCase();
     if (!JOB_STATUS_VALUES.has(value)) {
       return { error: "Invalid status" };
     }
@@ -156,7 +156,7 @@ export async function createJobForUser(user, body) {
 
   const job = await Job.create({
     user: user._id,
-    status: "applied",
+    status: "saved",
     confidenceScore: 0,
     ...normalized.data,
   });

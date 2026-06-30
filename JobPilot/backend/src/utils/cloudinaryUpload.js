@@ -2,7 +2,11 @@ import { configureCloudinary } from "../config/cloudinary.js";
 
 function normalizeFileName(fileName, fallback) {
   const raw = String(fileName || "").trim();
-  const sanitized = raw.replace(/[^\w.-]+/g, "-").replace(/-+/g, "-").replace(/^-|-$/g, "");
+  // Strip any document extension. Cloudinary's "Strict PDFs" account setting blocks public
+  // delivery (HTTP 401) of raw assets whose public_id ends in ".pdf", so we store resumes
+  // under an extensionless public_id while keeping the human-readable name.
+  const base = raw.replace(/\.(pdf|docx?|txt)$/i, "");
+  const sanitized = base.replace(/[^\w.-]+/g, "-").replace(/-+/g, "-").replace(/^-|-$/g, "");
   return sanitized || fallback;
 }
 
@@ -12,30 +16,29 @@ async function uploadBufferToCloudinary(buffer, mimetype, options) {
     throw new Error("Cloudinary is not configured");
   }
   const cloudinary = configureCloudinary();
-  
+
   return new Promise((resolve, reject) => {
     const stream = cloudinary.uploader.upload_stream(options, (error, result) => {
       if (error) return reject(error);
       resolve(result.secure_url);
     });
-    
+
     // Convert buffer to stream and pipe to Cloudinary
     stream.end(buffer);
   });
 }
 
 export async function uploadToCloudinary(buffer, mimetype = "application/octet-stream", fileName = "") {
-  const url = await uploadBufferToCloudinary(buffer, mimetype, {
+  // Use resource_type "raw" so documents (PDF/DOC/DOCX) are stored and delivered verbatim.
+  // The public_id is kept extensionless (see normalizeFileName) so Cloudinary's Strict-PDF
+  // delivery guard never trips and the file is publicly downloadable at its secure URL.
+  return uploadBufferToCloudinary(buffer, mimetype, {
     folder: "jobpilot/resumes",
-    resource_type: "auto", // "raw" often returns 401 on public access by default, "auto" resolves it
+    resource_type: "raw",
     use_filename: true,
     unique_filename: true,
     filename_override: normalizeFileName(fileName, "resume"),
   });
-  
-  // Cloudinary restricts direct public PDF delivery without signed URLs.
-  // Converting the extension to .jpg forces Cloudinary to rasterize the first page and deliver it publicly (200 OK).
-  return url.replace(/\.pdf$/i, '.jpg');
 }
 
 export async function uploadImageToCloudinary(buffer, mimetype = "image/png", fileName = "") {

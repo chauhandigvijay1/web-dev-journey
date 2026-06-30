@@ -83,60 +83,6 @@ export const env = {
   smtpPass: readString("SMTP_PASS"),
   emailFrom: readString("EMAIL_FROM") || readString("SMTP_FROM") || readString("SMTP_USER"),
   tinyfishApiKey: readString("TINYFISH_API_KEY"),
-  tinyfishSearchUrl: readString("TINYFISH_SEARCH_URL") || "https://api.search.tinyfish.ai",
-  tinyfishFetchUrl: readString("TINYFISH_FETCH_URL") || "https://api.fetch.tinyfish.ai",
-  autoHunterEnabled: readBoolean("AUTO_HUNTER_ENABLED", true),
-  autoHunterCron: readString("AUTO_HUNTER_CRON") || "*/30 * * * *",
-  autoHunterMinScanIntervalMinutes: readNumber("AUTO_HUNTER_MIN_SCAN_INTERVAL_MINUTES", 5, {
-    min: 1,
-    max: 240,
-  }),
-  autoHunterMaxUsersPerSweep: readNumber("AUTO_HUNTER_MAX_USERS_PER_SWEEP", 8, { min: 1, max: 500 }),
-  autoHunterMaxQueriesPerSweep: readNumber("AUTO_HUNTER_MAX_QUERIES_PER_SWEEP", 18, { min: 1, max: 100 }),
-  autoHunterMaxCandidatesPerSweep: readNumber("AUTO_HUNTER_MAX_CANDIDATES_PER_SWEEP", 40, {
-    min: 5,
-    max: 250,
-  }),
-  autoHunterResumeMaxChars: readNumber("AUTO_HUNTER_RESUME_MAX_CHARS", 18000, {
-    min: 2000,
-    max: 60000,
-  }),
-  autoHunterSearchLanguage: readString("AUTO_HUNTER_SEARCH_LANGUAGE") || "en",
-  autoHunterImmediateAlertThreshold: readNumber("AUTO_HUNTER_IMMEDIATE_ALERT_THRESHOLD", 80, {
-    min: 0,
-    max: 100,
-  }),
-  autoHunterMinAlertScore: readNumber("AUTO_HUNTER_MIN_ALERT_SCORE", 72, {
-    min: 0,
-    max: 100,
-  }),
-  autoHunterSourceBoards: readList("AUTO_HUNTER_SOURCE_BOARDS", [
-    "linkedin.com",
-    "wellfound.com",
-    "glassdoor.com",
-    "naukri.com",
-    "indeed.com",
-    "internshala.com",
-  ]),
-  autoHunterCompanyDomains: readList("AUTO_HUNTER_COMPANY_DOMAINS", [
-    "amazon.jobs",
-    "careers.microsoft.com",
-    "careers.google.com",
-    "metacareers.com",
-    "jobs.netflix.com",
-    "jobs.apple.com",
-    "flipkartcareers.com",
-    "uber.com",
-    "atlassian.com",
-  ]),
-  autoHunterScanRateLimitWindowMinutes: readNumber("AUTO_HUNTER_SCAN_RATE_LIMIT_WINDOW_MINUTES", 30, {
-    min: 1,
-    max: 240,
-  }),
-  autoHunterScanRateLimitMax: readNumber("AUTO_HUNTER_SCAN_RATE_LIMIT_MAX", 6, {
-    min: 1,
-    max: 100,
-  }),
 };
 
 export function assertSupportedTimezone(value) {

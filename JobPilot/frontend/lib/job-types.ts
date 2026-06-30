@@ -1,9 +1,18 @@
-export const JOB_STATUSES = ["applied", "interview", "offer", "rejected"] as const;
+export const JOB_STATUSES = ["saved", "applied", "oa", "interview", "offer", "rejected"] as const;
 export type JobStatus = (typeof JOB_STATUSES)[number];
 
 export function isJobStatus(value: string): value is JobStatus {
   return (JOB_STATUSES as readonly string[]).includes(value);
 }
+
+export const STATUS_LABELS: Record<JobStatus, string> = {
+  saved: "Saved",
+  applied: "Applied",
+  oa: "OA",
+  interview: "Interview",
+  offer: "Offer",
+  rejected: "Rejected",
+};
 
 export type Job = {
   _id: string;
