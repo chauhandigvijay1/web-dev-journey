@@ -90,6 +90,21 @@ async function requestTokenSync() {
   }
 }
 
+async function checkDuplicate(token, apiBaseUrl, originalUrl) {
+  if (!originalUrl) return false;
+  try {
+    const params = new URLSearchParams({ limit: "1", originalApplyLink: originalUrl });
+    const res = await fetch(`${apiBaseUrl}/jobs?${params}`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    const data = await res.json().catch(() => null);
+    if (data?.success && data?.data?.jobs?.length > 0) return true;
+  } catch {
+    // ignore
+  }
+  return false;
+}
+
 async function saveJob(payload) {
   let token = await getStoredToken();
   if (!token) {
@@ -112,6 +127,14 @@ async function saveJob(payload) {
   }
 
   const apiBaseUrl = await getApiBaseUrl();
+
+  if (body.originalApplyLink) {
+    const isDuplicate = await checkDuplicate(token, apiBaseUrl, body.originalApplyLink);
+    if (isDuplicate) {
+      return { success: true, duplicate: true };
+    }
+  }
+
   const response = await fetch(`${apiBaseUrl}/jobs`, {
     method: "POST",
     headers: {

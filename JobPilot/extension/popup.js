@@ -3,7 +3,7 @@ const WEB_APP_URL = "https://jobpilot-client-chi.vercel.app";
 const $ = (id) => document.getElementById(id);
 
 function show(id) {
-  ["loading-state", "job-detected", "no-job", "signed-out", "save-section"].forEach((el) => {
+  ["loading-state", "job-detected", "no-job", "signed-out", "save-section", "saved-state"].forEach((el) => {
     $(el).style.display = el === id ? "block" : "none";
   });
 }
@@ -46,6 +46,7 @@ async function parseCurrentTab() {
 }
 
 async function init() {
+  show("loading-state");
   const isAuthed = await checkAuth();
   const jobData = await parseCurrentTab();
 
@@ -62,6 +63,7 @@ async function init() {
   $("job-title").textContent = jobData.title;
   $("job-company").textContent = jobData.company || "Unknown company";
   $("job-location").textContent = jobData.location ? "📍 " + jobData.location : "";
+  $("job-source").textContent = jobData.source || "job board";
 
   if (!isAuthed) {
     show("job-detected");
@@ -73,17 +75,18 @@ async function init() {
   show("job-detected");
   $("save-section").style.display = "block";
   $("save-btn").disabled = false;
+  $("save-btn").innerHTML = "Save to JobPilot";
 }
 
-document.getElementById("sign-in-btn").addEventListener("click", () => {
+$("sign-in-btn").addEventListener("click", () => {
   chrome.tabs.create({ url: WEB_APP_URL + "/login" });
   window.close();
 });
 
-document.getElementById("save-btn").addEventListener("click", async () => {
-  const btn = document.getElementById("save-btn");
+$("save-btn").addEventListener("click", async () => {
+  const btn = $("save-btn");
   btn.disabled = true;
-  btn.textContent = "Saving...";
+  btn.innerHTML = '<span class="spinner"></span>Saving...';
   setStatus("");
 
   try {
@@ -98,9 +101,17 @@ document.getElementById("save-btn").addEventListener("click", async () => {
     chrome.runtime.sendMessage({ action: "SAVE_JOB", payload: jobData }, (response) => {
       if (chrome.runtime.lastError) {
         setStatus("Extension error. Try again.", "error");
+        btn.disabled = false;
+        btn.textContent = "Save to JobPilot";
       } else if (response?.success) {
-        setStatus("Job saved! View it on your dashboard.", "success");
-        btn.textContent = "Saved!";
+        show("saved-state");
+        $("saved-meta").textContent = jobData.title + " · " + (jobData.company || "Unknown");
+        setStatus("");
+      } else if (response?.duplicate) {
+        show("saved-state");
+        $("saved-meta").textContent = jobData.title + " · Already in your dashboard";
+        $("saved-state").querySelector(".card-text:first-child").textContent = "✓ Already saved";
+        setStatus("");
       } else {
         setStatus(response?.message || "Could not save job.", "error");
         btn.disabled = false;
@@ -112,6 +123,11 @@ document.getElementById("save-btn").addEventListener("click", async () => {
     btn.disabled = false;
     btn.textContent = "Save to JobPilot";
   }
+});
+
+$("dashboard-btn").addEventListener("click", () => {
+  chrome.tabs.create({ url: WEB_APP_URL + "/dashboard" });
+  window.close();
 });
 
 init();

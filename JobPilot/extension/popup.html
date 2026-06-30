@@ -5,107 +5,187 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>JobPilot Companion</title>
   <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     body {
-      width: 360px;
-      margin: 0;
-      padding: 0;
+      width: 380px;
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-      background-color: #ffffff;
+      background: #ffffff;
       color: #0f172a;
+      font-size: 13px;
+      line-height: 1.5;
     }
-    .container { padding: 16px; }
+    .container { padding: 18px 16px 14px; }
     .header {
       display: flex;
       align-items: center;
       gap: 10px;
-      margin-bottom: 14px;
+      margin-bottom: 16px;
     }
     .header-icon {
-      width: 28px;
-      height: 28px;
+      width: 30px;
+      height: 30px;
       flex-shrink: 0;
     }
-    h1 { font-size: 15px; margin: 0; font-weight: 600; }
-    .subtitle { font-size: 12px; color: #64748b; margin: 0; }
+    .header-text { flex: 1; }
+    .header-text h1 { font-size: 15px; font-weight: 700; letter-spacing: -0.01em; }
+    .header-text .subtitle { font-size: 11px; color: #94a3b8; }
     .card {
       background: #f8fafc;
       border: 1px solid #e2e8f0;
-      border-radius: 8px;
-      padding: 12px;
+      border-radius: 10px;
+      padding: 14px;
       margin-bottom: 12px;
+      transition: opacity 0.2s ease;
     }
-    .card-title { font-weight: 600; font-size: 13px; margin-bottom: 4px; }
-    .card-text { font-size: 12px; color: #475569; line-height: 1.4; margin: 0; }
+    .card-title {
+      font-weight: 600;
+      font-size: 14px;
+      margin-bottom: 3px;
+      line-height: 1.3;
+    }
+    .card-text {
+      font-size: 12px;
+      color: #475569;
+      line-height: 1.5;
+    }
+    .card-text + .card-text { margin-top: 2px; }
+    .tag {
+      display: inline-block;
+      background: #e0e7ff;
+      color: #4338ca;
+      font-size: 10px;
+      font-weight: 600;
+      padding: 2px 8px;
+      border-radius: 99px;
+      margin-top: 6px;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+    }
     button {
       width: 100%;
       padding: 10px 14px;
-      background-color: #2563eb;
-      color: white;
       border: none;
-      border-radius: 6px;
-      font-weight: 500;
+      border-radius: 8px;
+      font-weight: 600;
       cursor: pointer;
       font-size: 13px;
-      transition: background-color 0.2s;
+      transition: all 0.15s ease;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
     }
-    button:hover:not(:disabled) { background-color: #1d4ed8; }
-    button:disabled { opacity: 0.5; cursor: not-allowed; }
+    button:focus-visible { outline: 2px solid #2563eb; outline-offset: 2px; }
+    button.primary {
+      background: #2563eb;
+      color: white;
+    }
+    button.primary:hover:not(:disabled) { background: #1d4ed8; }
+    button.primary:disabled { opacity: 0.45; cursor: not-allowed; }
     button.secondary {
       background: transparent;
       border: 1px solid #e2e8f0;
       color: #0f172a;
     }
     button.secondary:hover { background: #f1f5f9; }
+    button.success {
+      background: #059669;
+      color: white;
+    }
+    button.success:hover { background: #047857; }
     .status {
       margin-top: 10px;
       font-size: 12px;
       color: #64748b;
       text-align: center;
+      min-height: 18px;
     }
     .status.error { color: #dc2626; }
-    .status.success { color: #16a34a; }
-    .divider { border-top: 1px solid #e2e8f0; margin: 12px 0; }
-    .flex { display: flex; }
-    .gap-2 { gap: 8px; }
-    .w-full { width: 100%; }
+    .status.success { color: #059669; }
+    .divider { border-top: 1px solid #e2e8f0; margin: 10px 0; }
+    .spinner {
+      display: inline-block;
+      width: 14px;
+      height: 14px;
+      border: 2px solid #e2e8f0;
+      border-top-color: #2563eb;
+      border-radius: 50%;
+      animation: spin 0.6s linear infinite;
+      vertical-align: middle;
+      margin-right: 6px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .checkmark {
+      color: #059669;
+      font-size: 16px;
+      font-weight: 700;
+    }
+    .footer {
+      text-align: center;
+      margin-top: 10px;
+    }
+    .footer a {
+      color: #94a3b8;
+      font-size: 10px;
+      text-decoration: none;
+    }
+    .footer a:hover { color: #64748b; text-decoration: underline; }
+    .fade-in { animation: fadeIn 0.2s ease; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+    .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
   </style>
 </head>
 <body>
   <div class="container">
     <div class="header">
       <img class="header-icon" src="icons/icon.svg" alt="JobPilot">
-      <div>
+      <div class="header-text">
         <h1>JobPilot Companion</h1>
-        <p class="subtitle">Save jobs from any board</p>
+        <p class="subtitle">One-click job saving, powered by AI</p>
       </div>
     </div>
 
-    <div id="loading-state" class="card">
-      <p class="card-text">Checking page...</p>
+    <div id="loading-state" class="card" role="status" aria-live="polite">
+      <p class="card-text"><span class="spinner"></span>Analyzing page...</p>
     </div>
 
-    <div id="job-detected" class="card" style="display:none">
+    <div id="job-detected" class="card fade-in" style="display:none">
       <div class="card-title" id="job-title">Job Title</div>
       <p class="card-text" id="job-company">Company</p>
-      <p class="card-text" id="job-location">Location</p>
+      <p class="card-text" id="job-location"></p>
+      <span class="tag" id="job-source">LinkedIn</span>
     </div>
 
-    <div id="no-job" class="card" style="display:none">
-      <p class="card-text">No job detected on this page. Navigate to a job posting to save it.</p>
+    <div id="no-job" class="card fade-in" style="display:none">
+      <p class="card-text">No job detected on this page.</p>
+      <p class="card-text" style="font-size:11px;color:#94a3b8;margin-top:6px;">Open a job posting on LinkedIn, Indeed, Wellfound, or any supported board.</p>
     </div>
 
     <div id="signed-out" style="display:none">
-      <div class="card">
-        <p class="card-text">Sign in to save jobs to your Career OS.</p>
+      <div class="card fade-in">
+        <p class="card-text" style="font-weight:500;">You're signed out.</p>
+        <p class="card-text" style="font-size:11px;color:#94a3b8;margin-top:4px;">Sign in to save jobs from any board to your JobPilot dashboard.</p>
       </div>
       <button id="sign-in-btn" class="secondary">Sign in to JobPilot</button>
     </div>
 
     <div id="save-section" style="display:none">
-      <button id="save-btn" disabled>Save to JobPilot</button>
+      <button id="save-btn" class="primary" disabled><span class="spinner"></span>Save to JobPilot</button>
+    </div>
+
+    <div id="saved-state" style="display:none">
+      <div class="card fade-in" style="border-color:#bbf7d0;background:#f0fdf4;">
+        <p class="card-text" style="font-weight:600;color:#059669;"><span class="checkmark">✓</span> Job saved!</p>
+        <p class="card-text" style="font-size:11px;color:#047857;margin-top:4px;" id="saved-meta">Title &middot; Company</p>
+      </div>
+      <button id="dashboard-btn" class="success">View on Dashboard</button>
     </div>
 
     <div id="status-msg" class="status" role="status" aria-live="polite"></div>
+
+    <div class="footer">
+      <a href="https://jobpilot-client-chi.vercel.app" target="_blank" rel="noopener">JobPilot Dashboard</a>
+    </div>
   </div>
 
   <script src="popup.js"></script>
