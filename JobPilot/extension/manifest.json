@@ -1,5 +1,6 @@
 {
   "manifest_version": 3,
+  "minimum_chrome_version": "92",
   "name": "JobPilot Companion",
   "version": "1.0.1",
   "description": "Your AI Career Operating System directly in your browser. One-click save, auto job detection, and ATS resume tailoring.",

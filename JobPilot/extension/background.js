@@ -27,30 +27,32 @@ function tryStorageGet(keys) {
 }
 
 function tryStorageSet(items) {
-  try {
-    chrome.storage.local.set(items);
-  } catch (e) {
-    // in-memory fallback
-  }
   for (var key in items) {
     if (Object.prototype.hasOwnProperty.call(items, key)) {
       memoryStore.set(key, items[key]);
     }
   }
-  return Promise.resolve();
+  try {
+    return new Promise(function (resolve) {
+      chrome.storage.local.set(items, resolve);
+    });
+  } catch (e) {
+    return Promise.resolve();
+  }
 }
 
 function tryStorageRemove(keys) {
-  try {
-    chrome.storage.local.remove(keys);
-  } catch (e) {
-    // in-memory fallback
-  }
   var keyArr = Array.isArray(keys) ? keys : [keys];
   for (var i = 0; i < keyArr.length; i++) {
       memoryStore.delete(keyArr[i]);
   }
-  return Promise.resolve();
+  try {
+    return new Promise(function (resolve) {
+      chrome.storage.local.remove(keys, resolve);
+    });
+  } catch (e) {
+    return Promise.resolve();
+  }
 }
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────

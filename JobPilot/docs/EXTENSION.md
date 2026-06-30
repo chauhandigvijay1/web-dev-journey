@@ -584,6 +584,7 @@ All 49 issues from the comprehensive code review have been addressed:
 | Auth scope | `isJobPilotApp()` uses `endsWith('.vercel.app')` — works on preview/staging deploys |
 | Service worker crash | `window.location.href` removed from `normalizeJobPayload` (ReferenceError in SW) |
 | Description truncation | `MAX_DESC_LENGTH` raised from 500 → 4000 chars |
+| LD+JSON fallback | Removed `article`/`main`/`[role="main"]` from description selectors (too broad) |
 | Glassdoor brittle classes | All `.css-*` auto-generated selectors removed |
 | Hostname checks | All `indexOf` → `endsWith` (LinkedIn, Indeed, Glassdoor, Naukri, Monster) |
 | Google auto-injection | Removed from `content_scripts` (CWS rejection risk); stays in `host_permissions` |
@@ -606,6 +607,9 @@ All 49 issues from the comprehensive code review have been addressed:
 | Error state UI | New `#error-state` card with detail message |
 | SVG icon fallback | `onerror` handler falls back to PNG |
 | Button accessibility | `title` attributes on all action buttons |
+| `minimum_chrome_version` | Added `"minimum_chrome_version": "92"` (chrome.scripting requires Chrome 92+) |
+| `chrome.storage` async | `tryStorageSet`/`tryStorageRemove` now return proper Promise via callback |
+| Monster name mismatch | `extractMonster` renamed to `extractMonsterOrFoundit` with doc comment |
 | Manifest permissions | `alarms` permission added for service-worker-safe cleanup |
 
 ### Manual Verification

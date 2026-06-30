@@ -105,17 +105,18 @@
   }
 
   function safeStorageSet(items) {
-    try {
-      chrome.storage.local.set(items);
-    } catch (e) {
-      // in-memory fallback
-    }
     for (var key in items) {
       if (Object.prototype.hasOwnProperty.call(items, key)) {
         memoryStorage.set(key, items[key]);
       }
     }
-    return Promise.resolve();
+    try {
+      return new Promise(function (resolve) {
+        chrome.storage.local.set(items, resolve);
+      });
+    } catch (e) {
+      return Promise.resolve();
+    }
   }
 
   // ─── LD+JSON Extractor ────────────────────────────────────────────────────
@@ -427,8 +428,9 @@
     return result.title ? result : null;
   }
 
-  function extractMonster(doc) {
+  function extractMonsterOrFoundit(doc) {
     var host = window.location.hostname;
+    // Handles Monster.com and Foundit (formerly Monster India)
     if (
       !host.endsWith('monster.com') &&
       !host.endsWith('foundit.in') &&
@@ -687,9 +689,8 @@
             doc,
             '[itemprop="description"], ' +
               '[class*="description"], ' +
-              'article, ' +
-              '[role="main"], ' +
-              'main'
+              '#job-description, ' +
+              '.job-description'
           ),
           MAX_DESC_LENGTH
         );
@@ -717,7 +718,7 @@
       extractIndeed,
       extractGlassdoor,
       extractNaukri,
-      extractMonster,
+      extractMonsterOrFoundit,
     ];
     for (var i = 0; i < extractors.length; i++) {
       data = extractors[i](doc);
