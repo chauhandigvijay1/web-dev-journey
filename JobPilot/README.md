@@ -1,7 +1,5 @@
-# JobPilot — AI-Powered Job Application Tracker
-
 <p align="center">
-  <img src="./screenshots/dashboard.png" alt="JobPilot Dashboard" width="720" style="border-radius: 12px; box-shadow: 0 8px 32px rgba(0,0,0,0.12);" />
+  <img src="./screenshots/logo.svg" alt="JobPilot" width="400" />
 </p>
 
 <p align="center">
