@@ -52,7 +52,7 @@ export const inviteWorkspaceMemberThunk = createAsyncThunk(
       email: payload.email,
       role: payload.role,
     })
-    await dispatch(fetchWorkspaceMembersThunk(payload.workspaceId))
+    dispatch(fetchWorkspaceMembersThunk(payload.workspaceId))
   },
 )
 
@@ -63,7 +63,7 @@ export const updateWorkspaceMemberRoleThunk = createAsyncThunk(
     { dispatch },
   ) => {
     await workspaceApi.updateMemberRole(payload.workspaceId, payload.memberId, payload.role)
-    await dispatch(fetchWorkspaceMembersThunk(payload.workspaceId))
+    dispatch(fetchWorkspaceMembersThunk(payload.workspaceId))
   },
 )
 
@@ -71,7 +71,7 @@ export const removeWorkspaceMemberThunk = createAsyncThunk(
   'workspace/removeMember',
   async (payload: { workspaceId: string; memberId: string }, { dispatch }) => {
     await workspaceApi.removeMember(payload.workspaceId, payload.memberId)
-    await dispatch(fetchWorkspaceMembersThunk(payload.workspaceId))
+    dispatch(fetchWorkspaceMembersThunk(payload.workspaceId))
   },
 )
 
