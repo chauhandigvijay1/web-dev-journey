@@ -91,13 +91,13 @@ Upload your resume once and unlock: parsed profile viewer, ATS match scoring aga
 | **Jobs** | **Add Job** |
 | <img src="./screenshots/Jobs.png" width="320" style="border-radius:8px"> | <img src="./screenshots/AddJob.png" width="320" style="border-radius:8px"> |
 | **Analytics** | **ATS & Skill Gap** |
-| <img src="./screenshots/Analytics.png" width="320" style="border-radius:8px"> | <img src="./screenshots/ATS&SkillGap.png" width="320" style="border-radius:8px"> |
+| <img src="./screenshots/Analytics.png" width="320" style="border-radius:8px"> | <img src="./screenshots/ATS%26SkillGap.png" width="320" style="border-radius:8px"> |
 | **Career Brain** | **Reminders** |
 | <img src="./screenshots/Career%20brain.png" width="320" style="border-radius:8px"> | <img src="./screenshots/Reminder.png" width="320" style="border-radius:8px"> |
 | **Profile & Theme** | **Change Password** |
-| <img src="./screenshots/Profile&Theme.png" width="320" style="border-radius:8px"> | <img src="./screenshots/ChangePassword.png" width="320" style="border-radius:8px"> |
+| <img src="./screenshots/Profile%26Theme.png" width="320" style="border-radius:8px"> | <img src="./screenshots/ChangePassword.png" width="320" style="border-radius:8px"> |
 | **Account & Job Export** | |
-| <img src="./screenshots/Account&JobExport.png" width="320" style="border-radius:8px"> | |
+| <img src="./screenshots/Account%26JobExport.png" width="320" style="border-radius:8px"> | |
 
 </details>
 
