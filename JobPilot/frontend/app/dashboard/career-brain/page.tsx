@@ -150,6 +150,81 @@ interface JobOption {
 }
 
 /* ------------------------------------------------------------------ */
+/*  Normalise API responses                                           */
+/* ------------------------------------------------------------------ */
+
+function normaliseProfile(raw: CareerBrainProfile): CareerBrainProfile {
+  return {
+    ...raw,
+    skills: raw.skills ?? [],
+    techStack: raw.techStack ?? [],
+    experience: raw.experience ?? [],
+    projects: raw.projects ?? [],
+    education: raw.education ?? [],
+    certifications: raw.certifications ?? [],
+    contactInfo: {
+      email: raw.contactInfo?.email ?? "",
+      phone: raw.contactInfo?.phone ?? "",
+      linkedIn: raw.contactInfo?.linkedIn ?? "",
+      github: raw.contactInfo?.github ?? "",
+      portfolio: raw.contactInfo?.portfolio ?? "",
+    },
+  };
+}
+
+function normaliseAtsScore(raw: AtsScore): AtsScore {
+  return {
+    ...raw,
+    matchingSkills: raw.matchingSkills ?? [],
+    missingSkills: raw.missingSkills ?? [],
+    extraSkills: raw.extraSkills ?? [],
+    keyStrengths: raw.keyStrengths ?? [],
+    gaps: raw.gaps ?? [],
+    recommendations: raw.recommendations ?? [],
+    suggestedRoles: raw.suggestedRoles ?? [],
+    breakdown: {
+      skills: raw.breakdown?.skills ?? 0,
+      experience: raw.breakdown?.experience ?? 0,
+      education: raw.breakdown?.education ?? 0,
+      keywords: raw.breakdown?.keywords ?? 0,
+    },
+  };
+}
+
+function normaliseSkillGap(raw: SkillGapResult): SkillGapResult {
+  return {
+    ...raw,
+    matchingSkills: raw.matchingSkills ?? [],
+    missingSkills: raw.missingSkills ?? [],
+    recommendations: raw.recommendations ?? [],
+  };
+}
+
+function normaliseRecommendations(raw: Recommendations): Recommendations {
+  return {
+    ...raw,
+    roles: (raw.roles ?? []).map((r) => ({
+      ...r,
+      missingSkills: r.missingSkills ?? [],
+      industries: r.industries ?? [],
+    })),
+    careerPath: raw.careerPath
+      ? {
+          ...raw.careerPath,
+          skillsToLearn: raw.careerPath.skillsToLearn ?? [],
+        }
+      : { direction: "", timeframe: "", skillsToLearn: [] },
+    skillDevelopment: raw.skillDevelopment
+      ? {
+          immediate: raw.skillDevelopment.immediate ?? [],
+          shortTerm: raw.skillDevelopment.shortTerm ?? [],
+          longTerm: raw.skillDevelopment.longTerm ?? [],
+        }
+      : { immediate: [], shortTerm: [], longTerm: [] },
+  };
+}
+
+/* ------------------------------------------------------------------ */
 /*  Colour helpers                                                    */
 /* ------------------------------------------------------------------ */
 
@@ -629,7 +704,7 @@ function AtsScoreSection({
         setError(data.message ?? "Could not compute ATS score");
         return;
       }
-      setResult(data.data);
+      setResult(normaliseAtsScore(data.data));
     } catch (err) {
       const msg =
         axios.isAxiosError(err) && err.response?.data && typeof (err.response.data as { message?: string }).message === "string"
@@ -895,7 +970,7 @@ function RecommendationsSection() {
         setError(data.message ?? "Could not fetch recommendations");
         return;
       }
-      setResult(data.data);
+      setResult(normaliseRecommendations(data.data));
     } catch (err) {
       const msg =
         axios.isAxiosError(err) && err.response?.data && typeof (err.response.data as { message?: string }).message === "string"
@@ -1066,7 +1141,7 @@ function SkillGapSection() {
         setError(data.message ?? "Could not analyze gaps");
         return;
       }
-      setResult(data.data);
+      setResult(normaliseSkillGap(data.data));
     } catch (err) {
       const msg =
         axios.isAxiosError(err) && err.response?.data && typeof (err.response.data as { message?: string }).message === "string"
@@ -1202,7 +1277,7 @@ export default function CareerBrainPage() {
         );
         if (cancelled) return;
         if (data.success && data.data) {
-          setProfile(data.data);
+          setProfile(normaliseProfile(data.data));
         } else {
           setProfile(null);
         }
@@ -1236,7 +1311,7 @@ export default function CareerBrainPage() {
         setUploadError(data.message ?? "Could not upload resume");
         return;
       }
-      setProfile(data.data);
+      setProfile(normaliseProfile(data.data));
     } catch (err) {
       const msg =
         axios.isAxiosError(err) && err.response?.data && typeof (err.response.data as { message?: string }).message === "string"
