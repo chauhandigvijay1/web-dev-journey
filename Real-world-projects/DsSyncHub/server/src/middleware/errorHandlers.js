@@ -24,9 +24,7 @@ const errorHandler = (err, _req, res, _next) => {
         ? 'Internal server error'
         : err.message || 'Internal server error'
 
-  if (!isProduction) {
-    console.error(err)
-  }
+  console.error(`[${statusCode}] ${err.message || err}`)
 
   return res.status(statusCode).json({
     success: false,

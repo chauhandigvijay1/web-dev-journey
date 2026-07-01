@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import axios from 'axios'
 import type { WorkspaceRole } from '../../types/workspace'
 
 const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
@@ -47,7 +48,13 @@ const InviteMemberModal = ({ open, onClose, onSubmit }: InviteMemberModalProps) 
       await onSubmit({ email: normalizedEmail, role })
       handleClose()
     } catch (submitError) {
-      setError(submitError instanceof Error ? submitError.message : 'Invite could not be sent right now.')
+      setError(
+        axios.isAxiosError(submitError)
+          ? submitError.response?.data?.message || submitError.message
+          : submitError instanceof Error
+            ? submitError.message
+            : 'Invite could not be sent right now.',
+      )
       return
     } finally {
       setSubmitting(false)

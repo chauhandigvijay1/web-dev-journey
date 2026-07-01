@@ -1,3 +1,8 @@
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="./client/public/logo.svg">
+  <img alt="DsSyncHub" src="./client/public/logo-icon.svg" width="240" height="240" align="center" ;">
+</picture>
+
 <div align="center">
   <h1>DsSync Hub</h1>
   <p><strong>Open-Source SaaS Collaboration Platform for Modern Teams</strong></p>
