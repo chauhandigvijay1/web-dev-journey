@@ -48,7 +48,7 @@ Fallback origins (always allowed):
 | `RAZORPAY_KEY_ID` | `""` | Razorpay merchant key ID (test or live) |
 | `RAZORPAY_KEY_SECRET` | `""` | Razorpay merchant key secret |
 | `RAZORPAY_WEBHOOK_SECRET` | `""` | Webhook secret (currently unused) |
-| `OWNER_COUPON` | `SHIVANIDIGVIJAY` | Secret coupon code for 100% discount |
+| `OWNER_COUPON` | `—` | Secret coupon code for 100% discount (no hardcoded fallback) |
 | `OWNER_COUPON_DURATION` | `30` | Subscription duration in days for owner coupon |
 
 ### Resend (Email)

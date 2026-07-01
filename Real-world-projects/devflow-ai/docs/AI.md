@@ -119,14 +119,15 @@ The streaming response is consumed and rendered by the `ChatWindow` component:
 
 ## Rate Limiting & Abuse Prevention
 
-- **API-level:** 300 requests per 15 minutes per IP (Express rate-limiter)
+- **Global API-level:** 300 requests per 15 minutes per IP (Express rate-limiter)
+- **Per-endpoint rate limiters:** Login/forgot-password: 20 requests per 15 minutes. AI endpoints: 30 requests per minute.
 - **Usage-level:** 20 prompts per day for free users (application-level counter)
 - **Payload limits:** Prompt max 8,000 characters, code max 50,000 characters
 - **Validation:** All inputs validated via `express-validator` before reaching the Groq API
+- **Streaming abort:** The AI controller uses `AbortController` with a 60-second timeout that starts after the Groq stream is received. The client can also abort in-flight requests on unmount, and the server aborts the stream when the client disconnects (`req.on("close")`).
 
 ## Future Considerations
 
 - **Token counting:** Not currently implemented. Could be added for finer-grained billing.
 - **Model selection:** Hardcoded to one model. Could be exposed as a user preference.
 - **Conversation context window:** No explicit truncation — the full message history is sent every time. Long conversations may exceed the model's context window.
-- **Streaming abort:** Not currently implemented. The client cannot cancel an in-flight streaming request.

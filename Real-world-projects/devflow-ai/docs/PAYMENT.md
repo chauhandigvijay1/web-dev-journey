@@ -70,10 +70,10 @@ DevFlow AI uses **Razorpay** as its payment gateway for Pro subscription upgrade
 
 | Variable | Default | Description |
 |---|---|---|
-| `OWNER_COUPON` | `SHIVANIDIGVIJAY` | Coupon code for 100% free Pro access |
+| `OWNER_COUPON` | `—` | Coupon code for 100% free Pro access (no hardcoded fallback) |
 | `OWNER_COUPON_DURATION` | `30` | Subscription duration in days |
 
-The owner coupon bypasses all payment flow — the `create-order` endpoint returns `{ isFree: true, orderId: "free_checkout" }` and the `verify` endpoint skips signature verification.
+The owner coupon bypasses all payment flow. The `create-order` endpoint generates a one-time `nonce` (cryptographic random, stored with 5-minute expiry), and returns `{ isFree: true, orderId: "free_checkout", nonce }`. The `verify` endpoint validates the nonce before granting Pro access — preventing replay and forgery attacks.
 
 ### Coupon Validation Rules
 
@@ -163,11 +163,7 @@ if (plan === "free" && dailyCount >= 20) {
 
 ### Razorpay SDK Loading
 
-The Razorpay checkout.js is loaded globally via `next/script` in the root layout:
-
-```jsx
-<Script src="https://checkout.razorpay.com/v1/checkout.js" strategy="afterInteractive" />
-```
+The Razorpay checkout.js is loaded dynamically on the pricing and billing pages via a custom hook (not globally, to reduce page weight).
 
 ### Billing Page Features
 

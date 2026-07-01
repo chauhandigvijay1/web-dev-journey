@@ -74,7 +74,7 @@ Both endpoints:
 | Payload | `{ id: ObjectId, role: String, iat, exp }` |
 | Secret | `JWT_SECRET` environment variable |
 | Expiry | `JWT_EXPIRES_IN` (default: `7d`) |
-| Storage (client) | `localStorage` key: `devflow_token` (also reads legacy key `token`) |
+| Storage (client) | `localStorage` key: `devflow_token` |
 | Transmission | `Authorization: Bearer <token>` header |
 
 ## Middleware: `protect`
@@ -184,7 +184,7 @@ After deletion:
 localStorage.setItem("devflow_token", token);
 
 // Read by Axios interceptor
-const token = localStorage.getItem("devflow_token") || localStorage.getItem("token");
+const token = localStorage.getItem("devflow_token");
 config.headers.Authorization = `Bearer ${token}`;
 ```
 
@@ -193,7 +193,7 @@ The `ProtectedRoute` component wraps pages that require authentication:
 
 ```javascript
 function ProtectedRoute({ children }) {
-  const token = localStorage.getItem("devflow_token") || localStorage.getItem("token");
+  const token = localStorage.getItem("devflow_token");
   if (!token) router.replace("/login");
   return token ? children : null;
 }
@@ -230,7 +230,7 @@ Actions:
 ### Current Limitations
 - **No token revocation:** A compromised JWT is valid until expiry (up to 7 days)
 - **No refresh tokens:** Token cannot be rotated without re-authentication
-- **No rate limiting on auth endpoints** (beyond the global 300/15min limit)
+- **Per-endpoint rate limiters:** Login and forgot-password endpoints are rate-limited to 20 requests per 15 minutes per IP, and AI endpoints are limited to 30 requests per minute
 - **No email verification:** Accounts are active immediately after signup
 - **No MFA/2FA**
 - **No HTTPS enforcement** in application code (relies on infrastructure)

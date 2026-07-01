@@ -1,4 +1,0 @@
-{"timestamp":"00:00:02.646","source":"Server","level":"LOG","message":""}
-{"timestamp":"00:00:07.580","source":"Server","level":"LOG","message":"○ Compiling / ..."}
-{"timestamp":"00:00:14.525","source":"Server","level":"LOG","message":"○ Compiling /dashboard ..."}
-{"timestamp":"00:00:41.465","source":"Server","level":"LOG","message":"○ Compiling /chat/[id] ..."}
