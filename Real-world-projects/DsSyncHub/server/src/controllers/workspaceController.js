@@ -443,18 +443,16 @@ const inviteMember = async (req, res, next) => {
       })
     }
 
-    try {
-      const clientUrl = (process.env.CLIENT_URL || 'http://localhost:5173').replace(/\/$/, '')
-      const inviteUrl = `${clientUrl}/join-workspace/${invite.token}`
-      await sendInviteEmail({
-        toEmail: normalizedEmail,
-        inviteUrl,
-        inviterName: req.user.fullName,
-        workspaceName: workspace.name,
-      })
-    } catch (_emailErr) {
+    const clientUrl = (process.env.CLIENT_URL || 'http://localhost:5173').replace(/\/$/, '')
+    const inviteUrl = `${clientUrl}/join-workspace/${invite.token}`
+    sendInviteEmail({
+      toEmail: normalizedEmail,
+      inviteUrl,
+      inviterName: req.user.fullName,
+      workspaceName: workspace.name,
+    }).catch((_emailErr) => {
       console.error('Failed to send invite email:', _emailErr.message)
-    }
+    })
 
     return res.status(200).json({
       success: true,
