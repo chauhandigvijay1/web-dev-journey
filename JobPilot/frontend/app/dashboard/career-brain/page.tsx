@@ -225,6 +225,46 @@ function normaliseRecommendations(raw: Recommendations): Recommendations {
 }
 
 /* ------------------------------------------------------------------ */
+/*  Backend response → CareerBrainProfile                             */
+/* ------------------------------------------------------------------ */
+
+interface BackendResumeProfile {
+  resumeUrl?: string;
+  fileName?: string;
+  lastParsedAt?: string;
+  parsedData?: Record<string, unknown>;
+}
+
+function toProfile(bp: BackendResumeProfile): CareerBrainProfile {
+  const pd = (bp.parsedData ?? {}) as Record<string, unknown>;
+  return normaliseProfile({
+    resume: bp.fileName
+      ? {
+          fileName: bp.fileName,
+          fileUrl: bp.resumeUrl ?? "",
+          uploadedAt: bp.lastParsedAt ?? new Date().toISOString(),
+          parsed: true,
+        }
+      : null,
+    skills: (pd.skills ?? []) as string[],
+    techStack: (pd.techStack ?? []) as string[],
+    experience: (pd.experience ?? []) as Experience[],
+    projects: (pd.projects ?? []) as Project[],
+    education: (pd.education ?? []) as Education[],
+    certifications: (pd.certifications ?? []) as Certification[],
+    seniorityLevel: (pd.seniorityLevel ?? "") as string,
+    yearsOfExperience: (pd.totalYearsExperience ?? 0) as number,
+    contactInfo: {
+      email: ((pd.contactInfo as Record<string, unknown>)?.email ?? "") as string,
+      phone: ((pd.contactInfo as Record<string, unknown>)?.phone ?? "") as string,
+      linkedIn: ((pd.contactInfo as Record<string, unknown>)?.linkedIn ?? "") as string,
+      github: ((pd.contactInfo as Record<string, unknown>)?.github ?? "") as string,
+      portfolio: ((pd.contactInfo as Record<string, unknown>)?.portfolio ?? "") as string,
+    },
+  });
+}
+
+/* ------------------------------------------------------------------ */
 /*  Colour helpers                                                    */
 /* ------------------------------------------------------------------ */
 
@@ -1265,6 +1305,7 @@ export default function CareerBrainPage() {
   const [profileError, setProfileError] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
+  const [uploadDebug, setUploadDebug] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -1272,12 +1313,12 @@ export default function CareerBrainPage() {
       setLoadingProfile(true);
       setProfileError(null);
       try {
-        const { data } = await api.get<{ success: boolean; data?: CareerBrainProfile; message?: string }>(
+        const { data } = await api.get<{ success: boolean; data?: { profile: BackendResumeProfile }; message?: string }>(
           "/career-brain"
         );
         if (cancelled) return;
-        if (data.success && data.data) {
-          setProfile(normaliseProfile(data.data));
+        if (data.success && data.data?.profile) {
+          setProfile(toProfile(data.data.profile));
         } else {
           setProfile(null);
         }
@@ -1300,29 +1341,57 @@ export default function CareerBrainPage() {
     }
     setUploading(true);
     setUploadError(null);
+    setUploadDebug(null);
     try {
       const formData = new FormData();
       formData.append("resume", file);
-      const { data } = await api.post<{ success: boolean; data?: CareerBrainProfile; message?: string }>(
-        "/career-brain/resume",
-        formData
-      );
-      if (!data.success || !data.data) {
-        setUploadError(data.message ?? "Could not upload resume");
+      const token =
+        typeof window !== "undefined"
+          ? (() => {
+              try {
+                return localStorage.getItem("jp_auth_token");
+              } catch {
+                return null;
+              }
+            })()
+          : null;
+      const base = api.defaults.baseURL ?? "https://web-dev-journey-cnee.onrender.com/api";
+      const url = `${base}/career-brain/resume`;
+      const res = await fetch(url, {
+        method: "POST",
+        credentials: "include",
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+        body: formData,
+      });
+      setUploadDebug(`HTTP ${res.status} ${res.statusText}`);
+      if (!res.ok) {
+        const text = await res.text().catch(() => "(no body)");
+        setUploadDebug(`HTTP ${res.status}: ${text.slice(0, 200)}`);
+        let msg = "Could not upload resume";
+        try {
+          const body = JSON.parse(text);
+          if (typeof body.message === "string") msg = body.message;
+        } catch {
+          /* ignore */
+        }
+        setUploadError(msg);
         return;
       }
-      setProfile(normaliseProfile(data.data));
-    } catch (err: unknown) {
-      let msg = "Could not upload resume";
-      if (axios.isAxiosError(err)) {
-        if (err.response?.data) {
-          const body = err.response.data as Record<string, unknown>;
-          msg = typeof body.message === "string" ? body.message : msg;
-        } else if (err.code === "ECONNABORTED") {
-          msg = "Upload timed out. Try a smaller file or check your connection.";
-        }
+      const body = await res.json();
+      setUploadDebug(`JSON: ${JSON.stringify(body).slice(0, 300)}`);
+      if (!body.success || !body.data?.profile) {
+        setUploadError(body.message ?? "Could not upload resume");
+        return;
       }
+      const normalised = toProfile(body.data.profile);
+      setProfile(normalised);
+    } catch (err: unknown) {
+      const msg =
+        err instanceof TypeError && err.message === "Failed to fetch"
+          ? "Network error — CORS or connectivity issue"
+          : "Could not upload resume";
       setUploadError(msg);
+      setUploadDebug(`Catch: ${String(err)}`);
     } finally {
       setUploading(false);
     }
@@ -1351,6 +1420,12 @@ export default function CareerBrainPage() {
       {uploadError && (
         <div className="rounded-xl border border-destructive/40 bg-destructive/10 px-4 py-3 text-sm text-destructive">
           {uploadError}
+        </div>
+      )}
+
+      {uploadDebug && (
+        <div className="rounded-xl border border-blue-400/40 bg-blue-50 dark:bg-blue-950/20 px-4 py-3 text-xs font-mono text-blue-700 dark:text-blue-300">
+          {uploadDebug}
         </div>
       )}
 
