@@ -81,17 +81,23 @@ Upload your resume once and unlock: parsed profile viewer, ATS match scoring aga
 ## Screenshots
 
 <details>
-<summary>Click to expand — 8 screenshots</summary>
+<summary>Click to expand — 14 screenshots</summary>
 
-| Dashboard | Analytics |
-|-----------|-----------|
-| <img src="./screenshots/dashboard.png" width="320" style="border-radius:8px"> | <img src="./screenshots/Analytics.png" width="320" style="border-radius:8px"> |
-| **Jobs / Kanban** | **Settings** |
-| <img src="./screenshots/jobs.png" width="320" style="border-radius:8px"> | <img src="./screenshots/settings_page.png" width="320" style="border-radius:8px"> |
+| Landing Page | Dashboard |
+|--------------|-----------|
+| <img src="./screenshots/LandingPage.png" width="320" style="border-radius:8px"> | <img src="./screenshots/Dashboard.png" width="320" style="border-radius:8px"> |
 | **Login** | **Sign Up** |
-| <img src="./screenshots/login_page.png" width="320" style="border-radius:8px"> | <img src="./screenshots/signup_page.png" width="320" style="border-radius:8px"> |
-| **Reminders** | **Extension Popup** |
-| <img src="./screenshots/Reminders.png" width="320" style="border-radius:8px"> | <img src="./screenshots/extension_popup.png" width="320" style="border-radius:8px"> |
+| <img src="./screenshots/Login.png" width="320" style="border-radius:8px"> | <img src="./screenshots/Signup.png" width="320" style="border-radius:8px"> |
+| **Jobs** | **Add Job** |
+| <img src="./screenshots/Jobs.png" width="320" style="border-radius:8px"> | <img src="./screenshots/AddJob.png" width="320" style="border-radius:8px"> |
+| **Analytics** | **ATS & Skill Gap** |
+| <img src="./screenshots/Analytics.png" width="320" style="border-radius:8px"> | <img src="./screenshots/ATS&SkillGap.png" width="320" style="border-radius:8px"> |
+| **Career Brain** | **Reminders** |
+| <img src="./screenshots/Career%20brain.png" width="320" style="border-radius:8px"> | <img src="./screenshots/Reminder.png" width="320" style="border-radius:8px"> |
+| **Profile & Theme** | **Change Password** |
+| <img src="./screenshots/Profile&Theme.png" width="320" style="border-radius:8px"> | <img src="./screenshots/ChangePassword.png" width="320" style="border-radius:8px"> |
+| **Account & Job Export** | |
+| <img src="./screenshots/Account&JobExport.png" width="320" style="border-radius:8px"> | |
 
 </details>
 
@@ -425,7 +431,7 @@ JobPilot/
 │   ├── EXTENSION.md          # 451-line extension reference
 │   ├── CONTRIBUTING.md       # Contribution guidelines
 │   └── CHALLENGES.md         # 350-line challenge log
-├── screenshots/              # 8 PNG screenshots
+├── screenshots/              # 14 PNG screenshots
 ├── README.md
 └── LICENSE
 ```
