@@ -7,9 +7,11 @@ import { isNonEmptyString } from "../utils/auth.js";
 
 async function extractPdfText(buffer) {
   try {
-    const pdfParse = (await import("pdf-parse")).default;
-    const data = await pdfParse(buffer);
-    return data.text || "";
+    const { PDFParse } = await import("pdf-parse");
+    const parser = new PDFParse(new Uint8Array(buffer));
+    await parser.load();
+    const text = await parser.getText();
+    return text || "";
   } catch {
     return "";
   }
