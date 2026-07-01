@@ -21,6 +21,7 @@ const authSlice = createSlice({
       state.user = null;
       if (typeof window !== "undefined") {
         localStorage.removeItem("devflow_token");
+        localStorage.removeItem("token");
       }
     },
     hydrateAuth: (state, action) => {

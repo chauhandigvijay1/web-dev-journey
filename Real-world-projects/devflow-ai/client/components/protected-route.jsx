@@ -9,8 +9,7 @@ export default function ProtectedRoute({ children }) {
   const [ready, setReady] = useState(false);
 
   useEffect(() => {
-    const token =
-      localStorage.getItem("devflow_token") || localStorage.getItem("token");
+    const token = localStorage.getItem("devflow_token");
     if (!token) {
       router.replace("/login");
       return;

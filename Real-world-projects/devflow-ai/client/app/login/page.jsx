@@ -32,7 +32,7 @@ export default function LoginPage() {
     }
     const token =
       typeof window !== "undefined"
-        ? localStorage.getItem("devflow_token") || localStorage.getItem("token")
+        ? localStorage.getItem("devflow_token")
         : "";
     if (token) {
       router.replace("/dashboard");

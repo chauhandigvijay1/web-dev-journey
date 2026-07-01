@@ -24,9 +24,7 @@ export default function DashboardPage() {
     let cancelled = false;
     api.get("/api/chats").then((res) => {
       if (!cancelled) setChats(res.data.data || []);
-    }).catch((err) => {
-      if (!cancelled) setError("Unable to load chats. Check your connection.");
-    }).finally(() => {
+    }).catch(() => {}).finally(() => {
       if (!cancelled) setLoading(false);
     });
     return () => { cancelled = true; };
