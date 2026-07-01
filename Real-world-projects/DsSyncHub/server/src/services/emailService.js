@@ -23,6 +23,8 @@ const getTransporter = () => {
       port: port || 587,
       secure: port === 465,
       auth: { user, pass },
+      connectionTimeout: 10000,
+      socketTimeout: 10000,
     })
   } else {
     console.error('[email] using Gmail SMTP (fallback)')
