@@ -21,17 +21,15 @@ export default function DashboardPage() {
   const [error, setError] = useState("");
 
   useEffect(() => {
-    const abort = new AbortController();
-    api.get("/api/chats", { signal: abort.signal }).then((res) => {
-      setChats(res.data.data || []);
+    let cancelled = false;
+    api.get("/api/chats").then((res) => {
+      if (!cancelled) setChats(res.data.data || []);
     }).catch((err) => {
-      if (err?.name !== "CanceledError") {
-        setError("Unable to load chats. Check your connection.");
-      }
+      if (!cancelled) setError("Unable to load chats. Check your connection.");
     }).finally(() => {
-      setLoading(false);
+      if (!cancelled) setLoading(false);
     });
-    return () => abort.abort();
+    return () => { cancelled = true; };
   }, []);
 
   const createChat = async (template = "") => {

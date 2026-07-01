@@ -44,7 +44,7 @@ app.use(cookieParser());
 app.use(rateLimit({ windowMs: 15 * 60 * 1000, limit: 300 }));
 
 // Stricter rate limiters for sensitive endpoints
-const authLimiter = rateLimit({ windowMs: 15 * 60 * 1000, limit: 20, skipSuccessfulRequests: false });
+const authLimiter = rateLimit({ windowMs: 15 * 60 * 1000, limit: 20 });
 const aiLimiter = rateLimit({ windowMs: 60 * 1000, limit: 30 });
 
 app.use("/api/auth/login", authLimiter);
