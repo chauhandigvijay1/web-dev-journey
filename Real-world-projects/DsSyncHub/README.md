@@ -1,6 +1,6 @@
-<picture>
-  <source media="(prefers-color-scheme: dark)" srcset="./client/public/logo_icon.svg">
-  <img alt="DsSyncHub" src="./client/public/logo_icon.svg" width="240" height="240" align="center" ;">
+<picture align="center">
+  <source media="(prefers-color-scheme: dark)" srcset="./client/public/logo.svg">
+  <img alt="DsSyncHub" src="./client/public/logo.svg" width="400" style="max-width: 100%; height: auto;">
 </picture>
 
 <div align="center">
