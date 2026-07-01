@@ -1,6 +1,7 @@
-import { Sparkles } from 'lucide-react'
+import { Shield, Sparkles } from 'lucide-react'
 import { NavLink, useNavigate } from 'react-router-dom'
 import { appMenuItems } from './menuConfig'
+import { useAppSelector } from '../../hooks/redux'
 
 type AppSidebarProps = {
   collapsed: boolean
@@ -10,6 +11,7 @@ type AppSidebarProps = {
 
 const AppSidebar = ({ collapsed, onLogout, onNavigate }: AppSidebarProps) => {
   const navigate = useNavigate()
+  const user = useAppSelector((state) => state.auth.user)
 
   return (
     <aside
@@ -47,6 +49,22 @@ const AppSidebar = ({ collapsed, onLogout, onNavigate }: AppSidebarProps) => {
             {!collapsed && <span>{label}</span>}
           </NavLink>
         ))}
+        {user?.role === 'admin' && (
+          <NavLink
+            to="/admin"
+            className={({ isActive }) =>
+              `flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm transition ${
+                isActive
+                  ? 'bg-brand-500/20 text-brand-400 shadow-[inset_0_0_12px_rgba(16,185,129,0.1)]'
+                  : 'text-zinc-400 hover:glass-card/10 hover:text-white'
+              }`
+            }
+            onClick={onNavigate}
+          >
+            <Shield size={18} />
+            {!collapsed && <span>Admin</span>}
+          </NavLink>
+        )}
       </nav>
 
       <div className="mt-4 space-y-3">
