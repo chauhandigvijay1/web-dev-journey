@@ -1,5 +1,5 @@
 <picture>
-  <source media="(prefers-color-scheme: dark)" srcset="./client/public/logo.svg">
+  <source media="(prefers-color-scheme: dark)" srcset="./client/public/logo_icon.svg">
   <img alt="DsSyncHub" src="./client/public/logo_icon.svg" width="240" height="240" align="center" ;">
 </picture>
 
