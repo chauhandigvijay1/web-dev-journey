@@ -9,17 +9,28 @@ const getTransporter = () => {
   const pass = process.env.EMAIL_PASS
 
   if (!user || !pass) {
+    console.error('[email] EMAIL_USER or EMAIL_PASS not set')
     return null
   }
 
   const host = process.env.EMAIL_HOST
   const port = parseInt(process.env.EMAIL_PORT || '', 10)
 
-  transporter = nodemailer.createTransport(
-    host
-      ? { host, port: port || 587, secure: port === 465, auth: { user, pass } }
-      : { service: 'gmail', auth: { user, pass } },
-  )
+  if (host) {
+    console.error(`[email] using SMTP: ${host}:${port || 587}`)
+    transporter = nodemailer.createTransport({
+      host,
+      port: port || 587,
+      secure: port === 465,
+      auth: { user, pass },
+    })
+  } else {
+    console.error('[email] using Gmail SMTP (fallback)')
+    transporter = nodemailer.createTransport({
+      service: 'gmail',
+      auth: { user, pass },
+    })
+  }
 
   return transporter
 }
