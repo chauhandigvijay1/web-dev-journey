@@ -12,7 +12,7 @@ import {
 } from "@/lib/auth-validation";
 import { getApiErrorMessage } from "@/lib/httpError";
 import { api } from "@/services/api";
-import { loginWithStorage } from "@/store/authSlice";
+import { loginWithStorage, logoutAndClear } from "@/store/authSlice";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { AuthShell } from "@/components/auth/auth-shell";
 import { GoogleAuthButton } from "@/components/auth/google-auth-button";
@@ -49,10 +49,29 @@ export default function SignupPage() {
   }, [password]);
 
   useEffect(() => {
-    if (hydrated && isAuthenticated) {
-      router.replace("/dashboard");
-    }
-  }, [hydrated, isAuthenticated, router]);
+    if (!hydrated || !isAuthenticated) return;
+
+    let cancelled = false;
+    api
+      .post<{ success: boolean; data?: { token: string } }>("/auth/refresh")
+      .then(({ data }) => {
+        if (cancelled) return;
+        if (data.success && data.data?.token) {
+          router.replace("/dashboard");
+        } else {
+          dispatch(logoutAndClear());
+        }
+      })
+      .catch(() => {
+        if (!cancelled) {
+          dispatch(logoutAndClear());
+        }
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [hydrated, isAuthenticated, dispatch, router]);
 
   async function completeAuth(payload: AuthPayload) {
     dispatch(loginWithStorage(payload));
