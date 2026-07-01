@@ -214,6 +214,33 @@ export async function uploadResumeToCareerBrain(req, res) {
   });
 }
 
+export async function downloadResume(req, res) {
+  const profile = await ResumeProfile.findOne({ user: req.user._id }).lean();
+  if (!profile?.resumeUrl) {
+    return res.status(404).json({ success: false, message: "No resume found" });
+  }
+
+  const fileName = profile.fileName || "resume.pdf";
+  try {
+    const response = await fetch(profile.resumeUrl);
+    if (!response.ok) {
+      return res.status(502).json({ success: false, message: "Failed to fetch resume from storage" });
+    }
+    const mimeType = profile.mimeType || "application/octet-stream";
+    res.setHeader("Content-Type", mimeType);
+    res.setHeader("Content-Disposition", `attachment; filename="${encodeURIComponent(fileName)}"`);
+    res.setHeader("Cache-Control", "private, max-age=3600");
+    response.body.pipe(res);
+  } catch {
+    return res.status(502).json({ success: false, message: "Failed to fetch resume from storage" });
+  }
+}
+
+export async function deleteResume(req, res) {
+  await ResumeProfile.findOneAndDelete({ user: req.user._id });
+  return res.json({ success: true, message: "Resume deleted" });
+}
+
 export async function updateCareerBrain(req, res) {
   const body = req.body ?? {};
   const update = {};

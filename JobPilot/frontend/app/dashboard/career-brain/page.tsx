@@ -11,6 +11,7 @@ import {
   ExternalLink,
   FileText,
   Loader2,
+  RefreshCw,
   Sparkles,
   Star,
   Target,
@@ -336,10 +337,14 @@ function ResumeUploadSection({
   resume,
   uploading,
   onUpload,
+  onDelete,
+  downloadUrl,
 }: {
   resume: ResumeData | null;
   uploading: boolean;
   onUpload: (file: File) => void;
+  onDelete?: () => void;
+  downloadUrl?: string;
 }) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [dragOver, setDragOver] = useState(false);
@@ -390,14 +395,27 @@ function ResumeUploadSection({
                 </div>
               </div>
             </div>
-            {resume.fileUrl && (
-              <Button variant="outline" size="sm" className="gap-1" asChild>
-                <a href={resume.fileUrl} target="_blank" rel="noopener noreferrer">
-                  <ExternalLink className="h-3.5 w-3.5" />
-                  View
-                </a>
-              </Button>
-            )}
+            <div className="flex flex-wrap gap-2">
+              {downloadUrl && (
+                <Button variant="outline" size="sm" className="gap-1" asChild>
+                  <a href={downloadUrl} target="_blank" rel="noopener noreferrer">
+                    <ExternalLink className="h-3.5 w-3.5" />
+                    View
+                  </a>
+                </Button>
+              )}
+              {onDelete && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="gap-1"
+                  onClick={onDelete}
+                >
+                  <RefreshCw className="h-3.5 w-3.5" />
+                  Replace
+                </Button>
+              )}
+            </div>
           </div>
         </CardContent>
       </Card>
@@ -1311,7 +1329,7 @@ export default function CareerBrainPage() {
   const [profileError, setProfileError] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
-  const [uploadDebug, setUploadDebug] = useState<string | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -1347,59 +1365,48 @@ export default function CareerBrainPage() {
     }
     setUploading(true);
     setUploadError(null);
-    setUploadDebug(null);
     try {
       const formData = new FormData();
       formData.append("resume", file);
-      const token =
-        typeof window !== "undefined"
-          ? (() => {
-              try {
-                return localStorage.getItem("jp_auth_token");
-              } catch {
-                return null;
-              }
-            })()
-          : null;
-      const base = api.defaults.baseURL ?? "https://web-dev-journey-cnee.onrender.com/api";
-      const url = `${base}/career-brain/resume`;
-      const res = await fetch(url, {
-        method: "POST",
-        credentials: "include",
-        headers: token ? { Authorization: `Bearer ${token}` } : {},
-        body: formData,
-      });
-      setUploadDebug(`HTTP ${res.status} ${res.statusText}`);
-      if (!res.ok) {
-        const text = await res.text().catch(() => "(no body)");
-        setUploadDebug(`HTTP ${res.status}: ${text.slice(0, 200)}`);
-        let msg = "Could not upload resume";
-        try {
-          const body = JSON.parse(text);
-          if (typeof body.message === "string") msg = body.message;
-        } catch {
-          /* ignore */
-        }
-        setUploadError(msg);
+      const { data } = await api.post<{ success: boolean; data?: { profile: BackendResumeProfile }; message?: string }>(
+        "/career-brain/resume",
+        formData
+      );
+      if (!data.success || !data.data?.profile) {
+        setUploadError(data.message ?? "Could not upload resume");
         return;
       }
-      const body = await res.json();
-      setUploadDebug(`JSON: ${JSON.stringify(body).slice(0, 300)}`);
-      if (!body.success || !body.data?.profile) {
-        setUploadError(body.message ?? "Could not upload resume");
-        return;
-      }
-      const normalised = toProfile(body.data.profile);
-      setProfile(normalised);
+      setProfile(toProfile(data.data.profile));
     } catch (err: unknown) {
-      const msg =
-        err instanceof TypeError && err.message === "Failed to fetch"
-          ? "Network error — CORS or connectivity issue"
-          : "Could not upload resume";
+      let msg = "Could not upload resume";
+      if (axios.isAxiosError(err)) {
+        if (err.response?.data) {
+          const body = err.response.data as Record<string, unknown>;
+          msg = typeof body.message === "string" ? body.message : msg;
+        } else if (err.code === "ECONNABORTED") {
+          msg = "Upload timed out. Try a smaller file or check your connection.";
+        }
+      }
       setUploadError(msg);
-      setUploadDebug(`Catch: ${String(err)}`);
     } finally {
       setUploading(false);
+    }
+  }
+
+  async function handleDelete() {
+    if (!window.confirm("Delete your resume and profile data? You can upload a new one.")) return;
+    setDeleting(true);
+    try {
+      const { data } = await api.delete<{ success: boolean; message?: string }>("/career-brain/resume");
+      if (!data.success) {
+        setUploadError(data.message ?? "Could not delete resume");
+        return;
+      }
+      setProfile(null);
+    } catch {
+      setUploadError("Could not delete resume");
+    } finally {
+      setDeleting(false);
     }
   }
 
@@ -1429,17 +1436,13 @@ export default function CareerBrainPage() {
         </div>
       )}
 
-      {uploadDebug && (
-        <div className="rounded-xl border border-blue-400/40 bg-blue-50 dark:bg-blue-950/20 px-4 py-3 text-xs font-mono text-blue-700 dark:text-blue-300">
-          {uploadDebug}
-        </div>
-      )}
-
       {/* Section 1 – Resume Upload */}
       <ResumeUploadSection
         resume={profile?.resume ?? null}
-        uploading={uploading}
+        uploading={uploading || deleting}
         onUpload={handleUpload}
+        onDelete={handleDelete}
+        downloadUrl={profile?.resume?.fileUrl ? `${api.defaults.baseURL}/career-brain/resume/download` : undefined}
       />
 
       {/* Section 2 – Parsed Profile */}
