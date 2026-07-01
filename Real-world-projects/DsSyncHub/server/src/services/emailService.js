@@ -12,10 +12,14 @@ const getTransporter = () => {
     return null
   }
 
-  transporter = nodemailer.createTransport({
-    service: 'gmail',
-    auth: { user, pass },
-  })
+  const host = process.env.EMAIL_HOST
+  const port = parseInt(process.env.EMAIL_PORT || '', 10)
+
+  transporter = nodemailer.createTransport(
+    host
+      ? { host, port: port || 587, secure: port === 465, auth: { user, pass } }
+      : { service: 'gmail', auth: { user, pass } },
+  )
 
   return transporter
 }
