@@ -185,7 +185,7 @@
               : [clean(String(item.skills))].filter(Boolean);
           }
           result.originalApplyLink =
-            clean(item.directApply) || clean(item.url) || clean(item.sameAs) || '';
+            clean(item.directApply) || clean(item.sameAs) || '';
           result.workMode = detectWorkModeFromString(
             clean(item.jobLocationType) +
               ' ' +

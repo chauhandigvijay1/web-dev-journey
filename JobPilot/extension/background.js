@@ -92,7 +92,8 @@ function normalizeJobPayload(payload) {
   var company = cleanText(payload.company, 200);
   var location = cleanText(payload.location, 240);
   var description = cleanText(payload.description, 4000);
-  var originalUrl = cleanText(payload.originalApplyLink || payload.originalUrl, 1000);
+  var pageUrl = cleanText(payload.originalUrl, 1000);
+  var applyLink = cleanText(payload.originalApplyLink, 1000);
   var source = cleanText(payload.source, 240);
   var salary = cleanText(payload.salary, 200);
   var jobType = cleanText(payload.jobType, 100);
@@ -108,10 +109,10 @@ function normalizeJobPayload(payload) {
     jobType: jobType,
     workMode: workMode,
     descriptionSummary: description,
-    originalApplyLink: originalUrl || '',
+    originalApplyLink: applyLink || pageUrl || '',
     status: 'saved',
-    notes: originalUrl
-      ? 'Imported from JobPilot Companion. Source: ' + originalUrl
+    notes: (pageUrl || applyLink)
+      ? 'Imported from JobPilot Companion. Source: ' + (pageUrl || applyLink)
       : 'Imported from JobPilot Companion.',
     skills: Array.isArray(payload.skills)
       ? payload.skills.map(function (s) { return cleanText(s, 120); }).filter(Boolean)
