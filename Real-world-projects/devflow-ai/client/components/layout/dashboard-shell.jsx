@@ -209,6 +209,12 @@ export default function DashboardShell({ children }) {
         </button>
 
         <div className="min-h-0 flex-1 overflow-y-auto scroll-smooth pr-1">
+          {chats.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-8 text-center">
+              <p className="text-xs text-zinc-400 dark:text-zinc-500">No chats yet</p>
+              <p className="mt-1 text-[10px] text-zinc-300 dark:text-zinc-600">Click New Chat to begin.</p>
+            </div>
+          ) : (
           <div className="space-y-1">
             {chats.map((chat) => {
               const isActive = currentChatId === chat._id;
@@ -245,6 +251,7 @@ export default function DashboardShell({ children }) {
               );
             })}
           </div>
+          )}
         </div>
 
         <div className="relative mt-3 border-t border-zinc-200 pt-3 dark:border-zinc-800">

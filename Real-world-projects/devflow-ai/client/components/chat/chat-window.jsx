@@ -100,6 +100,8 @@ export default function ChatWindow({ chatId, initialPrompt = "" }) {
   const bottomRef = useRef(null);
   const initialPromptSentRef = useRef(false);
   const pendingGreetingRef = useRef("");
+  const abortRef = useRef(null);
+  const assistantTextRef = useRef("");
 
   useEffect(() => {
     const resolveDisplayName = async () => {
@@ -165,7 +167,7 @@ export default function ChatWindow({ chatId, initialPrompt = "" }) {
 
   const fetchUsage = async () => {
     try {
-      const { data } = await api.get("/api/payment/status");
+      const { data } = await api.get("/api/payments/status");
       const usage = data.data?.usage || {};
 
       setUsageInfo({
@@ -209,9 +211,11 @@ export default function ChatWindow({ chatId, initialPrompt = "" }) {
     setMessages((prev) => [...prev, userMsg]);
     setPrompt("");
 
+    const abortController = new AbortController();
+    abortRef.current = abortController;
+
     try {
-      const token =
-        localStorage.getItem("devflow_token") || localStorage.getItem("token");
+      const token = localStorage.getItem("devflow_token");
       if (!token) throw new Error("Missing auth token");
 
       const baseUrl =
@@ -226,6 +230,7 @@ export default function ChatWindow({ chatId, initialPrompt = "" }) {
           chatId,
           prompt: promptText,
         }),
+        signal: abortController.signal,
       });
       if (!res.ok || !res.body) {
         const payload = await res.json().catch(() => ({}));
@@ -235,7 +240,7 @@ export default function ChatWindow({ chatId, initialPrompt = "" }) {
       const reader = res.body.getReader();
       const decoder = new TextDecoder();
       let buffer = "";
-      let assistantText = "";
+      assistantTextRef.current = "";
       let assistantStarted = false;
 
       setMessages((prev) => [...prev, { role: "assistant", content: "" }]);
@@ -273,14 +278,15 @@ export default function ChatWindow({ chatId, initialPrompt = "" }) {
 
           if (!tokenChunk) continue;
 
-          assistantText += tokenChunk;
+          assistantTextRef.current += tokenChunk;
+          const currentText = assistantTextRef.current;
           setMessages((prev) => {
             const next = [...prev];
             const lastIndex = next.length - 1;
             if (lastIndex >= 0 && next[lastIndex].role === "assistant") {
               next[lastIndex] = {
                 ...next[lastIndex],
-                content: assistantText,
+                content: currentText,
               };
             }
             return next;
@@ -288,7 +294,7 @@ export default function ChatWindow({ chatId, initialPrompt = "" }) {
         }
       }
 
-      if (!assistantText.trim() && assistantStarted) {
+      if (!assistantTextRef.current.trim() && assistantStarted) {
         setMessages((prev) => {
           const next = [...prev];
           const lastIndex = next.length - 1;
@@ -307,6 +313,7 @@ export default function ChatWindow({ chatId, initialPrompt = "" }) {
         window.dispatchEvent(new Event("devflow:chat-updated"));
       }
     } catch (err) {
+      if (err?.name === "AbortError") return;
       setError(err?.message || "Error occurred while sending prompt.");
       setMessages((prev) => {
         const next = [...prev];
@@ -320,6 +327,7 @@ export default function ChatWindow({ chatId, initialPrompt = "" }) {
       });
     }
 
+    abortRef.current = null;
     setLoading(false);
   };
 
@@ -335,7 +343,7 @@ export default function ChatWindow({ chatId, initialPrompt = "" }) {
     <div className="flex h-full flex-col space-y-4 text-zinc-950 dark:text-zinc-100">
       <div className="flex-1 space-y-3 overflow-y-auto pr-1 sm:pr-2">
         {messages.map((msg, i) => (
-          <div key={i} className="group relative">
+          <div key={i} className="message-enter group relative">
             <div
               className={`max-w-[min(45rem,90%)] break-words rounded-2xl px-5 py-4 text-[15px] leading-7 shadow-sm sm:max-w-[75%] ${
                 msg.role === "user"

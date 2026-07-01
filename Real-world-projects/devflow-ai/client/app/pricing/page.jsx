@@ -34,6 +34,19 @@ export default function PricingPage() {
 
       const { data } = await api.post("/api/payments/create-order", {});
       const order = data?.data;
+
+      // Free checkout path (e.g. owner coupon)
+      if (order?.isFree) {
+        await api.post("/api/payments/verify", {
+          razorpay_order_id: order.orderId,
+          razorpay_payment_id: "free_payment",
+          razorpay_signature: "free_signature",
+          nonce: order.nonce,
+        });
+        window.location.href = "/dashboard?upgrade=success";
+        return;
+      }
+
       if (!order?.orderId || !order?.keyId) {
         throw new Error("Failed to create order");
       }

@@ -3,6 +3,7 @@ const crypto = require("crypto");
 const asyncHandler = require("../utils/asyncHandler");
 const User = require("../models/User");
 const AppError = require("../utils/AppError");
+const env = require("../config/env");
 
 const getRazorpayClient = () =>
   new Razorpay({
@@ -41,12 +42,11 @@ const ensureUsageShape = (user) => {
 
 const resolveCoupon = (couponCode) => {
   const normalized = String(couponCode || "").trim().toUpperCase();
-  const secretCoupon = process.env.OWNER_COUPON || "SHIVANIDIGVIJAY";
-  if (normalized === secretCoupon) {
+  if (env.ownerCoupon && normalized === env.ownerCoupon.toUpperCase()) {
     return {
       code: normalized,
       amount: 0,
-      durationDays: parseInt(process.env.OWNER_COUPON_DURATION, 10) || 30,
+      durationDays: env.ownerCouponDuration,
       isSecret: true,
     };
   }
@@ -63,10 +63,18 @@ const createOrder = asyncHandler(async (req, res) => {
   const amount = coupon?.amount !== undefined ? coupon.amount : DEFAULT_MONTHLY_PRICE;
 
   if (amount === 0) {
+    const nonce = crypto.randomBytes(16).toString("hex");
+    const user = await User.findById(req.user._id);
+    if (user) {
+      user.checkoutNonce = nonce;
+      user.checkoutNonceExpires = new Date(Date.now() + 5 * 60 * 1000);
+      await user.save({ validateBeforeSave: false });
+    }
     return res.json({
       success: true,
       data: {
         orderId: "free_checkout",
+        nonce,
         amount: 0,
         currency: "INR",
         isFree: true,
@@ -96,19 +104,42 @@ const createOrder = asyncHandler(async (req, res) => {
 
 // Verify Razorpay payment signature and activate subscription.
 const verifyPayment = asyncHandler(async (req, res) => {
-  const { razorpay_order_id, razorpay_payment_id, razorpay_signature, couponCode } = req.body;
+  const { razorpay_order_id, razorpay_payment_id, razorpay_signature, nonce, couponCode } = req.body;
   if (!razorpay_order_id || !razorpay_payment_id || !razorpay_signature) {
     throw new AppError("Payment verification payload is incomplete", 400);
+  }
+
+  const user = await User.findById(req.user._id);
+  if (!user) {
+    throw new AppError("User not found", 404);
+  }
+
+  // Duplicate payment prevention
+  if (user.usedPaymentIds.includes(razorpay_payment_id)) {
+    throw new AppError("This payment has already been processed", 400);
   }
 
   let verifiedCoupon = null;
 
   if (razorpay_order_id === "free_checkout") {
-    const coupon = resolveCoupon(couponCode);
-    if (!coupon || coupon.amount !== 0) {
+    // Nonce-based verification for free checkout
+    if (!nonce || !user.checkoutNonce || user.checkoutNonce !== nonce) {
       throw new AppError("Invalid or expired free checkout session", 400);
     }
+    if (!user.checkoutNonceExpires || new Date() > new Date(user.checkoutNonceExpires)) {
+      user.checkoutNonce = null;
+      user.checkoutNonceExpires = undefined;
+      await user.save({ validateBeforeSave: false });
+      throw new AppError("Free checkout session has expired", 400);
+    }
+    const coupon = resolveCoupon(couponCode);
+    if (!coupon || coupon.amount !== 0) {
+      throw new AppError("Invalid free checkout session", 400);
+    }
     verifiedCoupon = coupon;
+    // Consume the nonce
+    user.checkoutNonce = null;
+    user.checkoutNonceExpires = undefined;
   } else {
     const body = razorpay_order_id + "|" + razorpay_payment_id;
 
@@ -128,10 +159,6 @@ const verifyPayment = asyncHandler(async (req, res) => {
     }
   }
 
-  const user = await User.findById(req.user._id);
-  if (!user) {
-    throw new AppError("User not found", 404);
-  }
   ensureSubscriptionShape(user);
   ensureUsageShape(user);
 
@@ -150,6 +177,8 @@ const verifyPayment = asyncHandler(async (req, res) => {
     expiresAt: new Date(Date.now() + durationDays * 24 * 60 * 60 * 1000),
     offerCode: verifiedCoupon ? verifiedCoupon.code : "",
   };
+
+  user.usedPaymentIds.push(razorpay_payment_id);
 
   await user.save();
 

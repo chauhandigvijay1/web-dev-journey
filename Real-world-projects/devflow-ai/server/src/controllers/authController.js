@@ -171,11 +171,12 @@ const forgotPassword = asyncHandler(async (req, res) => {
   const rawToken = crypto.randomBytes(32).toString("hex");
   const hashedToken = crypto.createHash("sha256").update(rawToken).digest("hex");
 
+  // Send email BEFORE saving token to DB — if email fails, no orphaned token
+  await sendPasswordResetEmail(normalizedEmail, rawToken);
+
   user.resetPasswordToken = hashedToken;
   user.resetPasswordExpires = new Date(Date.now() + 15 * 60 * 1000);
   await user.save({ validateBeforeSave: false });
-
-  await sendPasswordResetEmail(normalizedEmail, rawToken);
 
   res.json({
     success: true,
@@ -201,9 +202,9 @@ const resetPassword = asyncHandler(async (req, res) => {
   }
 
   user.password = password;
-  user.resetPasswordToken = "";
+  user.resetPasswordToken = undefined;
   user.resetPasswordExpires = undefined;
-  await user.save();
+  await user.save({ validateModifiedOnly: true });
 
   res.json({ success: true, message: "Password reset successful." });
 });
@@ -251,7 +252,10 @@ const updateSettings = asyncHandler(async (req, res) => {
 
   const user = await User.findByIdAndUpdate(
     req.user._id,
-    { $set: { settings: sanitized } },
+    { $set: Object.keys(sanitized).reduce((acc, key) => {
+      acc[`settings.${key}`] = sanitized[key];
+      return acc;
+    }, {}) },
     { new: true, runValidators: false }
   );
 

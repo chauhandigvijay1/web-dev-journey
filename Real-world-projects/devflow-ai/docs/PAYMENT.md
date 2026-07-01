@@ -9,7 +9,7 @@ DevFlow AI uses **Razorpay** as its payment gateway for Pro subscription upgrade
 | Plan | Price | AI Prompts/Day | Features |
 |---|---|---|---|
 | Free | ₹0 | 20 | Basic AI chat, Markdown, code highlighting |
-| Pro | ₹299/month (₹29,900) | Unlimited | All features + priority support |
+| Pro | ₹299/month (29,900 paise) | Unlimited | All features + priority support |
 
 ## Payment Flow
 
@@ -22,7 +22,7 @@ DevFlow AI uses **Razorpay** as its payment gateway for Pro subscription upgrade
      │ { couponCode?: "OFF50" }│                          │
      ├─────────────────────────>│                          │
      │                          │ Resolve coupon amount   │
-     │                          │ or use default ₹29,900  │
+     │                          │ or use default 29,900 paise  │
      │                          │                          │
      │                          │ POST /orders            │
      │                          ├─────────────────────────>│
@@ -63,8 +63,8 @@ DevFlow AI uses **Razorpay** as its payment gateway for Pro subscription upgrade
 
 | Code | Discount | Duration | Type |
 |---|---|---|---|
-| `FREETRIAL` | 100% (₹29,900 off) | 7 days | Public |
-| `OFF50` | 50% (₹14,950 off) | 30 days | Public |
+| `FREETRIAL` | 100% (29,900 paise off) | 7 days | Public |
+| `OFF50` | 50% (14,950 paise off) | 30 days | Public |
 
 ### Owner/Secret Coupon
 
@@ -88,7 +88,7 @@ The owner coupon bypasses all payment flow — the `create-order` endpoint retur
 |---|---|
 | `inactive` | Free tier, no subscription |
 | `active` | Pro subscription active and within validity period |
-| `expired` | Pro subscription has passed its `expiresAt` date |
+| `expired` | Pro subscription has passed its `expiresAt` date (derived state — the actual stored state becomes `plan: "free"`, `status: "inactive"`) |
 | `canceled` | User manually canceled Pro subscription |
 | `past_due` | (Not implemented — reserved for future recurring billing) |
 | `trialing` | (Not implemented — reserved for future free trial feature) |

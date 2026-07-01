@@ -1,4 +1,5 @@
 const Groq = require("groq-sdk");
+const mongoose = require("mongoose");
 const Chat = require("../models/Chat");
 const User = require("../models/User");
 const env = require("../config/env");
@@ -23,6 +24,9 @@ const sendPrompt = asyncHandler(async (req, res) => {
   const { chatId, prompt } = req.body;
 
   if (!prompt) throw new AppError("Prompt required", 400);
+  if (!mongoose.Types.ObjectId.isValid(chatId)) {
+    throw new AppError("Invalid chat ID", 400);
+  }
 
   const chat = await Chat.findOne({
     _id: chatId,
@@ -77,6 +81,19 @@ const sendPrompt = asyncHandler(async (req, res) => {
     chat.title = prompt.trim().slice(0, 60) || "New Chat";
   }
 
+  // SSE headers for incremental token delivery
+  res.setHeader("Content-Type", "text/event-stream");
+  res.setHeader("Cache-Control", "no-cache");
+  res.setHeader("Connection", "keep-alive");
+
+  // AbortController for timeout + client disconnect
+  const abortController = new AbortController();
+  const STREAM_TIMEOUT = 60000;
+
+  req.on("close", () => {
+    abortController.abort();
+  });
+
   // request streaming completion from Groq
   const stream = await client.chat.completions.create({
     model: env.aiModel,
@@ -87,27 +104,30 @@ const sendPrompt = asyncHandler(async (req, res) => {
     stream: true,
   });
 
-  // SSE headers for incremental token delivery
-  res.setHeader("Content-Type", "text/event-stream");
-  res.setHeader("Cache-Control", "no-cache");
-  res.setHeader("Connection", "keep-alive");
+  // Start timeout only after stream is successfully received
+  const timeoutId = setTimeout(() => abortController.abort(), STREAM_TIMEOUT);
 
   let finalText = "";
   try {
     for await (const chunk of stream) {
+      if (abortController.signal.aborted) break;
       const token = chunk?.choices?.[0]?.delta?.content || "";
       finalText += token;
 
-      res.write(`data: ${JSON.stringify({ token })}\n\n`);
+      if (!res.writableEnded) {
+        res.write(`data: ${JSON.stringify({ token })}\n\n`);
+      }
     }
 
-    if (!finalText.trim()) {
+    clearTimeout(timeoutId);
+
+    if (!finalText.trim() && !abortController.signal.aborted) {
       finalText = "⚠️ No response from AI";
       res.write(`data: ${JSON.stringify({ token: finalText })}\n\n`);
     }
 
     // persist full assistant reply once stream ends
-    chat.messages.push({ role: "assistant", content: finalText });
+    chat.messages.push({ role: "assistant", content: finalText || "" });
     user.usage.dailyCount += 1;
     await chat.save();
     await user.save();
@@ -117,6 +137,7 @@ const sendPrompt = asyncHandler(async (req, res) => {
       res.end();
     }
   } catch (error) {
+    clearTimeout(timeoutId);
     // When SSE has started, never throw to Express error middleware.
     if (res.headersSent) {
       if (!finalText.trim() && !res.writableEnded) {
@@ -142,27 +163,66 @@ const explainCode = asyncHandler(async (req, res) => {
 
   if (!code) throw new AppError("Code is required", 400);
 
-  const response = await client.chat.completions.create({
-    model: env.aiModel,
-    messages: [
-      {
-        role: "system",
-        content: "You are a senior developer who explains code simply.",
-      },
-      {
-        role: "user",
-        content: `Explain this ${language || "code"}:\n\n${code}`,
-      },
-    ],
-  });
+  // Usage tracking for explainCode (same pool as prompt)
+  const user = await User.findById(req.user._id);
+  if (!user) throw new AppError("User not found", 401);
 
-  const explanation =
-    response?.choices?.[0]?.message?.content || "No explanation";
+  if (!user.usage || typeof user.usage !== "object") {
+    user.usage = { dailyCount: 0, lastReset: new Date() };
+  }
 
-  res.json({
-    success: true,
-    data: { explanation },
-  });
+  const now = new Date();
+  if (!isSameUtcDate(user.usage.lastReset, now)) {
+    user.usage.dailyCount = 0;
+    user.usage.lastReset = now;
+  }
+
+  const plan = user.subscription?.plan || "free";
+  const DAILY_LIMIT = 20;
+  if (plan === "free" && user.usage.dailyCount >= DAILY_LIMIT) {
+    await user.save({ validateBeforeSave: false });
+    throw new AppError("Daily limit reached. Upgrade to Pro.", 429);
+  }
+
+  // AbortController with timeout for non-streaming call
+  const abortController = new AbortController();
+  const EXPLAIN_TIMEOUT = 15000;
+  const timeoutId = setTimeout(() => abortController.abort(), EXPLAIN_TIMEOUT);
+
+  try {
+    const response = await client.chat.completions.create({
+      model: env.aiModel,
+      messages: [
+        {
+          role: "system",
+          content: "You are a senior developer who explains code simply.",
+        },
+        {
+          role: "user",
+          content: `Explain this ${language || "code"}:\n\n${code}`,
+        },
+      ],
+    });
+
+    clearTimeout(timeoutId);
+
+    const explanation =
+      response?.choices?.[0]?.message?.content || "No explanation";
+
+    user.usage.dailyCount += 1;
+    await user.save({ validateBeforeSave: false });
+
+    res.json({
+      success: true,
+      data: { explanation },
+    });
+  } catch (error) {
+    clearTimeout(timeoutId);
+    if (error.name === "AbortError") {
+      throw new AppError("Code explanation timed out. Please try again.", 504);
+    }
+    throw error;
+  }
 });
 
 module.exports = { sendPrompt, explainCode };

@@ -1,28 +1,40 @@
-# DevFlow AI 🚀
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="./client/public/logo.svg">
+  <img alt="DevFlow AI" src="./client/public/logo.svg" width="64" height="64" align="left" style="margin-right: 16px;">
+</picture>
 
-A premium SaaS platform designed for modern developer workflows. DevFlow AI provides a robust, real-time AI chat system with account personalization, subscription management, and usage limits. Built with a focus on deep aesthetics, accessibility, and high performance.
+# DevFlow AI
 
-![Next.js](https://img.shields.io/badge/Next.js-14-black?style=for-the-badge&logo=next.js)
-![Node.js](https://img.shields.io/badge/Node.js-Backend-339933?style=for-the-badge&logo=node.js&logoColor=white)
-![MongoDB](https://img.shields.io/badge/MongoDB-Atlas-47A248?style=for-the-badge&logo=mongodb&logoColor=white)
-![Netlify](https://img.shields.io/badge/Netlify-Deployed-00C7B7?style=for-the-badge&logo=netlify&logoColor=white)
-![Render](https://img.shields.io/badge/Render-Backend-5A67D8?style=for-the-badge&logo=render&logoColor=white)
+**AI-Powered Development Assistant** — A premium SaaS platform providing real-time AI chat, code explanations, and developer workflow automation.
+
+<br clear="left">
+
+<p>
+  <img src="https://img.shields.io/badge/Next.js_16-black?style=flat-square&logo=next.js" alt="Next.js 16">
+  <img src="https://img.shields.io/badge/Express_5-339933?style=flat-square&logo=express" alt="Express 5">
+  <img src="https://img.shields.io/badge/MongoDB_Atlas-47A248?style=flat-square&logo=mongodb" alt="MongoDB Atlas">
+  <img src="https://img.shields.io/badge/Groq_API-22d3ee?style=flat-square" alt="Groq API">
+  <img src="https://img.shields.io/badge/Razorpay-02042B?style=flat-square&logo=razorpay" alt="Razorpay">
+  <img src="https://img.shields.io/badge/Netlify-00C7B7?style=flat-square&logo=netlify" alt="Netlify">
+  <img src="https://img.shields.io/badge/Render-5A67D8?style=flat-square&logo=render" alt="Render">
+  <img src="https://img.shields.io/badge/Resend-000000?style=flat-square&logo=resend" alt="Resend">
+</p>
 
 ---
 
-## 🌐 Live Demo & Endpoints
-- **Frontend (Netlify):** [https://devflow-ai-client.netlify.app](https://devflow-ai-client.netlify.app)
-- **Backend API (Render):** [https://devflow-api-ubnd.onrender.com](https://devflow-api-ubnd.onrender.com)
+## Live Demo
 
----
+| Service | URL |
+|---|---|
+| **Frontend** | [https://devflow-ai-client.netlify.app](https://devflow-ai-client.netlify.app) |
+| **Backend API** | [https://devflow-api-ubnd.onrender.com](https://devflow-api-ubnd.onrender.com) |
+| **Health Check** | [https://devflow-api-ubnd.onrender.com/api/health](https://devflow-api-ubnd.onrender.com/api/health) |
 
-## 🎬 Demo Video
-Watch the complete project walkthrough to see DevFlow AI in action:
-[**View Demo Video**](https://drive.google.com/file/d/1i_7GaBoV9wYduITWSZtkO-jt4Ic7SoVD/view?usp=sharing)
+### Demo Video
 
----
+[**View Demo Walkthrough**](https://drive.google.com/file/d/1i_7GaBoV9wYduITWSZtkO-jt4Ic7SoVD/view?usp=sharing)
 
-## 📸 Screenshots
+### Screenshots
 
 <details>
 <summary>Authentication (Click to expand)</summary>
@@ -37,155 +49,272 @@ Watch the complete project walkthrough to see DevFlow AI in action:
 ![Chat](./Screenshots/Chat.png)
 ![Billing](./Screenshots/Billing.png)
 ![Settings](./Screenshots/Settings.png)
+![Account](./Screenshots/Account.png)
 </details>
 
 ---
 
-## ⚡ Features
+## Features
 
-### 🔐 Secure Authentication & Privacy
-- JWT-based authentication flow with secure password hashing.
-- Complete lifecycle: Signup, Login, Forgot Password, and Reset Password with strict token expirations.
-- **Account Deletion:** Users can permanently soft-delete their accounts via a secure double-confirmation dialog, instantly revoking all access while preserving essential analytics.
-- **Disposable Email Prevention:** Built-in blocklist to prevent registrations from fake/temporary email providers.
-- Unique username validation and session persistence.
+### AI Chat
+- Real-time streaming responses via Groq API (Llama 3.1 8B)
+- Markdown rendering with syntax-highlighted code blocks (Prism/oneDark)
+- Persistent chat history with auto-generated titles
+- Server-Sent Events (SSE) for token-by-token streaming
+- Code explanation endpoint (non-streaming, single-turn)
 
-### 🤖 AI Chat System
-- Real-time conversational AI powered by Groq API.
-- Dynamic markdown parsing with syntax-highlighted code blocks.
-- Persistent chat history with a premium, accessible UI (inspired by Linear/Vercel).
-- Auto-scroll and responsive touch-targets for mobile.
+### Authentication & Security
+- JWT-based stateless auth (7-day expiry)
+- Password hashing with bcrypt (12 rounds)
+- Disposable email domain blocklist
+- Strong password policy (8+ chars, upper + lower + digit)
+- Soft account deletion with email/username release
+- Password reset via Resend email API
 
-### 📊 Usage Limits & Billing
-- Granular free-tier limits with backend validation to prevent abuse.
-- Razorpay integration for seamless upgrades to the Pro plan.
-- **Subscription Management:** Users can cancel their Pro subscription instantly via the settings dashboard, immediately reverting to the free tier limits safely.
-- Real-time billing state management synchronized with the backend.
+### Billing & Subscriptions
+- Free tier: 20 prompts/day
+- Pro tier: Unlimited prompts (₹299/month)
+- Razorpay payment gateway with HMAC-SHA256 signature verification
+- Coupon system (FREETRIAL, OFF50, owner coupon)
+- Instant subscription cancellation
 
-### ⚙️ Personalization
-- Comprehensive settings panel for region, language, and timezone.
-- Hydration-safe Dark/Light mode toggle powered by `next-themes`.
-- High-contrast UI rendering optimized for accessibility.
-
----
-
-## 🏛️ Architecture Overview
-
-DevFlow AI uses a decoupled client-server architecture:
-
-1. **Client (Next.js App Router):** Handles all presentation logic, routing, and React state. Communicates with the backend exclusively via REST APIs. Uses Tailwind CSS for utility-first, responsive design.
-2. **Server (Node/Express):** Acts as the central source of truth. Manages the database connection (Mongoose/MongoDB Atlas), processes Razorpay webhooks, and proxies AI requests to Groq securely to hide API keys.
-3. **Database (MongoDB):** Stores user profiles, hashed passwords, chat histories, and usage metrics.
+### User Experience
+- Dark/light mode with system preference detection
+- Resizable, collapsible sidebar
+- Profile image upload with crop + compression (Cloudinary)
+- User preferences synced to server (persists across devices)
+- Responsive design (mobile, tablet, desktop)
+- Entry animations on messages and interactions
 
 ---
 
-## 🛠️ Tech Stack
+## Tech Stack
 
-- **Frontend:** Next.js 14, React, Tailwind CSS, Lucide Icons, Redux Toolkit
-- **Backend:** Node.js, Express.js, MongoDB (Mongoose)
-- **Integrations:** Groq API (AI Chat), Razorpay (Payments), Cloudinary (Image Uploads)
-- **Hosting:** Netlify (Frontend), Render (Backend)
-
----
-
-## 📚 Documentation
-
-| Document | Description |
+| Layer | Technology |
 |---|---|
-| [API Reference](./docs/API.md) | Complete API endpoint documentation with request/response examples |
-| [Architecture](./docs/ARCHITECTURE.md) | System architecture, data flow diagrams, and design decisions |
-| [Database Schema](./docs/DATABASE.md) | MongoDB schema design, collections, indexes, and relationships |
-| [AI Integration](./docs/AI.md) | Groq AI integration, streaming protocol, and usage limits |
-| [Authentication](./docs/AUTHENTICATION.md) | JWT auth flow, registration, password reset, and security |
-| [Deployment Guide](./docs/DEPLOYMENT.md) | Production deployment on Netlify + Render with troubleshooting |
-| [Payment & Billing](./docs/PAYMENT.md) | Razorpay integration, coupon system, and subscription management |
-| [Environment Variables](./docs/ENVIRONMENT.md) | All configuration variables for server and client |
+| **Frontend** | Next.js 16 (App Router), React 19, Tailwind CSS v4, Redux Toolkit, shadcn/ui |
+| **Backend** | Node.js, Express 5, Mongoose 8, JWT, bcryptjs |
+| **Database** | MongoDB Atlas |
+| **AI** | Groq Cloud (Llama 3.1 8B) |
+| **Payments** | Razorpay |
+| **Email** | Resend |
+| **Media** | Cloudinary |
+| **Hosting** | Netlify (frontend), Render (backend) |
 
 ---
 
-## 🚀 Local Development Setup
+## Project Structure
 
-### 1. Clone Repository
+```
+devflow-ai/
+├── server/                     # Express API server
+│   ├── src/
+│   │   ├── config/             # DB connection, env loader
+│   │   ├── controllers/        # Route handlers (auth, chat, AI, payment, upload)
+│   │   ├── middleware/         # Auth, error handling, validation runner
+│   │   ├── models/             # Mongoose schemas (User, Chat, Subscription)
+│   │   ├── routes/             # Express routers
+│   │   ├── utils/              # AppError, asyncHandler, JWT sign, email
+│   │   └── __tests__/          # Jest unit tests
+│   ├── .env.example            # Environment template
+│   ├── .eslintrc.json          # ESLint config
+│   ├── .prettierrc             # Prettier config
+│   └── jest.config.js          # Test runner config
+├── client/                     # Next.js frontend
+│   ├── app/                    # App router pages
+│   │   ├── login/              # Login page
+│   │   ├── signup/             # Registration
+│   │   ├── dashboard/          # Main dashboard
+│   │   ├── chat/[id]/          # Chat session (SSR-disabled)
+│   │   ├── settings/           # User preferences
+│   │   ├── settings/billing/   # Subscription management
+│   │   ├── account/            # Profile editing
+│   │   ├── pricing/            # Plan comparison
+│   │   ├── forgot-password/    # Password reset request
+│   │   ├── reset-password/     # Password reset confirmation
+│   │   ├── layout.jsx          # Root layout with SEO metadata
+│   │   ├── loading.jsx         # App-level loading state
+│   │   ├── error.jsx           # Error boundary page
+│   │   └── not-found.jsx       # Custom 404 page
+│   ├── components/             # Reusable UI components
+│   │   ├── ui/                 # Button, Input, Textarea (shadcn)
+│   │   ├── layout/             # Dashboard shell, sidebar
+│   │   ├── chat/               # Chat window with streaming
+│   │   └── account/            # Avatar cropper
+│   ├── lib/                    # Axios client, utils, image processing
+│   ├── store/                  # Redux slices (auth, chat)
+│   └── public/                 # Static assets (favicon, icons, OG image)
+├── docs/                       # Comprehensive documentation
+└── Screenshots/                # App screenshots
+```
+
+---
+
+## Quick Start
+
+### Prerequisites
+- Node.js 18+
+- MongoDB Atlas cluster
+- Groq Cloud API key
+- Razorpay test/live keys
+- Cloudinary account
+- Resend API key (for password reset emails)
+
+### 1. Clone and Install
+
 ```bash
 git clone https://github.com/chauhandigvijay1/web-dev-journey.git
 cd web-dev-journey/Real-world-projects/devflow-ai
+
+# Server
+cd server
+copy .env.example .env
+npm.cmd install
+
+# Client
+cd ../client
+copy .env.local.example .env.local
+npm.cmd install
 ```
 
-### 2. Environment Variables
-Create `.env` inside the `server/` directory:
+### 2. Configure Environment
+
+Edit `server/.env` with your credentials (see `server/.env.example` for all options):
+
 ```env
-PORT=5000
-MONGO_URI=your_mongodb_connection_string
-JWT_SECRET=your_secret_key
+MONGO_URI=mongodb+srv://<user>:<pass>@cluster.xxxxx.mongodb.net/devflow?retryWrites=true&w=majority
+JWT_SECRET=<your_strong_random_secret>
+JWT_EXPIRES_IN=7d
 CLIENT_URL=http://localhost:3000
-
-RAZORPAY_KEY_ID=your_key
-RAZORPAY_KEY_SECRET=your_secret
-
-GROQ_API_KEY=your_groq_key
+CLIENT_URLS=http://localhost:3000,http://localhost:5173
+GROQ_API_KEY=gsk_your_groq_key
+AI_MODEL=llama3-8b-8192
+RAZORPAY_KEY_ID=rzp_test_xxxxxxxxxxxx
+RAZORPAY_KEY_SECRET=xxxxxxxxxxxxxxxxxxxxxxxx
+CLOUDINARY_CLOUD_NAME=your_cloud_name
+CLOUDINARY_API_KEY=123456789012345
+CLOUDINARY_API_SECRET=xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+RESEND_API_KEY=re_your_resend_key
+EMAIL_FROM=noreply@yourdomain.com
+OWNER_COUPON=YOUR_SECRET_COUPON
+OWNER_COUPON_DURATION=30
 ```
 
-Create `.env.local` inside the `client/` directory:
+Edit `client/.env.local`:
+
 ```env
 NEXT_PUBLIC_API_URL=http://localhost:5000
+NEXT_PUBLIC_RAZORPAY_KEY_ID=rzp_test_xxxxxxxxxxxx
 ```
 
-### 3. Install & Run
-**Backend:**
+### 3. Run Development Servers
+
 ```bash
+# Terminal 1 — Backend
 cd server
-npm install
-npm run dev
-```
+npm.cmd run dev        # http://localhost:5000
 
-**Frontend:**
-```bash
+# Terminal 2 — Frontend
 cd client
-npm install
-npm run dev
+npm.cmd run dev        # http://localhost:3000
 ```
-Open `http://localhost:3000` to view the app.
 
-### 4. Run Tests, Lint & Format
+### 4. Run Tests & Lint
+
 ```bash
 # Server
 cd server
-npm test          # Run Jest unit tests
-npm run lint      # ESLint check
-npm run format    # Prettier auto-format
+npm.cmd test           # Jest unit tests
+npm.cmd run lint       # ESLint
+npm.cmd run format     # Prettier
 
 # Client
 cd client
-npm run lint:strict   # ESLint check
-npm run format        # Prettier auto-format
+npm.cmd run lint:strict
+npm.cmd run format
 ```
 
 ---
 
-## 🔧 Deployment Details
+## Documentation
 
-### Frontend (Netlify)
-- Automatically deployed from the `main` branch.
-- Environment variables configured natively in the Netlify dashboard (`NEXT_PUBLIC_API_URL`).
+| Document | Description |
+|---|---|
+| [API Reference](./docs/API.md) | Complete REST API documentation with request/response schemas |
+| [Architecture](./docs/ARCHITECTURE.md) | System architecture, data flow diagrams, hosting topology |
+| [Database Schema](./docs/DATABASE.md) | MongoDB collections, indexes, embedded documents |
+| [AI Integration](./docs/AI.md) | Groq streaming, SSE protocol, usage limits |
+| [Authentication](./docs/AUTHENTICATION.md) | JWT flow, registration, password reset, security |
+| [Payment & Billing](./docs/PAYMENT.md) | Razorpay integration, coupons, subscription management |
+| [Deployment Guide](./docs/DEPLOYMENT.md) | Netlify + Render setup, environment variables |
+| [Environment Variables](./docs/ENVIRONMENT.md) | Full env reference with defaults and examples |
+
+---
+
+## Deployment
 
 ### Backend (Render)
-- Configured as a Node.js Web Service.
-- Automatically spins down during inactivity (free tier) and spins up on incoming requests. Ensure `CLIENT_URL` matches the deployed Netlify URL to prevent CORS issues.
+- Create a Node.js Web Service
+- Build command: `cd server && npm.cmd install`
+- Start command: `cd server && npm.cmd start`
+- Set all environment variables in the Render dashboard
+
+### Frontend (Netlify)
+- Connect your GitHub repository
+- Base directory: `client/`
+- Build command: `npm.cmd run build`
+- Publish directory: `.next`
+- Set `NEXT_PUBLIC_API_URL` and `NEXT_PUBLIC_RAZORPAY_KEY_ID` in Netlify dashboard
 
 ---
 
-## 🐛 Common Troubleshooting
-- **CORS Errors:** Verify that the `CLIENT_URL` in the backend `.env` exactly matches the origin of the frontend.
-- **500 Errors:** Check MongoDB IP Whitelist (ensure `0.0.0.0/0` is permitted) and verify your `MONGO_URI`.
+## Scripts Reference
+
+### Server
+
+| Script | Command | Description |
+|---|---|---|
+| `dev` | `nodemon src/server.js` | Dev server with hot reload |
+| `start` | `node src/server.js` | Production server |
+| `test` | `jest` | Run unit tests |
+| `lint` | `eslint src/` | ESLint check |
+| `format` | `prettier --write "src/**/*.js"` | Auto-format |
+
+### Client
+
+| Script | Command | Description |
+|---|---|---|
+| `dev` | `next dev --webpack` | Next.js dev server |
+| `build` | `next build` | Production build |
+| `start` | `next start` | Production server |
+| `lint:strict` | `eslint app/ components/ lib/ store/` | ESLint check |
+| `format` | `prettier --write ...` | Auto-format |
 
 ---
 
-## 👨‍💻 Author
+## Troubleshooting
+
+| Issue | Solution |
+|---|---|
+| **CORS errors** | Ensure `CLIENT_URL` in backend `.env` matches the frontend origin exactly |
+| **MongoDB connection fails** | Add `0.0.0.0/0` to Atlas IP whitelist |
+| **Razorpay checkout fails** | Verify `NEXT_PUBLIC_RAZORPAY_KEY_ID` is the **Key ID** (not the secret) |
+| **500 errors in production** | Check `NODE_ENV=production` is set and all required env vars are present |
+| **Render cold starts** | Free tier spins down after 15min idle — first request takes 5-10s |
+
+---
+
+## Author
+
 **Digvijay Kumar Singh**
-- LinkedIn: [https://www.linkedin.com/in/digvijaykumarsingh](https://www.linkedin.com/in/digvijaykumarsingh)
-- GitHub: [https://github.com/chauhandigvijay1](https://github.com/chauhandigvijay1)
+- [GitHub](https://github.com/chauhandigvijay1)
+- [LinkedIn](https://www.linkedin.com/in/digvijaykumarsingh)
 - Email: [chauhandigvijay669@gmail.com](mailto:chauhandigvijay669@gmail.com)
 
 ---
 
-*If you found this project helpful, consider giving it a star ⭐*
+<p align="center">
+  <sub>Built with Next.js, Express, MongoDB, and Groq AI</sub>
+  <br>
+  <sub>DevFlow AI — © 2025</sub>
+</p>

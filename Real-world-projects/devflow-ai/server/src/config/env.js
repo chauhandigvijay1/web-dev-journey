@@ -29,7 +29,14 @@ for (const key of requiredVars) {
 
 module.exports = {
   nodeEnv: process.env.NODE_ENV || "development",
-  port: Number(process.env.PORT || 5000),
+  port: (() => {
+    const raw = process.env.PORT || "5000";
+    const num = Number(raw);
+    if (!Number.isFinite(num) || num < 1 || num > 65535) {
+      throw new Error(`Invalid PORT: "${raw}" — must be a number between 1 and 65535`);
+    }
+    return num;
+  })(),
 
   mongoUri: process.env.MONGO_URI,
   jwtSecret: process.env.JWT_SECRET,
@@ -57,4 +64,8 @@ module.exports = {
   // Resend (email)
   resendApiKey: process.env.RESEND_API_KEY || "",
   emailFrom: process.env.EMAIL_FROM || "",
+
+  // Owner coupon (optional — no fallback for security)
+  ownerCoupon: process.env.OWNER_COUPON || "",
+  ownerCouponDuration: parseInt(process.env.OWNER_COUPON_DURATION, 10) || 30,
 };

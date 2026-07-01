@@ -1,16 +1,17 @@
 require("./config/env");
+const mongoose = require("mongoose");
 const connectDb = require("./config/db");
 const app = require("./app");
+const env = require("./config/env");
 
-const PORT = process.env.PORT || 5000;
 let server;
 
 const startServer = async () => {
   try {
     await connectDb();
 
-    server = app.listen(PORT, () => {
-      console.log(`Server running on port ${PORT}`);
+    server = app.listen(env.port, () => {
+      console.log(`Server running on port ${env.port}`);
     });
   } catch (error) {
     console.error("Failed to start server:", error);
@@ -21,14 +22,24 @@ const startServer = async () => {
 const shutdown = (signal) => {
   console.log(`${signal} received. Shutting down gracefully...`);
 
-  if (!server) return process.exit(0);
+  if (!server) {
+    mongoose.disconnect().catch(() => {}).finally(() => process.exit(0));
+    return;
+  }
 
-  server.close(() => {
+  server.closeIdleConnections?.();
+
+  server.close(async () => {
     console.log("Server closed");
+    await mongoose.disconnect().catch(() => {});
+    console.log("MongoDB disconnected");
     process.exit(0);
   });
 
-  setTimeout(() => process.exit(1), 10000).unref();
+  setTimeout(() => {
+    console.error("Forced shutdown after timeout");
+    mongoose.disconnect().catch(() => {}).finally(() => process.exit(1));
+  }, 10000).unref();
 };
 
 process.on("SIGINT", () => shutdown("SIGINT"));
@@ -36,12 +47,12 @@ process.on("SIGTERM", () => shutdown("SIGTERM"));
 
 process.on("unhandledRejection", (reason) => {
   console.error("Unhandled Promise Rejection:", reason);
-  process.exit(1);
+  shutdown("unhandledRejection");
 });
 
 process.on("uncaughtException", (error) => {
   console.error("Uncaught Exception:", error);
-  process.exit(1);
+  shutdown("uncaughtException");
 });
 
 startServer();

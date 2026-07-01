@@ -12,7 +12,16 @@ const protect = asyncHandler(async (req, _res, next) => {
     throw new AppError("Unauthorized", 401);
   }
 
-  const decoded = jwt.verify(token, env.jwtSecret);
+  let decoded;
+  try {
+    decoded = jwt.verify(token, env.jwtSecret, { algorithms: ["HS256"] });
+  } catch (err) {
+    if (err.name === "TokenExpiredError") {
+      throw new AppError("Token expired. Please log in again.", 401);
+    }
+    throw new AppError("Invalid token. Please log in again.", 401);
+  }
+
   const user = await User.findById(decoded.id);
 
   if (!user || user.isDeleted) {

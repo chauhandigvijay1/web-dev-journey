@@ -25,6 +25,7 @@ const authSlice = createSlice({
     },
     hydrateAuth: (state, action) => {
       state.token = action.payload?.token || null;
+      state.user = action.payload?.user || null;
     },
   },
 });

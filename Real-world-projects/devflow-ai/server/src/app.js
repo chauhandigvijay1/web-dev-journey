@@ -39,7 +39,18 @@ app.use(cors(corsOptions));
 app.use(helmet());
 app.use(morgan("dev"));
 app.use(cookieParser());
+
+// Global rate limit
 app.use(rateLimit({ windowMs: 15 * 60 * 1000, limit: 300 }));
+
+// Stricter rate limiters for sensitive endpoints
+const authLimiter = rateLimit({ windowMs: 15 * 60 * 1000, limit: 20, skipSuccessfulRequests: false });
+const aiLimiter = rateLimit({ windowMs: 60 * 1000, limit: 30 });
+
+app.use("/api/auth/login", authLimiter);
+app.use("/api/auth/forgot-password", authLimiter);
+app.use("/api/ai/prompt", aiLimiter);
+app.use("/api/ai/explain", aiLimiter);
 
 app.use(express.json({ limit: "1mb" }));
 
@@ -51,9 +62,7 @@ app.use("/api/auth", authRoutes);
 app.use("/api/chats", chatRoutes);
 app.use("/api/ai", aiRoutes);
 app.use("/api/payments", paymentRoutes);
-app.use("/api/payment", paymentRoutes);
 app.use("/api/uploads", uploadRoutes);
-app.use("/api/upload", uploadRoutes);
 
 app.use(notFound);
 app.use(errorHandler);

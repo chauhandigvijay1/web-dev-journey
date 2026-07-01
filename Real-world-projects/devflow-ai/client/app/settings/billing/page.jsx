@@ -83,7 +83,7 @@ export default function BillingPage() {
   });
 
   const fetchBilling = useCallback(async () => {
-    const { data } = await withTimeout(api.get("/api/payment/status"));
+    const { data } = await withTimeout(api.get("/api/payments/status"));
     const payload = data?.data || {};
     setBilling({
       plan: payload.plan || "free",
@@ -145,17 +145,18 @@ export default function BillingPage() {
 
     try {
       const { data } = await withTimeout(
-        api.post("/api/payment/create-order", {
+        api.post("/api/payments/create-order", {
           couponCode: appliedCoupon?.code || "",
         })
       );
 
       if (data?.data?.isFree) {
         await withTimeout(
-          api.post("/api/payment/verify", {
+          api.post("/api/payments/verify", {
             razorpay_order_id: data.data.orderId,
-            razorpay_payment_id: "free",
-            razorpay_signature: "free",
+            razorpay_payment_id: "free_payment",
+            razorpay_signature: "free_signature",
+            nonce: data.data.nonce,
             couponCode: appliedCoupon?.code || "",
           })
         );
@@ -188,7 +189,7 @@ export default function BillingPage() {
         order_id: order.orderId,
         handler: async (response) => {
           try {
-            await withTimeout(api.post("/api/payment/verify", {
+            await withTimeout(api.post("/api/payments/verify", {
               razorpay_order_id: response.razorpay_order_id,
               razorpay_payment_id: response.razorpay_payment_id,
               razorpay_signature: response.razorpay_signature,
@@ -248,7 +249,7 @@ export default function BillingPage() {
     setError("");
     setSuccess("");
     try {
-      await api.post("/api/payment/cancel");
+      await api.post("/api/payments/cancel");
       await fetchBilling();
       setSuccess("Subscription cancelled successfully.");
       setShowCancelPrompt(false);
@@ -279,7 +280,7 @@ export default function BillingPage() {
     setSuccess("");
     try {
       const { data } = await withTimeout(
-        api.post("/api/payment/apply-coupon", {
+        api.post("/api/payments/apply-coupon", {
           couponCode: normalized,
         })
       );

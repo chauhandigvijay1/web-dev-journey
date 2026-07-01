@@ -10,6 +10,10 @@ async function connectDb() {
 
   const conn = await mongoose.connect(env.mongoUri, {
     autoIndex: env.nodeEnv !== "production",
+    maxPoolSize: 10,
+    minPoolSize: 2,
+    serverSelectionTimeoutMS: 5000,
+    socketTimeoutMS: 45000,
   });
 
   isConnected = conn.connection.readyState === 1;

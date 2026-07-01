@@ -27,8 +27,8 @@
 
 - **Provider:** Render
 - **Type:** Node.js Web Service
-- **Build Command:** `cd server && npm install`
-- **Start Command:** `cd server && npm start`
+- **Build Command:** `cd server && npm.cmd install`
+- **Start Command:** `cd server && npm.cmd start`
 
 ### 2. Environment Variables
 
@@ -70,7 +70,7 @@ Connect your GitHub repository to Netlify. The `netlify.toml` file is already co
 
 ```toml
 [build]
-  command = "npm run build"
+  command = "npm.cmd run build"
   publish = ".next"
 
 [[plugins]]
@@ -89,9 +89,9 @@ Configure in the Netlify dashboard:
 ### 3. Build Settings
 
 - **Base directory:** `client/`
-- **Build command:** `npm run build`
+- **Build command:** `npm.cmd run build`
 - **Publish directory:** `.next`
-- **Node version:** 20.x or later (Netlify auto-detects from `.node-version` or uses latest)
+- **Node version:** Set to **20** in Netlify's deploy settings (Dashboard → Site settings → Build & deploy → Environment → Node version)
 
 ### 4. Environment Variable Sync
 
@@ -105,18 +105,18 @@ Ensure the Netlify environment `NEXT_PUBLIC_RAZORPAY_KEY_ID` contains your **Raz
 
 ```bash
 cd server
-cp .env.example .env   # or create .env from scratch
-npm install
-npm run dev            # starts on port 5000 with nodemon
+copy .env.example .env
+npm.cmd install
+npm.cmd run dev            # starts on port 5000 with nodemon
 ```
 
 ### Frontend
 
 ```bash
 cd client
-cp .env.local.example .env.local
-npm install
-npm run dev            # starts on port 3000 with Next.js dev server (webpack)
+copy .env.local.example .env.local
+npm.cmd install
+npm.cmd run dev            # starts on port 3000 with Next.js dev server (webpack)
 ```
 
 ### Required Local Environment
@@ -177,7 +177,7 @@ Netlify automatically deploys the `main` branch. Render requires manual configur
 - Check that the backend `RAZORPAY_KEY_ID` and `RAZORPAY_KEY_SECRET` match
 
 ### Build Failures
-- Run `npm install` fresh (delete `node_modules` and `package-lock.json`)
+- Run `npm.cmd install` fresh (delete `node_modules` and `package-lock.json`)
 - Verify Node.js version >= 18 (Next.js 16 requires Node 18+)
 - Check that all environment variables are set in the deployment dashboard
 

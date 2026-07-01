@@ -1,6 +1,5 @@
 import "./globals.css";
 import Providers from "@/components/providers";
-import Script from "next/script";
 import { GeistSans } from "geist/font/sans";
 
 export const metadata = {
@@ -29,12 +28,21 @@ export const metadata = {
     siteName: "DevFlow AI",
     locale: "en_US",
     type: "website",
+    images: [
+      {
+        url: "/og-image.svg",
+        width: 1200,
+        height: 630,
+        alt: "DevFlow AI — AI-Powered Development Assistant",
+      },
+    ],
   },
   twitter: {
     card: "summary_large_image",
     title: "DevFlow AI — AI-Powered Development Assistant",
     description:
       "Premium AI chat platform for modern developer workflows with real-time coding assistance.",
+    images: ["/og-image.svg"],
   },
   icons: {
     icon: "/favicon.svg",
@@ -68,7 +76,6 @@ export default function RootLayout({ children }) {
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={`${GeistSans.className} antialiased`}>
-        <Script src="https://checkout.razorpay.com/v1/checkout.js" strategy="afterInteractive" />
         <Providers>{children}</Providers>
       </body>
     </html>

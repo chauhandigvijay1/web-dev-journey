@@ -10,7 +10,9 @@ DevFlow AI is a decoupled, full-stack SaaS application that provides an AI-power
 │                                                                 │
 │  ┌──────────┐  ┌──────────┐  ┌──────────┐  ┌───────────────┐   │
 │  │  Login   │  │Dashboard │  │  Chat    │  │   Settings    │   │
-│  │  Signup  │  │          │  │  Window  │  │   Billing     │   │
+│  │  Signup  │  │ Loading  │  │  Window  │  │   Billing     │   │
+│  │  Error   │  │ (skeleton)│ │          │  │               │   │
+│  │  404     │  │          │  │          │  │               │   │
 │  └──────────┘  └──────────┘  └──────────┘  └───────────────┘   │
 │         │              │            │               │           │
 │         └──────────────┴────────────┴───────────────┘           │
@@ -75,7 +77,7 @@ The project intentionally uses plain JavaScript (CommonJS on the server, ES Modu
 Messages are embedded as a subdocument array within the Chat model rather than stored in a separate collection. This decision optimizes for the primary access pattern (loading a full chat conversation) at the cost of the 16 MB MongoDB document size limit — acceptable for text-only chat histories.
 
 ### 3. Server-Sent Events (SSE) for AI Streaming
-The AI prompt endpoint uses SSE instead of WebSockets or polling. SSE is simpler to implement, works over standard HTTP, and is sufficient for unidirectional server-to-client streaming. The client uses the native `EventSource` API or manual `fetch` with `ReadableStream` to consume the stream.
+The AI prompt endpoint uses SSE instead of WebSockets or polling. SSE is simpler to implement, works over standard HTTP, and is sufficient for unidirectional server-to-client streaming. The client uses `fetch()` with a manual reader (no `EventSource` abstraction) to consume the stream.
 
 ### 4. JWT-Based Sessions
 No server-side session store. Authentication state is entirely contained in a JWT stored in `localStorage`. This eliminates the need for Redis or database-backed sessions but makes token revocation impossible without a blocklist.

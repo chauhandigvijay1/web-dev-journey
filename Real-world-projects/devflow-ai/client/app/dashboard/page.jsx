@@ -17,10 +17,21 @@ const templates = [
 export default function DashboardPage() {
   const router = useRouter();
   const [chats, setChats] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
   useEffect(() => {
-    api.get("/api/chats").then((res) => setChats(res.data.data)).catch(() => {});
+    const abort = new AbortController();
+    api.get("/api/chats", { signal: abort.signal }).then((res) => {
+      setChats(res.data.data || []);
+    }).catch((err) => {
+      if (err?.name !== "CanceledError") {
+        setError("Unable to load chats. Check your connection.");
+      }
+    }).finally(() => {
+      setLoading(false);
+    });
+    return () => abort.abort();
   }, []);
 
   const createChat = async (template = "") => {
@@ -63,13 +74,26 @@ export default function DashboardPage() {
           </section>
           <section>
             <h3 className="mb-2 text-lg font-medium">Recent Chats</h3>
-            <div className="space-y-2">
-              {chats.map((chat) => (
-                <Link key={chat._id} className="block rounded border border-zinc-200 p-3 dark:border-zinc-800" href={`/chat/${chat._id}`}>
-                  {chat.title}
-                </Link>
-              ))}
-            </div>
+            {loading ? (
+              <div className="space-y-2">
+                {[1, 2, 3].map((i) => (
+                  <div key={i} className="h-12 animate-pulse rounded border border-zinc-200 bg-zinc-100 dark:border-zinc-800 dark:bg-zinc-900" />
+                ))}
+              </div>
+            ) : chats.length === 0 ? (
+              <div className="rounded-lg border border-dashed border-zinc-300 p-8 text-center dark:border-zinc-700">
+                <p className="text-sm text-zinc-500 dark:text-zinc-400">No chats yet</p>
+                <p className="mt-1 text-xs text-zinc-400 dark:text-zinc-500">Start a new chat to see it here.</p>
+              </div>
+            ) : (
+              <div className="space-y-2">
+                {chats.map((chat) => (
+                  <Link key={chat._id} className="block rounded border border-zinc-200 p-3 transition hover:bg-zinc-50 dark:border-zinc-800 dark:hover:bg-zinc-900" href={`/chat/${chat._id}`}>
+                    {chat.title}
+                  </Link>
+                ))}
+              </div>
+            )}
           </section>
         </div>
       </DashboardShell>

@@ -70,7 +70,7 @@ If `RESEND_API_KEY` is not configured, password reset tokens are logged to the c
 |---|---|---|
 | `dev` | `nodemon src/server.js` | Start dev server with hot reload |
 | `start` | `node src/server.js` | Start production server |
-| `test` | `jest --forceExit --detectOpenHandles` | Run unit tests |
+| `test` | `node --experimental-vm-modules node_modules/.bin/jest --forceExit --detectOpenHandles` | Run unit tests (via `npm.cmd test`) |
 | `lint` | `eslint src/` | Lint all source files |
 | `lint:fix` | `eslint src/ --fix` | Lint and auto-fix |
 | `format` | `prettier --write "src/**/*.js"` | Format all source files |
@@ -84,7 +84,7 @@ If `RESEND_API_KEY` is not configured, password reset tokens are logged to the c
 | `start` | `next start` | Start production server |
 | `lint` | `next lint` | Run Next.js lint |
 | `lint:strict` | `eslint app/ components/ lib/ store/` | Run ESLint on all source |
-| `format` | `prettier --write "app/**/*.{js,jsx}" ...` | Format all source files |
+| `format` | `prettier --write "app/**/*.{js,jsx}" "components/**/*.{js,jsx}" "lib/**/*.js" "store/**/*.js"` | Format all source files |
 
 ---
 

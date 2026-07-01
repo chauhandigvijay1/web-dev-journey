@@ -102,7 +102,26 @@ Create an account with a custom username.
 
 **Success Response (201):**
 
-Same shape as register, but `user.username` will be populated.
+```json
+{
+  "success": true,
+  "token": "<JWT>",
+  "user": {
+    "_id": "...",
+    "name": "John Doe",
+    "username": "johndoe",
+    "email": "john@example.com",
+    "role": "user",
+    "plan": "free",
+    "status": "inactive",
+    "settings": {},
+    "avatar": null,
+    "createdAt": "..."
+  }
+}
+```
+
+Note: Unlike the register endpoint, the signup response returns `token` and `user` **at the top level** (not wrapped in a `data` object). The `user.username` field will be populated.
 
 **Error Responses:**
 - `409` — Email already exists
