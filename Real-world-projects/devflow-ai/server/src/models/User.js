@@ -35,6 +35,7 @@ const userSchema = new mongoose.Schema(
       dailyCount: { type: Number, default: 0 },
       lastReset: { type: Date, default: Date.now },
     },
+    settings: { type: mongoose.Schema.Types.Mixed, default: {} },
     usedCoupons: { type: [String], default: [] },
     isDeleted: { type: Boolean, default: false },
     deletedAt: { type: Date },

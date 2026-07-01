@@ -87,7 +87,7 @@ export default function ResetPasswordPage() {
               />
               <button
                 type="button"
-                className="absolute right-2 top-1/2 -tranzinc-y-1/2 text-xs"
+                className="absolute right-2 top-1/2 -translate-y-1/2 text-xs"
                 onClick={() => setShowPassword((prev) => !prev)}
               >
                 {showPassword ? "Hide" : "Show"}
@@ -109,7 +109,7 @@ export default function ResetPasswordPage() {
               />
               <button
                 type="button"
-                className="absolute right-2 top-1/2 -tranzinc-y-1/2 text-xs"
+                className="absolute right-2 top-1/2 -translate-y-1/2 text-xs"
                 onClick={() => setShowConfirmPassword((prev) => !prev)}
               >
                 {showConfirmPassword ? "Hide" : "Show"}

@@ -53,4 +53,8 @@ module.exports = {
   razorpayKeyId: process.env.RAZORPAY_KEY_ID || "",
   razorpayKeySecret: process.env.RAZORPAY_KEY_SECRET || "",
   razorpayWebhookSecret: process.env.RAZORPAY_WEBHOOK_SECRET || "",
+
+  // Resend (email)
+  resendApiKey: process.env.RESEND_API_KEY || "",
+  emailFrom: process.env.EMAIL_FROM || "",
 };

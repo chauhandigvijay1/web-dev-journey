@@ -4,6 +4,7 @@ const crypto = require("crypto");
 const AppError = require("../utils/AppError");
 const asyncHandler = require("../utils/asyncHandler");
 const { signToken } = require("../utils/token");
+const { sendPasswordResetEmail } = require("../utils/email");
 const env = require("../config/env");
 
 const mapUser = (user) => ({
@@ -174,16 +175,12 @@ const forgotPassword = asyncHandler(async (req, res) => {
   user.resetPasswordExpires = new Date(Date.now() + 15 * 60 * 1000);
   await user.save({ validateBeforeSave: false });
 
+  await sendPasswordResetEmail(normalizedEmail, rawToken);
+
   res.json({
     success: true,
-    message: "Password reset token generated.",
-    data:
-      env.nodeEnv === "production"
-        ? { expiresInMinutes: 15 }
-        : {
-            token: rawToken,
-            expiresInMinutes: 15,
-          },
+    message: "If account exists, reset instructions are generated.",
+    data: { expiresInMinutes: 15 },
   });
 });
 
@@ -232,6 +229,35 @@ const deleteAccount = asyncHandler(async (req, res) => {
   res.json({ success: true, message: "Account deleted successfully." });
 });
 
+const getSettings = asyncHandler(async (req, res) => {
+  const user = await User.findById(req.user._id);
+  res.json({
+    success: true,
+    data: user.settings || {},
+  });
+});
+
+const updateSettings = asyncHandler(async (req, res) => {
+  const allowedSettings = [
+    "nickname", "interests", "region", "language", "country",
+    "timezone", "startPage", "emailUpdates", "compactMode",
+  ];
+  const sanitized = {};
+  for (const key of allowedSettings) {
+    if (typeof req.body[key] !== "undefined") {
+      sanitized[key] = req.body[key];
+    }
+  }
+
+  const user = await User.findByIdAndUpdate(
+    req.user._id,
+    { $set: { settings: sanitized } },
+    { new: true, runValidators: false }
+  );
+
+  res.json({ success: true, data: user.settings });
+});
+
 module.exports = {
   register,
   signup,
@@ -241,4 +267,6 @@ module.exports = {
   forgotPassword,
   resetPassword,
   deleteAccount,
+  getSettings,
+  updateSettings,
 };

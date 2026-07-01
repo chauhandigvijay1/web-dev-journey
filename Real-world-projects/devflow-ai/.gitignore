@@ -1,3 +1,12 @@
-node_modules
+node_modules/
 .env
 .env.local
+.env.production
+.env.*.local
+.next/
+dist/
+build/
+*.log
+.DS_Store
+Thumbs.db
+coverage/

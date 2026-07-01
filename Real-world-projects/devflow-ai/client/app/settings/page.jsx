@@ -75,10 +75,31 @@ export default function SettingsPage() {
   useEffect(() => {
     const load = async () => {
       try {
-        const { data } = await api.get("/api/auth/me");
-        const userId = data?.data?._id || data?.data?.id || "anonymous";
+        const { data: meData } = await api.get("/api/auth/me");
+        const userId = meData?.data?._id || meData?.data?.id || "anonymous";
         const key = `devflow_settings_${userId}`;
         setUserKey(key);
+
+        // Load from server first
+        try {
+          const { data: settingsData } = await api.get("/api/auth/settings");
+          const s = settingsData?.data || {};
+          if (Object.keys(s).length > 0) {
+            setNickname(s.nickname || "");
+            setInterests(s.interests || "");
+            setRegion(s.region || "Asia");
+            setLanguage(s.language || "English");
+            setCountry(s.country || "India");
+            setTimezone(s.timezone || "UTC+5:30");
+            setStartPage(s.startPage || "Dashboard");
+            setEmailUpdates(s.emailUpdates ?? true);
+            setCompactMode(s.compactMode ?? false);
+            return;
+          }
+        } catch {
+          // fall through to localStorage
+        }
+
         const raw = localStorage.getItem(key);
         if (raw) {
           const parsed = JSON.parse(raw);
@@ -113,21 +134,24 @@ export default function SettingsPage() {
     load();
   }, []);
 
-  const persistAllSettings = () => {
-    localStorage.setItem(
-      userKey,
-      JSON.stringify({
-        nickname: nickname.trim(),
-        interests: interests.trim(),
-        region,
-        language,
-        country,
-        timezone,
-        startPage,
-        emailUpdates,
-        compactMode,
-      })
-    );
+  const persistAllSettings = async () => {
+    const payload = {
+      nickname: nickname.trim(),
+      interests: interests.trim(),
+      region,
+      language,
+      country,
+      timezone,
+      startPage,
+      emailUpdates,
+      compactMode,
+    };
+    localStorage.setItem(userKey, JSON.stringify(payload));
+    try {
+      await api.put("/api/auth/settings", payload);
+    } catch {
+      // server sync is best-effort
+    }
   };
 
   const savePersonalization = () => {

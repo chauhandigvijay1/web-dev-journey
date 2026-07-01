@@ -9,8 +9,6 @@ const subscriptionSchema = new mongoose.Schema(
       enum: ["inactive", "active", "past_due", "canceled", "trialing"],
       default: "inactive",
     },
-    stripeCustomerId: { type: String, default: "" },
-    stripeSubscriptionId: { type: String, default: "" },
   },
   { timestamps: true }
 );

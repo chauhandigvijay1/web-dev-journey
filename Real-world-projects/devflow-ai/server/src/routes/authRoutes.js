@@ -8,6 +8,8 @@ const {
   forgotPassword,
   resetPassword,
   deleteAccount,
+  getSettings,
+  updateSettings,
 } = require("../controllers/authController");
 const { protect } = require("../middleware/authMiddleware");
 const validateRequest = require("../middleware/validateRequest");
@@ -30,5 +32,7 @@ router.post("/reset-password", resetPasswordValidator, validateRequest, resetPas
 router.get("/me", protect, me);
 router.delete("/me", protect, deleteAccount);
 router.put("/update", protect, updateProfileValidator, validateRequest, updateProfile);
+router.get("/settings", protect, getSettings);
+router.put("/settings", protect, updateSettings);
 
 module.exports = router;

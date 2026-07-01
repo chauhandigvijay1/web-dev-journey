@@ -11,13 +11,11 @@ export default function ForgotPasswordPage() {
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
-  const [resetToken, setResetToken] = useState("");
 
   const onSubmit = async (event) => {
     event.preventDefault();
     setError("");
     setMessage("");
-    setResetToken("");
     if (!email.trim()) {
       setError("Email is required.");
       return;
@@ -26,8 +24,7 @@ export default function ForgotPasswordPage() {
     try {
       setLoading(true);
       const { data } = await api.post("/api/auth/forgot-password", { email });
-      setMessage(data?.message || "Reset instructions generated.");
-      setResetToken(data?.data?.token || "");
+      setMessage(data?.message || "If an account with that email exists, reset instructions have been sent.");
     } catch (requestError) {
       setError(requestError?.response?.data?.message || "Failed to process request.");
     } finally {
@@ -40,7 +37,7 @@ export default function ForgotPasswordPage() {
       <div className="w-full max-w-md rounded-xl border border-zinc-200 bg-white p-6 shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
         <h1 className="mb-1 text-2xl font-semibold">Forgot password</h1>
         <p className="mb-6 text-sm text-zinc-500">
-          Enter your email to generate a password reset token.
+          Enter your registered email address and we will send you a reset link.
         </p>
 
         <form className="space-y-4" onSubmit={onSubmit}>
@@ -56,19 +53,14 @@ export default function ForgotPasswordPage() {
 
           {error && <p className="text-sm text-red-500">{error}</p>}
           {message && <p className="text-sm text-zinc-600 dark:text-zinc-300">{message}</p>}
-          {resetToken && (
-            <p className="rounded-md bg-zinc-100 p-2 text-xs dark:bg-zinc-800">
-              Reset token: <span className="font-semibold">{resetToken}</span>
-            </p>
-          )}
 
           <Button className="w-full" type="submit" disabled={loading}>
-            {loading ? "Generating..." : "Generate Reset Token"}
+            {loading ? "Sending..." : "Send Reset Link"}
           </Button>
         </form>
 
         <p className="mt-4 text-sm">
-          Back to{" "}
+          Remember your password?{" "}
           <Link href="/login" className="underline">
             Login
           </Link>

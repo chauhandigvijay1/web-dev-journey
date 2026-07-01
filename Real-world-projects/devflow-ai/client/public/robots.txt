@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://devflow-ai-client.netlify.app/sitemap.xml

@@ -88,9 +88,18 @@ DevFlow AI uses a decoupled client-server architecture:
 
 ---
 
-## 📚 API Documentation
-Detailed API endpoints and usage can be found in the API Documentation.
-👉 [View API.md](./API.md)
+## 📚 Documentation
+
+| Document | Description |
+|---|---|
+| [API Reference](./docs/API.md) | Complete API endpoint documentation with request/response examples |
+| [Architecture](./docs/ARCHITECTURE.md) | System architecture, data flow diagrams, and design decisions |
+| [Database Schema](./docs/DATABASE.md) | MongoDB schema design, collections, indexes, and relationships |
+| [AI Integration](./docs/AI.md) | Groq AI integration, streaming protocol, and usage limits |
+| [Authentication](./docs/AUTHENTICATION.md) | JWT auth flow, registration, password reset, and security |
+| [Deployment Guide](./docs/DEPLOYMENT.md) | Production deployment on Netlify + Render with troubleshooting |
+| [Payment & Billing](./docs/PAYMENT.md) | Razorpay integration, coupon system, and subscription management |
+| [Environment Variables](./docs/ENVIRONMENT.md) | All configuration variables for server and client |
 
 ---
 
@@ -136,6 +145,20 @@ npm install
 npm run dev
 ```
 Open `http://localhost:3000` to view the app.
+
+### 4. Run Tests, Lint & Format
+```bash
+# Server
+cd server
+npm test          # Run Jest unit tests
+npm run lint      # ESLint check
+npm run format    # Prettier auto-format
+
+# Client
+cd client
+npm run lint:strict   # ESLint check
+npm run format        # Prettier auto-format
+```
 
 ---
 
