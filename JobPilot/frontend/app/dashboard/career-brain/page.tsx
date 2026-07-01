@@ -239,18 +239,20 @@ interface BackendResumeProfile {
   resumeUrl?: string;
   fileName?: string;
   lastParsedAt?: string;
+  lastScanStatus?: string;
   parsedData?: Record<string, unknown>;
 }
 
 function toProfile(bp: BackendResumeProfile): CareerBrainProfile {
   const pd = (bp.parsedData ?? {}) as Record<string, unknown>;
+  const parsed = bp.lastScanStatus === "completed";
   return normaliseProfile({
     resume: bp.fileName
       ? {
           fileName: bp.fileName,
           fileUrl: bp.resumeUrl ?? "",
           uploadedAt: bp.lastParsedAt ?? new Date().toISOString(),
-          parsed: true,
+          parsed,
         }
       : null,
     skills: (pd.skills ?? []) as string[],

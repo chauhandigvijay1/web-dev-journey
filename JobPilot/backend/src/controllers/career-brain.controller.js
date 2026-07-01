@@ -156,23 +156,133 @@ export async function uploadResumeToCareerBrain(req, res) {
 
   const extractedText = await extractTextFromBuffer(req.file.buffer, mimetype);
   let parsedData = {};
+  let parseStatus = "failed";
 
   if (extractedText) {
     if (process.env.GROQ_API_KEY?.trim()) {
       try {
         parsedData = await parseResumeText(extractedText);
+        if (parsedData.skills?.length > 0 || parsedData.experience?.length > 0 || parsedData.education?.length > 0) {
+          parseStatus = "completed";
+        }
       } catch {
         // AI parsing is best-effort, use fallback
       }
     }
+
+    /* ---------- fallback: skills (150+ common skills) ---------- */
     if (!parsedData.skills || parsedData.skills.length === 0) {
-      const skillMatches = extractedText.match(/\b(?:React|Node\.?js|MongoDB|TypeScript|JavaScript|Python|Go|Rust|AWS|Docker|Kubernetes|PostgreSQL|Redis|GraphQL|Next\.?js|Tailwind|CSS|HTML|Git|Linux|REST|API|SQL|NoSQL|Express|Flask|Django|Vue|Angular|Svelte)\b/gi);
+      const SKILLS = [
+        "React", "Node\\.?js", "MongoDB", "TypeScript", "JavaScript", "Python", "Go", "Rust",
+        "AWS", "Docker", "Kubernetes", "PostgreSQL", "Redis", "GraphQL", "Next\\.?js",
+        "Tailwind", "CSS", "HTML", "Git", "Linux", "REST", "API", "SQL", "NoSQL",
+        "Express", "Flask", "Django", "Vue", "Angular", "Svelte", "Java", "Spring",
+        "Spring Boot", "Hibernate", "Kotlin", "Swift", "C\\+\\+", "C#", "\\.NET",
+        "PHP", "Laravel", "Symfony", "Ruby", "Rails", "Scala", "Perl", "R",
+        "MATLAB", "Solidity", "Terraform", "Ansible", "Jenkins", "GitHub Actions",
+        "CircleCI", "Travis CI", "Nginx", "Apache", "RabbitMQ", "Kafka",
+        "Elasticsearch", "Logstash", "Kibana", "Prometheus", "Grafana",
+        "Datadog", "New Relic", "Sentry", "Jira", "Confluence", "Figma",
+        "Adobe XD", "Sketch", "Photoshop", "Illustrator", "Tableau", "Power BI",
+        "Looker", "Snowflake", "BigQuery", "Redshift", "Airflow", "Spark",
+        "Hadoop", "Hive", "Presto", "dbt", "Dagster", "MLflow", "PyTorch",
+        "TensorFlow", "Keras", "scikit-learn", "OpenCV", "NLP", "LangChain",
+        "RAG", "LlamaIndex", "Hugging Face", "Ollama", "Helm", "Istio",
+        "Envoy", "Consul", "Vault", "gRPC", "Protobuf", "WebSocket",
+        "Socket\\.io", "Redux", "Zustand", "Jotai", "Recoil", "React Native",
+        "Flutter", "Xamarin", "Unity", "Unreal", "Blender", "Three\\.?js",
+        "D3\\.?js", "Chart\\.?js", "Cypress", "Playwright", "Selenium",
+        "Jest", "Vitest", "Mocha", "Chai", "Cucumber", "Storybook",
+        "ESLint", "Prettier", "Webpack", "Vite", "Parcel", "Rollup",
+        "Babel", "ESBuild", "NPM", "Yarn", "pnpm", "Bun", "Deno",
+        "Vercel", "Netlify", "Heroku", "Railway", "Supabase", "Firebase",
+        "Auth0", "Clerk", "Stripe", "Twilio", "SendGrid", "Cloudinary",
+        "S3", "Lambda", "EC2", "ECS", "EKS", "Fargate", "CloudFront",
+        "Route53", "CloudFormation", "CDK", "Serverless", "SQS", "SNS",
+        "DynamoDB", "Cognito", "Amplify", "AppSync", "Step Functions",
+        "Azure", "GCP", "Compute Engine", "Cloud Run", "Cloud Functions",
+        "Bigtable", "Spanner", "Datastore", "Pub/Sub", "Dataflow",
+        "Agile", "Scrum", "Kanban", "CI/CD", "TDD", "DDD", "Microservices",
+        "SOA", "Event-Driven", "CQRS", "Event Sourcing", "OOP", "FP",
+        "System Design", "Data Structures", "Algorithms", "Machine Learning",
+        "Deep Learning", "Computer Vision", "NLP", "LLM", "GenAI",
+        "RAG", "Fine-tuning", "Prompt Engineering", "A/B Testing",
+        "Product Management", "Project Management", "Leadership",
+        "Team Management", "Mentoring", "Communication", "Presentation",
+      ];
+      const skillRegex = new RegExp(`\\b(?:${SKILLS.join("|")})\\b`, "gi");
+      const skillMatches = extractedText.match(skillRegex);
       if (skillMatches) {
         parsedData.skills = [...new Set(skillMatches.map(s => s.trim()))];
+        if (parsedData.skills.length > 0) parseStatus = "completed";
       }
+    }
+
+    /* ---------- fallback: contact info ---------- */
+    if (!parsedData.contactInfo?.email) {
+      const emailMatch = extractedText.match(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/);
+      if (emailMatch) {
+        if (!parsedData.contactInfo) parsedData.contactInfo = {};
+        parsedData.contactInfo.email = emailMatch[0];
+      }
+    }
+    if (!parsedData.contactInfo?.phone) {
+      const phoneMatch = extractedText.match(/(?:\+?\d{1,3}[-.\s]?)?\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}/);
+      if (phoneMatch) {
+        if (!parsedData.contactInfo) parsedData.contactInfo = {};
+        parsedData.contactInfo.phone = phoneMatch[0];
+      }
+    }
+    if (!parsedData.contactInfo?.linkedin) {
+      const liMatch = extractedText.match(/linkedin\.com\/[a-zA-Z0-9_-]+/i);
+      if (liMatch) {
+        if (!parsedData.contactInfo) parsedData.contactInfo = {};
+        parsedData.contactInfo.linkedin = `https://www.${liMatch[0].toLowerCase()}`;
+      }
+    }
+    if (!parsedData.contactInfo?.github) {
+      const ghMatch = extractedText.match(/(?:github\.com\/|github:?\s*)([a-zA-Z0-9_-]+)/i);
+      if (ghMatch) {
+        if (!parsedData.contactInfo) parsedData.contactInfo = {};
+        parsedData.contactInfo.github = `https://github.com/${ghMatch[1]}`;
+      }
+    }
+
+    /* ---------- fallback: education ---------- */
+    if (!parsedData.education || parsedData.education.length === 0) {
+      const eduPatterns = [
+        /(?:B\.?Tech|Bachelor|B\.?S(?=\.?c)?|B\.?E|B\.?Sc)\s*(?:in\s*|of\s*)?(?:Computer|Information|Electronics|Electrical|Mechanical|Civil|Data|AI|Machine Learning)?\s*(?:Science|Engineering|Technology|Applications)?\s*(?:,|–|-|at|from)\s*.{1,60}(?:\d{4}|$)/gi,
+        /(?:M\.?Tech|Master|M\.?S(?=\.?c)?|M\.?E|M\.?Sc|MBA)\s*(?:in\s*|of\s*)?.{1,40}(?:,|–|-|at|from)\s*.{1,60}(?:\d{4}|$)/gi,
+        /(?:PhD|Ph\.?D|Doctorate)\s*(?:in\s*|of\s*)?.{1,50}(?:,|–|-|at|from)\s*.{1,60}(?:\d{4}|$)/gi,
+        /(?:High School|12th|10th|SSC|HSC|A-Levels|IB)\s*[,-]\s*.{1,60}(?:\d{4}|$)/gi,
+        /(?:University|College|Institute|School)\s*(?:of\s*)?(?:Technology|Engineering|Science|Management|Arts|Commerce|Law|Medical|Design|Business|Computing)?[^.]{0,80}(?:\d{4}|$)/gi,
+      ];
+      const matched = new Set();
+      for (const pattern of eduPatterns) {
+        const m = extractedText.match(pattern);
+        if (m) m.forEach(e => matched.add(e.trim()));
+      }
+      if (matched.size > 0) parsedData.education = [...matched];
+    }
+
+    /* ---------- fallback: experience lines ---------- */
+    if (!parsedData.experience || parsedData.experience.length === 0) {
+      const expLines = [];
+      const lines = extractedText.split("\n");
+      let i = 0;
+      while (i < lines.length) {
+        const line = lines[i].trim();
+        if (/(?:20\d{2}|19\d{2})\s*(?:-|–|to|–)\s*(?:(?:20\d{2}|19\d{2}|Present|Current|Now)|$)/i.test(line) &&
+            /(?:Engineer|Developer|Manager|Analyst|Designer|Lead|Head|Director|Consultant|Intern|Associate|Specialist|Architect|Administrator|Coordinator|Officer|Executive)/i.test(line)) {
+          expLines.push(line);
+        }
+        i++;
+      }
+      if (expLines.length > 0) parsedData.experience = expLines;
     }
   }
 
+  const aiUsed = process.env.GROQ_API_KEY?.trim() ? true : false;
   const profile = await ResumeProfile.findOneAndUpdate(
     { user: req.user._id },
     {
@@ -202,6 +312,9 @@ export async function uploadResumeToCareerBrain(req, res) {
           careerGoals: "",
         },
         lastParsedAt: new Date(),
+        lastScanAt: new Date(),
+        lastScanStatus: parseStatus,
+        lastScanSummary: aiUsed ? "AI parsing completed" : "Extracted using text analysis (AI not available)",
       },
       $setOnInsert: { user: req.user._id },
     },
