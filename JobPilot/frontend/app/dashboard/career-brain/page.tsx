@@ -628,13 +628,19 @@ function ParsedProfileCard({ profile }: { profile: CareerBrainProfile }) {
                   key={i}
                   className="rounded-xl border border-border/60 bg-background/60 px-4 py-3"
                 >
-                  <div className="flex flex-wrap items-baseline justify-between gap-1">
-                    <p className="text-sm font-medium">{exp.title}</p>
-                    <p className="text-xs text-muted-foreground">{exp.duration}</p>
-                  </div>
-                  <p className="text-xs text-muted-foreground">{exp.company}</p>
-                  {exp.description && (
-                    <p className="mt-1 text-xs text-muted-foreground/80">{exp.description}</p>
+                  {typeof exp === "string" ? (
+                    <p className="text-sm font-medium">{exp}</p>
+                  ) : (
+                    <>
+                      <div className="flex flex-wrap items-baseline justify-between gap-1">
+                        <p className="text-sm font-medium">{exp.title}</p>
+                        <p className="text-xs text-muted-foreground">{exp.duration}</p>
+                      </div>
+                      <p className="text-xs text-muted-foreground">{exp.company}</p>
+                      {exp.description && (
+                        <p className="mt-1 text-xs text-muted-foreground/80">{exp.description}</p>
+                      )}
+                    </>
                   )}
                 </div>
               ))}
@@ -654,30 +660,36 @@ function ParsedProfileCard({ profile }: { profile: CareerBrainProfile }) {
                   key={i}
                   className="rounded-xl border border-border/60 bg-background/60 px-4 py-3"
                 >
-                  <div className="flex items-center justify-between gap-2">
-                    <p className="text-sm font-medium">{proj.name}</p>
-                    {proj.url && (
-                      <a
-                        href={proj.url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-muted-foreground hover:text-primary"
-                      >
-                        <ExternalLink className="h-3.5 w-3.5" />
-                      </a>
-                    )}
-                  </div>
-                  {proj.description && (
-                    <p className="mt-1 text-xs text-muted-foreground/80">{proj.description}</p>
+                  {typeof proj === "string" ? (
+                    <p className="text-sm font-medium">{proj}</p>
+                  ) : (
+                    <>
+                      <div className="flex items-center justify-between gap-2">
+                        <p className="text-sm font-medium">{proj.name}</p>
+                        {proj.url && (
+                          <a
+                            href={proj.url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-muted-foreground hover:text-primary"
+                          >
+                            <ExternalLink className="h-3.5 w-3.5" />
+                          </a>
+                        )}
+                      </div>
+                      {proj.description && (
+                        <p className="mt-1 text-xs text-muted-foreground/80">{proj.description}</p>
+                      )}
+                      {proj.technologies?.length > 0 && (
+                        <div className="mt-2 flex flex-wrap gap-1">
+                          {proj.technologies.map((t) => (
+                            <Badge key={t} variant="muted" className="text-[10px]">
+                              {t}
+                            </Badge>
+                          ))}
+                        </div>
                   )}
-                  {proj.technologies.length > 0 && (
-                    <div className="mt-2 flex flex-wrap gap-1">
-                      {proj.technologies.map((t) => (
-                        <Badge key={t} variant="muted" className="text-[10px]">
-                          {t}
-                        </Badge>
-                      ))}
-                    </div>
+                    </>
                   )}
                 </div>
               ))}
@@ -698,9 +710,15 @@ function ParsedProfileCard({ profile }: { profile: CareerBrainProfile }) {
                     key={i}
                     className="rounded-xl border border-border/60 bg-background/60 px-4 py-3"
                   >
-                    <p className="text-sm font-medium">{edu.degree}</p>
-                    <p className="text-xs text-muted-foreground">{edu.institution}</p>
-                    <p className="text-xs text-muted-foreground/70">{edu.year}</p>
+                    {typeof edu === "string" ? (
+                      <p className="text-sm font-medium">{edu}</p>
+                    ) : (
+                      <>
+                        <p className="text-sm font-medium">{edu.degree}</p>
+                        <p className="text-xs text-muted-foreground">{edu.institution}</p>
+                        <p className="text-xs text-muted-foreground/70">{edu.year}</p>
+                      </>
+                    )}
                   </div>
                 ))}
               </div>

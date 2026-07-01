@@ -426,14 +426,14 @@ export async function updateCareerBrain(req, res) {
     if (!Array.isArray(body.experience)) {
       return res.status(400).json({ success: false, message: "experience must be an array" });
     }
-    update["parsedData.experience"] = body.experience.map((e) => String(e).trim()).filter(Boolean);
+    update["parsedData.experience"] = body.experience;
   }
 
   if (Object.prototype.hasOwnProperty.call(body, "education")) {
     if (!Array.isArray(body.education)) {
       return res.status(400).json({ success: false, message: "education must be an array" });
     }
-    update["parsedData.education"] = body.education.map((e) => String(e).trim()).filter(Boolean);
+    update["parsedData.education"] = body.education;
   }
 
   if (Object.keys(update).length === 0) {
