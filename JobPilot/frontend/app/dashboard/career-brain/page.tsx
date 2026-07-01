@@ -172,22 +172,23 @@ function normaliseProfile(raw: CareerBrainProfile): CareerBrainProfile {
   };
 }
 
-function normaliseAtsScore(raw: AtsScore): AtsScore {
+function normaliseAtsScore(raw: Record<string, unknown>): AtsScore {
+  const bd = (raw.breakdown ?? {}) as Record<string, unknown>;
   return {
-    ...raw,
-    matchingSkills: raw.matchingSkills ?? [],
-    missingSkills: raw.missingSkills ?? [],
-    extraSkills: raw.extraSkills ?? [],
-    keyStrengths: raw.keyStrengths ?? [],
-    gaps: raw.gaps ?? [],
-    recommendations: raw.recommendations ?? [],
-    suggestedRoles: raw.suggestedRoles ?? [],
+    overall: (raw.overall as number) ?? (raw.atsScore as number) ?? 0,
     breakdown: {
-      skills: raw.breakdown?.skills ?? 0,
-      experience: raw.breakdown?.experience ?? 0,
-      education: raw.breakdown?.education ?? 0,
-      keywords: raw.breakdown?.keywords ?? 0,
+      skills: (bd.skills as number) ?? (bd.skillsMatch as number) ?? 0,
+      experience: (bd.experience as number) ?? (bd.experienceMatch as number) ?? 0,
+      education: (bd.education as number) ?? (bd.educationMatch as number) ?? 0,
+      keywords: (bd.keywords as number) ?? (bd.keywordsMatch as number) ?? 0,
     },
+    matchingSkills: (raw.matchingSkills ?? []) as string[],
+    missingSkills: (raw.missingSkills ?? []) as string[],
+    extraSkills: (raw.extraSkills ?? []) as string[],
+    keyStrengths: (raw.keyStrengths ?? raw.strengths ?? []) as string[],
+    gaps: (raw.gaps ?? []) as string[],
+    recommendations: (raw.recommendations ?? []) as string[],
+    suggestedRoles: (raw.suggestedRoles ?? []) as string[],
   };
 }
 
@@ -200,27 +201,32 @@ function normaliseSkillGap(raw: SkillGapResult): SkillGapResult {
   };
 }
 
-function normaliseRecommendations(raw: Recommendations): Recommendations {
+function normaliseRecommendations(raw: Record<string, unknown>): Recommendations {
+  const roles = (raw.roles ?? raw.recommendedRoles ?? []) as Record<string, unknown>[];
+  const careerPaths = (raw.careerPaths ?? raw.careerPathSuggestions ?? []) as Record<string, unknown>[];
+  const skillDev = (raw.skillDevelopment ?? raw.skillDevelopmentPlan ?? {}) as Record<string, unknown>;
+
   return {
-    ...raw,
-    roles: (raw.roles ?? []).map((r) => ({
-      ...r,
-      missingSkills: r.missingSkills ?? [],
-      industries: r.industries ?? [],
+    roles: roles.map((r) => ({
+      title: (r.title as string) ?? "",
+      matchPercentage: (r.matchPercentage as number) ?? 0,
+      reason: (r.reason as string) ?? "",
+      missingSkills: (r.missingSkills ?? []) as string[],
+      industries: (r.industries ?? r.suggestedIndustries ?? []) as string[],
+      salaryRange: (r.salaryRange ?? r.averageSalaryRange ?? "") as string,
     })),
-    careerPath: raw.careerPath
+    careerPath: careerPaths.length > 0
       ? {
-          ...raw.careerPath,
-          skillsToLearn: raw.careerPath.skillsToLearn ?? [],
+          direction: (careerPaths[0].direction as string) ?? "",
+          timeframe: (careerPaths[0].timeframe as string) ?? "",
+          skillsToLearn: (careerPaths[0].skillsToLearn ?? []) as string[],
         }
       : { direction: "", timeframe: "", skillsToLearn: [] },
-    skillDevelopment: raw.skillDevelopment
-      ? {
-          immediate: raw.skillDevelopment.immediate ?? [],
-          shortTerm: raw.skillDevelopment.shortTerm ?? [],
-          longTerm: raw.skillDevelopment.longTerm ?? [],
-        }
-      : { immediate: [], shortTerm: [], longTerm: [] },
+    skillDevelopment: {
+      immediate: (skillDev.immediate ?? []) as string[],
+      shortTerm: (skillDev.shortTerm ?? []) as string[],
+      longTerm: (skillDev.longTerm ?? []) as string[],
+    },
   };
 }
 
@@ -744,7 +750,7 @@ function AtsScoreSection({
         setError(data.message ?? "Could not compute ATS score");
         return;
       }
-      setResult(normaliseAtsScore(data.data));
+      setResult(normaliseAtsScore(data.data as unknown as Record<string, unknown>));
     } catch (err) {
       const msg =
         axios.isAxiosError(err) && err.response?.data && typeof (err.response.data as { message?: string }).message === "string"
@@ -1010,7 +1016,7 @@ function RecommendationsSection() {
         setError(data.message ?? "Could not fetch recommendations");
         return;
       }
-      setResult(normaliseRecommendations(data.data));
+      setResult(normaliseRecommendations(data.data as unknown as Record<string, unknown>));
     } catch (err) {
       const msg =
         axios.isAxiosError(err) && err.response?.data && typeof (err.response.data as { message?: string }).message === "string"

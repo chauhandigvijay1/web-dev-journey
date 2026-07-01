@@ -33,41 +33,50 @@ function isValidUrl(value) {
 }
 
 async function parseResumeText(text) {
-  const prompt = `Extract structured information from this resume text with maximum accuracy.
+  const prompt = `Extract structured information from this resume text with maximum accuracy. Be thorough and do not skip any information.
 
 CRITICAL RULES:
-- "name": Extract the person's full name exactly as written (first and last name).
-- "skills": ONLY include actual technical/professional skills. NEVER include random words, common English verbs, or generic nouns. Examples of valid skills: React, Python, AWS, Project Management, Data Analysis. Examples of invalid: "team", "work", "experience", "good", "responsible", "ability", "time", "development".
-- "experience": Each entry should include job title, company, dates, and key responsibilities/achievements.
-- "projects": Each entry should include project name, brief description, and ANY links (GitHub, live demo, website) mentioned with the project. If a URL appears near a project name, include the URL in the description.
-- "education": Include degree, institution, graduation year.
-- "contactInfo": Extract ALL contact details found — email, phone, LinkedIn URL, GitHub URL, portfolio URL. Pay special attention to URLs embedded in text even without explicit labels.
-- "links": Extract ALL URLs found anywhere in the resume — project links, portfolio links, social links, publication links. Include a brief context of what each link is for.
+- "name": Extract the person's FULL name exactly as written (first and last name). If only a first name is present, use it.
+- "skills": List every technical/professional skill mentioned. Include programming languages, frameworks, tools, platforms, methodologies, and soft skills where explicitly stated. Examples: React, Python, AWS, Project Management, Data Analysis, Team Leadership, Agile, Docker, Kubernetes, TypeScript, Git, REST APIs, SQL, MongoDB.
+- "experience": Each entry MUST include job title, company name, employment dates (month/year), AND key responsibilities/achievements. Format: "Job Title at Company (Month Year - Month Year) - Key achievements and responsibilities".
+- "projects": Extract EVERY project mentioned. Each entry MUST include: project name, brief description, technologies used, AND any associated URLs (GitHub link, live demo link, website link, article link). If a URL appears in or near a project description, ALWAYS include it. Format: "Project Name - Description (Technologies: tech1, tech2) (links: github.com/..., demo.com/...)".
+- "techStack": List all technologies, frameworks, and tools mentioned across the entire resume (not just skills section).
+- "education": Include degree name, institution/university name, graduation year, and any honors. Format: "Degree Name, Institution Name, Year".
+- "certifications": Every certification, license, or badge with issuing organization and year. Format: "Certification Name - Issuing Organization (Year)".
+- "contactInfo": Extract ALL contact details found — email address (MUST extract exactly as written), phone number (MUST extract digits and formatting), LinkedIn URL, GitHub URL, portfolio URL, Twitter/X handle, any other social links. Pay special attention to URLs embedded in text without explicit labels.
+- "phone": Phone numbers can be in any format (with country code, without, with dashes, with spaces). Extract them exactly as they appear.
+- "email": Email addresses can appear anywhere in the resume (header, footer, body). Extract all of them, prefer the first one found.
+- "links": Extract ALL URLs found ANYWHERE in the resume — personal website, GitHub, LinkedIn, project links, portfolio links, social links, publication links, article links. Include a brief context of what each link is for. Do not miss any URL.
+- "languages": Extract all languages mentioned with proficiency level if provided. Format: "Language (Proficiency)".
+- "achievements": Extract all achievements, awards, honors, publications, patents mentioned.
+- "seniorityLevel": Determine from experience: entry (0-2yr), mid (3-5yr), senior (5-10yr), lead (10-15yr), executive (15+yr).
+- "totalYearsExperience": Calculate total professional work experience in years from all roles combined. Be precise.
+- "summary": Write a concise 3-4 sentence professional summary based on the resume content.
 
 Return ONLY valid JSON matching this schema exactly:
 {
   "name": "Full Name",
-  "summary": "2-3 sentence professional summary",
-  "skills": ["only real technical or professional skills, no random words"],
-  "experience": ["Job Title at Company (Date) - Key responsibilities and achievements"],
-  "projects": ["Project Name - Brief description (link: url if available)"],
+  "summary": "3-4 sentence professional summary",
+  "skills": ["skill1", "skill2"],
+  "experience": ["Job Title at Company (Date - Date) - Achievements"],
+  "projects": ["Project Name - Description (Technologies: ...) (links: url)"],
   "techStack": ["tech1", "tech2"],
   "education": ["Degree, Institution, Year"],
-  "certifications": ["cert1", "cert2"],
-  "languages": ["language1", "language2"],
+  "certifications": ["Certification - Issuer (Year)"],
+  "languages": ["Language (Proficiency)"],
   "contactInfo": {
-    "email": "email if found",
-    "phone": "phone if found",
-    "linkedin": "linkedin url if found",
-    "github": "github url if found",
-    "portfolio": "portfolio url if found"
+    "email": "email@example.com",
+    "phone": "+1-555-123-4567",
+    "linkedin": "https://linkedin.com/in/...",
+    "github": "https://github.com/...",
+    "portfolio": "https://..."
   },
   "links": [
     {"url": "https://...", "context": "what this link is for"}
   ],
-  "achievements": ["achievement1", "achievement2"],
-  "seniorityLevel": "entry|mid|senior|lead|executive",
-  "totalYearsExperience": 0
+  "achievements": ["achievement1"],
+  "seniorityLevel": "mid",
+  "totalYearsExperience": 5
 }
 
 Resume text:
@@ -75,10 +84,10 @@ ${text.substring(0, 15000)}`;
 
   const response = await groqChat(
     [
-      { role: "system", content: "You are a precise resume parser. Output ONLY valid JSON. CRITICAL: Do NOT fabricate skills. If a word is not clearly a technical or professional skill, do not include it." },
+      { role: "system", content: "You are a precise, thorough resume parser. Extract EVERY detail from the resume — do not skip any project, link, skill, or contact detail. Output ONLY valid JSON. CRITICAL: If you see a URL anywhere in the resume, include it in the appropriate field." },
       { role: "user", content: prompt },
     ],
-    { max_tokens: 2500, temperature: 0.1 }
+    { max_tokens: 4000, temperature: 0.5 }
   );
 
   const jsonMatch = response.match(/\{[\s\S]*\}/);
