@@ -157,20 +157,31 @@ export async function uploadResumeToCareerBrain(req, res) {
   const extractedText = await extractTextFromBuffer(req.file.buffer, mimetype);
   let parsedData = {};
   let parseStatus = "failed";
+  let aiError = "";
+  let summary = "";
 
+  /* ---------- AI parsing (if configured) ---------- */
+  const hasAI = process.env.GROQ_API_KEY?.trim() ? true : false;
+  if (extractedText && hasAI) {
+    try {
+      parsedData = await parseResumeText(extractedText);
+    } catch (e) {
+      aiError = e?.message ?? "AI request failed";
+    }
+  }
+
+  /* ---------- Fallback extraction ---------- */
   if (extractedText) {
-    if (process.env.GROQ_API_KEY?.trim()) {
-      try {
-        parsedData = await parseResumeText(extractedText);
-        if (parsedData.skills?.length > 0 || parsedData.experience?.length > 0 || parsedData.education?.length > 0) {
-          parseStatus = "completed";
-        }
-      } catch {
-        // AI parsing is best-effort, use fallback
-      }
+    /* --- name (first non-empty line that looks like a name) --- */
+    if (!parsedData.name) {
+      const nameLine = extractedText.split("\n").find(l => {
+        const t = l.trim();
+        return t && /^[A-Z][a-z]+(?:\s+[A-Z][a-z]+){1,3}$/.test(t) && t.length < 50;
+      });
+      if (nameLine) parsedData.name = nameLine.trim();
     }
 
-    /* ---------- fallback: skills (150+ common skills) ---------- */
+    /* --- skills (150+ common skills regex) --- */
     if (!parsedData.skills || parsedData.skills.length === 0) {
       const SKILLS = [
         "React", "Node\\.?js", "MongoDB", "TypeScript", "JavaScript", "Python", "Go", "Rust",
@@ -209,46 +220,46 @@ export async function uploadResumeToCareerBrain(req, res) {
         "RAG", "Fine-tuning", "Prompt Engineering", "A/B Testing",
         "Product Management", "Project Management", "Leadership",
         "Team Management", "Mentoring", "Communication", "Presentation",
+        "Salesforce", "SAP", "Oracle", "ServiceNow", "Workday",
+        "WordPress", "Shopify", "Magento", "Drupal", "Joomla",
+        "SEO", "SEM", "Google Analytics", "Google Ads", "Facebook Ads",
+        "Content Marketing", "Social Media", "Email Marketing",
+        "HubSpot", "Marketo", "Pardot", "Salesforce Marketing Cloud",
+        "Bootstrap", "Material UI", "Chakra UI", "shadcn/ui", "Radix UI",
+        "Framer Motion", "GSAP", "Anime\\.?js", "jQuery", "Lodash",
+        "RxJS", "MobX", "XState", "Elastic Path", "Commercetools",
+        "BigCommerce", "WooCommerce", "Strapi", "Contentful", "Sanity",
+        "Prisma", "TypeORM", "Sequelize", "Mongoose", "Knex",
+        "JWT", "OAuth", "SAML", "LDAP", "SSL/TLS", "HTTPS",
       ];
       const skillRegex = new RegExp(`\\b(?:${SKILLS.join("|")})\\b`, "gi");
       const skillMatches = extractedText.match(skillRegex);
       if (skillMatches) {
         parsedData.skills = [...new Set(skillMatches.map(s => s.trim()))];
-        if (parsedData.skills.length > 0) parseStatus = "completed";
       }
     }
 
-    /* ---------- fallback: contact info ---------- */
-    if (!parsedData.contactInfo?.email) {
+    /* --- contact info --- */
+    const ci = parsedData.contactInfo ?? {};
+    if (!ci.email) {
       const emailMatch = extractedText.match(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/);
-      if (emailMatch) {
-        if (!parsedData.contactInfo) parsedData.contactInfo = {};
-        parsedData.contactInfo.email = emailMatch[0];
-      }
+      if (emailMatch) ci.email = emailMatch[0];
     }
-    if (!parsedData.contactInfo?.phone) {
+    if (!ci.phone) {
       const phoneMatch = extractedText.match(/(?:\+?\d{1,3}[-.\s]?)?\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}/);
-      if (phoneMatch) {
-        if (!parsedData.contactInfo) parsedData.contactInfo = {};
-        parsedData.contactInfo.phone = phoneMatch[0];
-      }
+      if (phoneMatch) ci.phone = phoneMatch[0];
     }
-    if (!parsedData.contactInfo?.linkedin) {
+    if (!ci.linkedin) {
       const liMatch = extractedText.match(/linkedin\.com\/[a-zA-Z0-9_-]+/i);
-      if (liMatch) {
-        if (!parsedData.contactInfo) parsedData.contactInfo = {};
-        parsedData.contactInfo.linkedin = `https://www.${liMatch[0].toLowerCase()}`;
-      }
+      if (liMatch) ci.linkedin = `https://www.${liMatch[0].toLowerCase()}`;
     }
-    if (!parsedData.contactInfo?.github) {
+    if (!ci.github) {
       const ghMatch = extractedText.match(/(?:github\.com\/|github:?\s*)([a-zA-Z0-9_-]+)/i);
-      if (ghMatch) {
-        if (!parsedData.contactInfo) parsedData.contactInfo = {};
-        parsedData.contactInfo.github = `https://github.com/${ghMatch[1]}`;
-      }
+      if (ghMatch) ci.github = `https://github.com/${ghMatch[1]}`;
     }
+    parsedData.contactInfo = ci;
 
-    /* ---------- fallback: education ---------- */
+    /* --- education --- */
     if (!parsedData.education || parsedData.education.length === 0) {
       const eduPatterns = [
         /(?:B\.?Tech|Bachelor|B\.?S(?=\.?c)?|B\.?E|B\.?Sc)\s*(?:in\s*|of\s*)?(?:Computer|Information|Electronics|Electrical|Mechanical|Civil|Data|AI|Machine Learning)?\s*(?:Science|Engineering|Technology|Applications)?\s*(?:,|–|-|at|from)\s*.{1,60}(?:\d{4}|$)/gi,
@@ -265,7 +276,7 @@ export async function uploadResumeToCareerBrain(req, res) {
       if (matched.size > 0) parsedData.education = [...matched];
     }
 
-    /* ---------- fallback: experience lines ---------- */
+    /* --- experience --- */
     if (!parsedData.experience || parsedData.experience.length === 0) {
       const expLines = [];
       const lines = extractedText.split("\n");
@@ -273,7 +284,7 @@ export async function uploadResumeToCareerBrain(req, res) {
       while (i < lines.length) {
         const line = lines[i].trim();
         if (/(?:20\d{2}|19\d{2})\s*(?:-|–|to|–)\s*(?:(?:20\d{2}|19\d{2}|Present|Current|Now)|$)/i.test(line) &&
-            /(?:Engineer|Developer|Manager|Analyst|Designer|Lead|Head|Director|Consultant|Intern|Associate|Specialist|Architect|Administrator|Coordinator|Officer|Executive)/i.test(line)) {
+            /(?:Engineer|Developer|Manager|Analyst|Designer|Lead|Head|Director|Consultant|Intern|Associate|Specialist|Architect|Administrator|Coordinator|Officer|Executive|Developer|Programmer|Tester|Administrator|Representative|Agent|Clerk|Assistant|Technician|Operator)/i.test(line)) {
           expLines.push(line);
         }
         i++;
@@ -282,7 +293,26 @@ export async function uploadResumeToCareerBrain(req, res) {
     }
   }
 
-  const aiUsed = process.env.GROQ_API_KEY?.trim() ? true : false;
+  /* --- determine parse status & summary --- */
+  const hasData = parsedData.skills?.length > 0 || parsedData.experience?.length > 0 ||
+                  parsedData.education?.length > 0 || parsedData.contactInfo?.email ||
+                  parsedData.name;
+  parseStatus = hasData ? "completed" : "failed";
+
+  if (!extractedText) {
+    summary = "Could not extract text — PDF may be a scanned image (OCR not available)";
+  } else if (hasAI && aiError) {
+    summary = `AI parsing failed: ${aiError}`;
+  } else if (hasAI && hasData) {
+    summary = "AI parsing completed";
+  } else if (hasAI && !hasData) {
+    summary = "AI parsing returned no data";
+  } else if (!hasAI && hasData) {
+    summary = "Extracted using text analysis (AI not available)";
+  } else {
+    summary = "Could not extract any information from the resume";
+  }
+
   const profile = await ResumeProfile.findOneAndUpdate(
     { user: req.user._id },
     {
@@ -290,7 +320,7 @@ export async function uploadResumeToCareerBrain(req, res) {
         resumeUrl: url,
         fileName,
         mimeType: mimetype,
-        extractedText: extractedText.substring(0, 50000),
+        extractedText: extractedText ? extractedText.substring(0, 50000) : "",
         parsedData: {
           name: parsedData.name || "",
           summary: parsedData.summary || "",
@@ -314,7 +344,7 @@ export async function uploadResumeToCareerBrain(req, res) {
         lastParsedAt: new Date(),
         lastScanAt: new Date(),
         lastScanStatus: parseStatus,
-        lastScanSummary: aiUsed ? "AI parsing completed" : "Extracted using text analysis (AI not available)",
+        lastScanSummary: summary,
       },
       $setOnInsert: { user: req.user._id },
     },

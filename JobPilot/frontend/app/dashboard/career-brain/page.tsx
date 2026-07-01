@@ -43,6 +43,8 @@ interface ResumeData {
   fileUrl: string;
   uploadedAt: string;
   parsed: boolean;
+  status: "idle" | "parsing" | "parsed" | "failed";
+  statusMessage?: string;
 }
 
 interface Experience {
@@ -240,12 +242,19 @@ interface BackendResumeProfile {
   fileName?: string;
   lastParsedAt?: string;
   lastScanStatus?: string;
+  lastScanSummary?: string;
   parsedData?: Record<string, unknown>;
 }
 
 function toProfile(bp: BackendResumeProfile): CareerBrainProfile {
   const pd = (bp.parsedData ?? {}) as Record<string, unknown>;
-  const parsed = bp.lastScanStatus === "completed";
+  const status: ResumeData["status"] =
+    bp.lastScanStatus === "completed" ? "parsed"
+    : bp.lastScanStatus === "running" ? "parsing"
+    : bp.lastScanStatus === "failed" ? "failed"
+    : bp.fileName ? "parsing"  // existing profile with no status — assume parsing needed
+    : "idle";
+  const parsed = status === "parsed";
   return normaliseProfile({
     resume: bp.fileName
       ? {
@@ -253,6 +262,8 @@ function toProfile(bp: BackendResumeProfile): CareerBrainProfile {
           fileUrl: bp.resumeUrl ?? "",
           uploadedAt: bp.lastParsedAt ?? new Date().toISOString(),
           parsed,
+          status,
+          statusMessage: bp.lastScanSummary ?? undefined,
         }
       : null,
     skills: (pd.skills ?? []) as string[],
@@ -377,13 +388,15 @@ function ResumeUploadSection({
               <div>
                 <p className="text-sm font-medium">{resume.fileName}</p>
                 <div className="flex items-center gap-2">
-                  {resume.parsed ? (
-                    <Badge
-                      variant="secondary"
-                      className="gap-1 text-xs text-emerald-600 dark:text-emerald-400"
-                    >
+                  {resume.status === "parsed" ? (
+                    <Badge variant="secondary" className="gap-1 text-xs text-emerald-600 dark:text-emerald-400">
                       <CheckCircle className="h-3 w-3" />
                       Parsed
+                    </Badge>
+                  ) : resume.status === "failed" ? (
+                    <Badge variant="outline" className="gap-1 text-xs text-red-600 dark:text-red-400">
+                      <AlertTriangle className="h-3 w-3" />
+                      Parse Failed
                     </Badge>
                   ) : (
                     <Badge variant="outline" className="gap-1 text-xs text-amber-600 dark:text-amber-400">
@@ -394,6 +407,9 @@ function ResumeUploadSection({
                   <span className="text-xs text-muted-foreground">
                     Uploaded {new Date(resume.uploadedAt).toLocaleDateString()}
                   </span>
+                  {resume.statusMessage && resume.status === "failed" && (
+                    <span className="text-xs text-muted-foreground/60">{resume.statusMessage}</span>
+                  )}
                 </div>
               </div>
             </div>
