@@ -1,6 +1,5 @@
 const Membership = require('../models/Membership')
 const Subscription = require('../models/Subscription')
-const Workspace = require('../models/Workspace')
 
 const PLANS = {
   free: {
@@ -45,15 +44,14 @@ const getPlanLimits = async (workspaceId) => {
 }
 
 const enforceWorkspaceCreateLimit = async (userId) => {
-  const ownedWorkspaces = await Workspace.find({ owner: userId, isArchived: false }).select('_id')
-  const ownedWorkspaceCount = ownedWorkspaces.length
-  const ownedWorkspaceIds = ownedWorkspaces.map((item) => item._id)
+  const activeMemberships = await Membership.find({ user: userId, status: 'active' }).select('workspace')
+  const activeWorkspaceIds = activeMemberships.map((m) => m.workspace)
   const activeProSubscription = await Subscription.findOne({
-    workspace: { $in: ownedWorkspaceIds },
+    workspace: { $in: activeWorkspaceIds },
     plan: { $in: ['pro_monthly', 'pro_yearly'] },
     status: { $in: ['active', 'trialing', 'pending'] },
   })
-  if (!activeProSubscription && ownedWorkspaceCount >= PLANS.free.workspaceLimit) {
+  if (!activeProSubscription && activeWorkspaceIds.length >= PLANS.free.workspaceLimit) {
     return {
       allowed: false,
       code: 'workspace_limit_exceeded',
