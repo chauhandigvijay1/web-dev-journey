@@ -47,14 +47,14 @@ const TeamPage = () => {
 
   return (
     <section className="space-y-4 pb-5">
-      <div className="flex flex-col gap-3 rounded-[30px] border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900 lg:flex-row lg:items-center lg:justify-between">
+      <div className="flex flex-col gap-3 rounded-[30px] border border-white/10 glass-panel p-5 lg:flex-row lg:items-center lg:justify-between">
         <div>
-          <h1 className="text-2xl font-semibold text-slate-900 dark:text-white">Team Directory</h1>
-          <p className="text-sm text-slate-500 dark:text-slate-400">Search teammates, filter by role, and jump into action fast.</p>
+          <h1 className="text-2xl font-semibold text-white font-semibold drop-shadow-md">Team Directory</h1>
+          <p className="text-sm text-zinc-400">Search teammates, filter by role, and jump into action fast.</p>
         </div>
         <div className="flex flex-wrap gap-2">
-          <div className="flex items-center gap-2 rounded-xl border border-slate-200 px-3 py-2 dark:border-slate-700">
-            <Search size={15} className="text-slate-400" />
+          <div className="flex items-center gap-2 rounded-xl border border-white/10 px-3 py-2 dark:border-zinc-700">
+            <Search size={15} className="text-zinc-400" />
             <input
               className="bg-transparent text-sm outline-none"
               onChange={(event) => {
@@ -66,7 +66,7 @@ const TeamPage = () => {
             />
           </div>
           <select
-            className="rounded-xl border border-slate-200 px-3 py-2 text-sm capitalize dark:border-slate-700 dark:bg-slate-950"
+            className="rounded-xl border border-white/10 px-3 py-2 text-sm capitalize dark:border-zinc-700 bg-black/20"
             onChange={(event) => {
               setRoleFilter(event.target.value)
               setCurrentPage(1)
@@ -84,33 +84,33 @@ const TeamPage = () => {
 
       <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
         {paginatedMembers.map((member) => (
-          <article className="rounded-[28px] border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900" key={member.id}>
+          <article className="rounded-[28px] border border-white/10 glass-panel p-5" key={member.id}>
             <div className="flex items-start justify-between gap-3">
               <div className="flex items-center gap-3">
                 <Avatar className="rounded-2xl" name={member.fullName} size="lg" src={member.avatarUrl} />
                 <div>
-                  <p className="text-sm font-semibold text-slate-900 dark:text-white">{member.fullName}</p>
-                  <p className="text-xs text-slate-500">@{member.username}</p>
+                  <p className="text-sm font-semibold text-white font-semibold drop-shadow-md">{member.fullName}</p>
+                  <p className="text-xs text-zinc-500">@{member.username}</p>
                 </div>
               </div>
               <span className={`rounded-full px-2.5 py-1 text-[11px] font-medium capitalize ${member.status === 'active' ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-200' : 'bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-200'}`}>
                 {member.status}
               </span>
             </div>
-            <div className="mt-4 space-y-2 text-sm text-slate-600 dark:text-slate-300">
+            <div className="mt-4 space-y-2 text-sm text-zinc-300">
               <p>{member.email}</p>
               <p>Joined {new Date(member.joinedAt).toLocaleDateString()}</p>
-              <div className="inline-flex items-center rounded-full bg-slate-100 px-3 py-1 text-xs font-medium capitalize text-slate-600 dark:bg-slate-800 dark:text-slate-300">
+              <div className="inline-flex items-center rounded-full glass-card/10 px-3 py-1 text-xs font-medium capitalize text-zinc-300 dark:bg-zinc-800 dark:text-zinc-300">
                 <ShieldCheck className="mr-1 inline" size={12} />
                 {member.role}
               </div>
             </div>
             <div className="mt-5 flex flex-wrap gap-2">
-              <button className="rounded-xl border border-slate-200 px-3 py-2 text-sm dark:border-slate-700" onClick={() => navigate(`/chat?dm=${member.userId}`)} type="button">
+              <button className="rounded-xl border border-white/10 px-3 py-2 text-sm dark:border-zinc-700" onClick={() => navigate(`/chat?dm=${member.userId}`)} type="button">
                 <MessageSquareText className="mr-1 inline" size={14} />
                 Quick message
               </button>
-              <button className="rounded-xl border border-slate-200 px-3 py-2 text-sm dark:border-slate-700" onClick={() => navigate(`/tasks?create=1&assignee=${member.userId}`)} type="button">
+              <button className="rounded-xl border border-white/10 px-3 py-2 text-sm dark:border-zinc-700" onClick={() => navigate(`/tasks?create=1&assignee=${member.userId}`)} type="button">
                 <SquareKanban className="mr-1 inline" size={14} />
                 Assign task
               </button>

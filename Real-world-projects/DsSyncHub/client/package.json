@@ -15,6 +15,8 @@
     "@hookform/resolvers": "^5.2.2",
     "@react-oauth/google": "^0.12.2",
     "@reduxjs/toolkit": "^2.11.2",
+    "@sentry/browser": "^10.63.0",
+    "@sentry/react": "^10.63.0",
     "axios": "^1.15.1",
     "lucide-react": "^1.8.0",
     "react": "^19.2.5",

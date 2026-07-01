@@ -13,8 +13,8 @@ const toneClasses = {
     icon: 'text-rose-600 dark:text-rose-300',
   },
   info: {
-    card: 'border-slate-200 bg-white/95 text-slate-900 dark:border-slate-700 dark:bg-slate-900/95 dark:text-slate-50',
-    icon: 'text-violet-600 dark:text-violet-300',
+    card: 'border-white/10 glass-card/95 text-white dark:border-zinc-700 dark:bg-zinc-900/95 dark:text-zinc-50',
+    icon: 'text-brand-500 dark:text-brand-300',
   },
 } as const
 
@@ -58,7 +58,7 @@ const ToastItemView = ({
         {description && <p className="mt-1 text-xs leading-5 opacity-80">{description}</p>}
       </div>
       <button
-        className="rounded-lg p-1 opacity-70 transition hover:bg-black/5 hover:opacity-100 dark:hover:bg-white/10"
+        className="rounded-lg p-1 opacity-70 transition hover:bg-black/5 hover:opacity-100 dark:hover:glass-card/10"
         onClick={() => dispatch(dismissToast(id))}
         type="button"
       >

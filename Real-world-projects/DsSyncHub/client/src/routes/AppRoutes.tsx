@@ -12,6 +12,7 @@ const SignupPage = lazy(() => import('../pages/SignupPage'))
 const ForgotPasswordPage = lazy(() => import('../pages/ForgotPasswordPage'))
 const ResetPasswordPage = lazy(() => import('../pages/ResetPasswordPage'))
 const SharedNotePage = lazy(() => import('../pages/SharedNotePage'))
+const VerifyEmailPage = lazy(() => import('../pages/VerifyEmailPage'))
 const NotFoundPage = lazy(() => import('../pages/NotFoundPage'))
 const DashboardPage = lazy(() => import('../pages/DashboardPage'))
 const WorkspacesPage = lazy(() => import('../pages/dashboard/WorkspacesPage'))
@@ -28,6 +29,9 @@ const ActivityPage = lazy(() => import('../pages/dashboard/ActivityPage'))
 const NotificationsPage = lazy(() => import('../pages/dashboard/NotificationsPage'))
 const BillingPage = lazy(() => import('../pages/dashboard/BillingPage'))
 const SettingsPage = lazy(() => import('../pages/dashboard/SettingsPage'))
+const AdminPage = lazy(() => import('../pages/AdminPage'))
+const TermsPage = lazy(() => import('../pages/TermsPage'))
+const PrivacyPage = lazy(() => import('../pages/PrivacyPage'))
 
 const AppRoutes = () => {
   return (
@@ -68,6 +72,9 @@ const AppRoutes = () => {
             }
           />
           <Route path="/notes/shared/:token" element={<SharedNotePage />} />
+          <Route path="/verify-email/:token" element={<VerifyEmailPage />} />
+          <Route path="/terms" element={<TermsPage />} />
+          <Route path="/privacy" element={<PrivacyPage />} />
         </Route>
 
         <Route
@@ -92,6 +99,7 @@ const AppRoutes = () => {
           <Route path="/notifications" element={<NotificationsPage />} />
           <Route path="/billing" element={<BillingPage />} />
           <Route path="/settings" element={<SettingsPage />} />
+          <Route path="/admin" element={<AdminPage />} />
         </Route>
 
         <Route path="/home" element={<Navigate to="/" replace />} />

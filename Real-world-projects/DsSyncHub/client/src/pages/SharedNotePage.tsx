@@ -24,7 +24,7 @@ const SharedNotePage = () => {
   }, [token])
 
   if (loading) {
-    return <div className="grid min-h-screen place-items-center text-sm text-slate-500">Loading shared note...</div>
+    return <div className="grid min-h-screen place-items-center text-sm text-zinc-500">Loading shared note...</div>
   }
 
   if (error || !note) {
@@ -33,12 +33,12 @@ const SharedNotePage = () => {
 
   return (
     <main className="mx-auto min-h-screen max-w-4xl px-4 py-8">
-      <article className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+      <article className="rounded-2xl border border-white/10 glass-card p-6 shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
         <div className="mb-3 flex items-center gap-2">
           <span className="text-2xl">{note.icon || 'N'}</span>
           <h1 className="text-2xl font-semibold">{note.title}</h1>
         </div>
-        <div className="max-w-none leading-7 text-slate-700 dark:text-slate-200" dangerouslySetInnerHTML={{ __html: note.content || '<p>No content</p>' }} />
+        <div className="max-w-none leading-7 text-zinc-200" dangerouslySetInnerHTML={{ __html: note.content || '<p>No content</p>' }} />
       </article>
     </main>
   )

@@ -79,21 +79,68 @@ const validateIncomingFile = (file) => {
   return null
 }
 
-const storeLocally = async (file) => {
-  await ensureLocalUploadsDir()
+const storeLocally = async (file, workspaceId) => {
+  const workspaceDir = workspaceId ? path.join(localUploadsDir, String(workspaceId)) : localUploadsDir
+  await fs.mkdir(workspaceDir, { recursive: true })
   const extension = getFileExtension(file.originalname)
   const token = crypto.randomBytes(10).toString('hex')
   const baseName = safeBaseName(path.basename(file.originalname, extension)) || 'upload'
   const storedName = `${Date.now()}-${token}-${baseName}${extension}`
-  const absolutePath = path.join(localUploadsDir, storedName)
+  const absolutePath = path.join(workspaceDir, storedName)
   await fs.writeFile(absolutePath, file.buffer)
 
   return {
     name: storedName,
-    url: `/api/files/content/${storedName}`,
+    url: workspaceId ? `/api/files/content/${workspaceId}/${storedName}` : `/api/files/content/${storedName}`,
     storagePath: absolutePath,
     provider: 'local',
   }
+}
+
+const storeRemotely = async (file, workspaceId) => {
+  const extension = getFileExtension(file.originalname)
+  const token = crypto.randomBytes(10).toString('hex')
+  const baseName = safeBaseName(path.basename(file.originalname, extension)) || 'upload'
+  const storedName = `${Date.now()}-${token}-${baseName}${extension}`
+
+  if (process.env.CLOUDINARY_CLOUD_NAME && process.env.CLOUDINARY_API_KEY && process.env.CLOUDINARY_API_SECRET) {
+    const cloudinary = require('cloudinary').v2
+    cloudinary.config({
+      cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+      api_key: process.env.CLOUDINARY_API_KEY,
+      api_secret: process.env.CLOUDINARY_API_SECRET,
+    })
+    const folder = workspaceId ? `dssync/${workspaceId}` : 'dssync'
+    const result = await new Promise((resolve, reject) => {
+      const uploadStream = cloudinary.uploader.upload_stream(
+        { folder, public_id: storedName.replace(/\.[^.]+$/, ''), resource_type: 'auto' },
+        (error, result) => {
+          if (error) reject(error)
+          else resolve(result)
+        },
+      )
+      uploadStream.end(file.buffer)
+    })
+    return {
+      name: storedName,
+      url: result.secure_url,
+      storagePath: result.public_id,
+      provider: 'cloudinary',
+    }
+  }
+
+  // Fallback to local if no cloud storage configured
+  return storeLocally(file, workspaceId)
+}
+
+const storeFile = async (file, workspaceId) => {
+  const result = await storeRemotely(file, workspaceId)
+  if (result.provider === 'local' && process.env.NODE_ENV === 'production') {
+    console.warn(
+      'WARNING: File stored locally — will be lost on deploy. Set CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, and CLOUDINARY_API_SECRET for persistent storage.',
+    )
+  }
+  return result
 }
 
 const buildAttachment = (fileAsset) => ({
@@ -225,6 +272,7 @@ module.exports = {
   normalizeAttachments,
   removeLocalFile,
   serializeFileAsset,
+  storeFile,
   storeLocally,
   validateIncomingFile,
 }

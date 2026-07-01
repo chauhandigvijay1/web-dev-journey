@@ -77,27 +77,27 @@ const WorkspacesPage = () => {
 
   return (
     <section className="space-y-4">
-      <div className="flex flex-col justify-between gap-3 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900 sm:flex-row sm:items-center">
+      <div className="flex flex-col justify-between gap-3 rounded-2xl border border-white/10 glass-panel p-5 sm:flex-row sm:items-center">
         <div>
-          <h1 className="text-2xl font-semibold text-slate-900 dark:text-white">Workspaces</h1>
-          <p className="text-sm text-slate-500 dark:text-slate-400">Manage team spaces and access levels</p>
+          <h1 className="text-2xl font-semibold text-white font-semibold drop-shadow-md">Workspaces</h1>
+          <p className="text-sm text-zinc-400">Manage team spaces and access levels</p>
         </div>
         <div className="flex flex-wrap gap-2">
           <input
-            className="rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-violet-500 dark:border-slate-700 dark:bg-slate-950"
+            className="rounded-xl border border-white/10 px-3 py-2 text-sm outline-none focus:border-brand-500 dark:border-zinc-700 bg-black/20"
             onChange={(event) => setSearch(event.target.value)}
             placeholder="Search workspace..."
             value={search}
           />
           <button
-            className="rounded-xl border border-slate-200 px-3 py-2 text-sm hover:bg-slate-100 dark:border-slate-700 dark:hover:bg-slate-800"
+            className="rounded-xl border border-white/10 px-3 py-2 text-sm hover:glass-card/10 dark:border-zinc-700 dark:hover:bg-zinc-800"
             onClick={() => setJoinModalOpen(true)}
             type="button"
           >
             Join via Invite Code
           </button>
           <button
-            className="rounded-xl bg-violet-600 px-3 py-2 text-sm font-medium text-white hover:bg-violet-700"
+            className="rounded-xl bg-brand-500 px-3 py-2 text-sm font-medium text-white hover:bg-brand-400 shadow-[0_0_15px_rgba(16,185,129,0.3)] transition-all hover:shadow-[0_0_25px_rgba(16,185,129,0.5)] hover:-tranzinc-y-0.5 duration-300 shadow-[0_0_15px_rgba(16,185,129,0.3)] transition-all hover:shadow-[0_0_25px_rgba(16,185,129,0.5)] hover:-tranzinc-y-0.5 duration-300"
             onClick={() => setCreateModalOpen(true)}
             type="button"
           >
@@ -110,21 +110,21 @@ const WorkspacesPage = () => {
         <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
           {Array.from({ length: 3 }).map((_, index) => (
             <article
-              className="h-44 animate-pulse rounded-2xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900"
+              className="h-44 animate-pulse rounded-2xl border border-white/10 glass-panel p-5"
               key={index}
             />
           ))}
         </div>
       ) : filteredWorkspaces.length === 0 ? (
-        <article className="rounded-2xl border border-dashed border-slate-300 bg-white p-10 text-center shadow-sm dark:border-slate-700 dark:bg-slate-900">
+        <article className="rounded-2xl border border-dashed border-zinc-300 glass-card p-10 text-center shadow-sm dark:border-zinc-700 dark:bg-zinc-900">
           <p className="text-lg font-medium">{search.trim() ? 'No workspaces match this search' : 'Create your first workspace'}</p>
-          <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
+          <p className="mt-1 text-sm text-zinc-400">
             {search.trim()
               ? 'Try a different workspace name or open the full list by clearing the current search.'
               : 'Bring your team into one shared collaboration space.'}
           </p>
           <button
-            className="mt-4 rounded-xl bg-violet-600 px-4 py-2 text-sm font-medium text-white hover:bg-violet-700"
+            className="mt-4 rounded-xl bg-brand-500 px-4 py-2 text-sm font-medium text-white hover:bg-brand-400 shadow-[0_0_15px_rgba(16,185,129,0.3)] transition-all hover:shadow-[0_0_25px_rgba(16,185,129,0.5)] hover:-tranzinc-y-0.5 duration-300 shadow-[0_0_15px_rgba(16,185,129,0.3)] transition-all hover:shadow-[0_0_25px_rgba(16,185,129,0.5)] hover:-tranzinc-y-0.5 duration-300"
             onClick={() => (search.trim() ? setSearch('') : setCreateModalOpen(true))}
             type="button"
           >
@@ -135,30 +135,30 @@ const WorkspacesPage = () => {
         <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
           {filteredWorkspaces.map((workspace) => (
             <article
-              className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md dark:border-slate-800 dark:bg-slate-900"
+              className="rounded-2xl border border-white/10 glass-panel p-5 shadow-sm transition hover:-tranzinc-y-0.5 hover:shadow-md dark:border-zinc-800 dark:bg-zinc-900"
               key={workspace.id}
             >
               <div className="flex items-start justify-between">
                 <div className="flex items-center gap-3">
-                  <div className="grid h-10 w-10 place-items-center rounded-xl bg-violet-100 font-semibold text-violet-700 dark:bg-violet-500/20 dark:text-violet-300">
+                  <div className="grid h-10 w-10 place-items-center rounded-xl bg-brand-500/10 font-semibold text-brand-400 dark:bg-brand-500/20 dark:text-brand-300">
                     {workspace.name.slice(0, 1)}
                   </div>
                   <div>
-                    <h2 className="text-lg font-semibold text-slate-900 dark:text-white">
+                    <h2 className="text-lg font-semibold text-white font-semibold drop-shadow-md">
                       {workspace.name}
                     </h2>
-                    <p className="text-xs text-slate-500 dark:text-slate-400">{workspace.description}</p>
+                    <p className="text-xs text-zinc-400">{workspace.description}</p>
                   </div>
                 </div>
-                <button className="rounded-lg p-1.5 hover:bg-slate-100 dark:hover:bg-slate-800" type="button">
+                <button className="rounded-lg p-1.5 hover:glass-card/10 dark:hover:bg-zinc-800" type="button">
                   <Ellipsis size={16} />
                 </button>
               </div>
-              <div className="mt-3 space-y-1 text-sm text-slate-600 dark:text-slate-300">
+              <div className="mt-3 space-y-1 text-sm text-zinc-300">
                 <p>Members: {workspace.membersCount}</p>
                 <p>
                   Role:{' '}
-                  <span className="rounded-full bg-slate-100 px-2 py-0.5 text-xs capitalize dark:bg-slate-800">
+                  <span className="rounded-full glass-card/10 px-2 py-0.5 text-xs capitalize dark:bg-zinc-800">
                     {workspace.role}
                   </span>
                 </p>
@@ -172,7 +172,7 @@ const WorkspacesPage = () => {
               </div>
               <div className="mt-4 flex flex-wrap gap-2">
                 <button
-                  className="rounded-lg bg-slate-900 px-3 py-1.5 text-sm text-white dark:bg-white dark:text-slate-900"
+                  className="rounded-lg bg-zinc-900 px-3 py-1.5 text-sm text-white dark:glass-card dark:text-white"
                   onClick={() => {
                     dispatch(setActiveWorkspaceId(workspace.id))
                     navigate(`/workspaces/${workspace.id}`)
@@ -182,7 +182,7 @@ const WorkspacesPage = () => {
                   Open
                 </button>
                 <button
-                  className="rounded-lg border border-slate-200 px-3 py-1.5 text-sm hover:bg-slate-100 dark:border-slate-700 dark:hover:bg-slate-800"
+                  className="rounded-lg border border-white/10 px-3 py-1.5 text-sm hover:glass-card/10 dark:border-zinc-700 dark:hover:bg-zinc-800"
                   onClick={() => navigate(`/workspaces/${workspace.id}?tab=members`)}
                   type="button"
                 >
@@ -190,7 +190,7 @@ const WorkspacesPage = () => {
                   Members
                 </button>
                 <button
-                  className="rounded-lg border border-slate-200 px-3 py-1.5 text-sm hover:bg-slate-100 dark:border-slate-700 dark:hover:bg-slate-800"
+                  className="rounded-lg border border-white/10 px-3 py-1.5 text-sm hover:glass-card/10 dark:border-zinc-700 dark:hover:bg-zinc-800"
                   onClick={() => navigate(`/workspaces/${workspace.id}?tab=settings`)}
                   type="button"
                 >

@@ -32,7 +32,7 @@ const MentionText = ({ text, members, className = '' }: MentionTextProps) => {
 
         return (
           <button
-            className="rounded-md bg-violet-100 px-1.5 py-0.5 text-left text-violet-700 hover:bg-violet-200 dark:bg-violet-500/20 dark:text-violet-200 dark:hover:bg-violet-500/30"
+            className="rounded-md bg-brand-500/10 px-1.5 py-0.5 text-left text-brand-400 hover:bg-violet-200 dark:bg-brand-500/20 dark:text-brand-200 dark:hover:bg-violet-500/30"
             key={`${part}-${index}`}
             onClick={() => navigate('/team')}
             type="button"

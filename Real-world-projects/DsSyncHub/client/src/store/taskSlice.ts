@@ -130,6 +130,16 @@ const taskSlice = createSlice({
     clearTaskFilters: (state) => {
       state.filters = initialState.filters
     },
+    addIncomingTask: (state, action: PayloadAction<TaskItem>) => {
+      const exists = state.items.some((t) => t.id === action.payload.id)
+      if (!exists) state.items.push(action.payload)
+    },
+    updateIncomingTask: (state, action: PayloadAction<TaskItem>) => {
+      state.items = state.items.map((t) => (t.id === action.payload.id ? action.payload : t))
+    },
+    removeIncomingTask: (state, action: PayloadAction<string>) => {
+      state.items = state.items.filter((t) => t.id !== action.payload)
+    },
   },
   extraReducers: (builder) => {
     builder
@@ -167,5 +177,12 @@ const taskSlice = createSlice({
   },
 })
 
-export const { setSelectedTaskId, setTaskFilters, clearTaskFilters } = taskSlice.actions
+export const {
+  setSelectedTaskId,
+  setTaskFilters,
+  clearTaskFilters,
+  addIncomingTask,
+  updateIncomingTask,
+  removeIncomingTask,
+} = taskSlice.actions
 export default taskSlice.reducer

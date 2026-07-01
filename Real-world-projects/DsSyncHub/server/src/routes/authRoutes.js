@@ -8,6 +8,8 @@ const {
   requestPasswordReset,
   registerUser,
   resetPassword,
+  sendVerificationEmailController,
+  verifyEmail,
 } = require('../controllers/authController')
 const { authMiddleware } = require('../middleware/authMiddleware')
 const {
@@ -37,5 +39,7 @@ router.post('/reset-password', validateResetPassword, resetPassword)
 router.post('/logout', logoutUser)
 router.get('/me', authMiddleware, getCurrentUser)
 router.post('/google', googleAuth)
+router.post('/send-verification', authMiddleware, sendVerificationEmailController)
+router.post('/verify-email/:token', verifyEmail)
 
 module.exports = router

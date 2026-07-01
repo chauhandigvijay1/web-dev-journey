@@ -167,15 +167,15 @@ const ChatPage = () => {
   }
 
   return (
-    <section className="flex min-h-[calc(100vh-8.7rem)] gap-4">
+    <section className="flex flex-1 h-full min-h-0 gap-4">
       {mobileThreadsOpen && (
-        <div className="fixed inset-0 z-30 bg-slate-900/40 md:hidden" onClick={() => setMobileThreadsOpen(false)} role="presentation" />
+        <div className="fixed inset-0 z-30 bg-zinc-900/40 md:hidden" onClick={() => setMobileThreadsOpen(false)} role="presentation" />
       )}
-      <aside className={`${mobileThreadsOpen ? 'fixed inset-y-24 left-3 z-40 block w-[280px]' : 'hidden'} rounded-2xl border border-slate-200 bg-white p-3 shadow-sm md:static md:block md:w-72 dark:border-slate-800 dark:bg-slate-900`}>
+      <aside className={`${mobileThreadsOpen ? 'fixed inset-y-24 left-3 z-40 block w-[280px]' : 'hidden'} rounded-2xl border border-white/10 glass-card p-3 shadow-sm md:static md:block md:w-72 dark:border-zinc-800 dark:bg-zinc-900`}>
         <div className="mb-3 flex items-center justify-between">
-          <h2 className="text-sm font-semibold text-slate-500">Channels</h2>
+          <h2 className="text-sm font-semibold text-zinc-500">Channels</h2>
           <button
-            className="rounded-lg border border-slate-200 p-1.5 dark:border-slate-700"
+            className="rounded-lg border border-white/10 p-1.5 dark:border-zinc-700"
             onClick={openChannelModal}
             type="button"
           >
@@ -187,8 +187,8 @@ const ChatPage = () => {
             <button
               className={`w-full rounded-lg px-3 py-2 text-left text-sm ${
                 currentChannelId === channel._id && !directUserId
-                  ? 'bg-violet-100 text-violet-700 dark:bg-violet-500/20 dark:text-violet-300'
-                  : 'hover:bg-slate-100 dark:hover:bg-slate-800'
+                  ? 'bg-brand-500/10 text-brand-400 dark:bg-brand-500/20 dark:text-brand-300'
+                  : 'hover:glass-card/10 dark:hover:bg-zinc-800'
               }`}
               key={channel._id}
               onClick={() => {
@@ -208,7 +208,7 @@ const ChatPage = () => {
         </div>
 
         <div className="mb-3 mt-6 flex items-center justify-between">
-          <h2 className="text-sm font-semibold text-slate-500">Direct Messages</h2>
+          <h2 className="text-sm font-semibold text-zinc-500">Direct Messages</h2>
         </div>
         <div className="space-y-1">
           {members
@@ -217,8 +217,8 @@ const ChatPage = () => {
               <button
                 className={`flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-sm ${
                   directUserId === member.userId
-                    ? 'bg-violet-100 text-violet-700 dark:bg-violet-500/20 dark:text-violet-300'
-                    : 'hover:bg-slate-100 dark:hover:bg-slate-800'
+                    ? 'bg-brand-500/10 text-brand-400 dark:bg-brand-500/20 dark:text-brand-300'
+                    : 'hover:glass-card/10 dark:hover:bg-zinc-800'
                 }`}
                 key={member.id}
                 onClick={() => {
@@ -235,29 +235,29 @@ const ChatPage = () => {
       </aside>
 
       <div className="flex min-w-0 flex-1 gap-4">
-        <main className="flex min-w-0 flex-1 flex-col rounded-2xl border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
-          <header className="flex items-center justify-between border-b border-slate-200 px-4 py-3 dark:border-slate-800">
+        <main className="flex min-w-0 flex-1 flex-col rounded-2xl border border-white/10 glass-card shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
+          <header className="flex items-center justify-between border-b border-white/10 px-4 py-3 dark:border-zinc-800">
             <div>
-              <h1 className="text-lg font-semibold text-slate-900 dark:text-white">
+              <h1 className="text-lg font-semibold text-white font-semibold drop-shadow-md">
                 {directUserId
                   ? currentDirectUser?.fullName || 'Direct message'
                   : currentChannel
                     ? `# ${currentChannel.name}`
                     : 'Select a conversation'}
               </h1>
-              <p className="text-xs text-slate-500">
+              <p className="text-xs text-zinc-500">
                 {directUserId ? 'Direct chat' : `${onlineUsers.length} online now`}
               </p>
             </div>
             <div className="flex items-center gap-2">
               <button
-                className="rounded-xl border border-slate-200 p-2 md:hidden dark:border-slate-700"
+                className="rounded-xl border border-white/10 p-2 md:hidden dark:border-zinc-700"
                 onClick={() => setMobileThreadsOpen(true)}
                 type="button"
               >
                 <Users size={15} />
               </button>
-              <div className="hidden items-center gap-2 rounded-xl border border-slate-200 px-2 py-1.5 text-sm md:flex dark:border-slate-700">
+              <div className="hidden items-center gap-2 rounded-xl border border-white/10 px-2 py-1.5 text-sm md:flex dark:border-zinc-700">
                 <Search size={14} />
                 <input
                   className="w-44 bg-transparent outline-none"
@@ -266,10 +266,10 @@ const ChatPage = () => {
                   value={query}
                 />
               </div>
-              <button className="rounded-xl border border-slate-200 p-2 dark:border-slate-700" type="button">
+              <button className="rounded-xl border border-white/10 p-2 dark:border-zinc-700" type="button">
                 <Phone size={15} />
               </button>
-              <button className="rounded-xl border border-slate-200 px-2 py-1.5 text-xs dark:border-slate-700" onClick={() => setAiOpen(true)} type="button">
+              <button className="rounded-xl border border-white/10 px-2 py-1.5 text-xs dark:border-zinc-700" onClick={() => setAiOpen(true)} type="button">
                 Catch Me Up
               </button>
             </div>
@@ -306,9 +306,9 @@ const ChatPage = () => {
                       )}
                       <div className="min-w-0 flex-1">
                         {!grouped && (
-                          <p className="mb-0.5 text-sm font-semibold text-slate-900 dark:text-white">
+                          <p className="mb-0.5 text-sm font-semibold text-white font-semibold drop-shadow-md">
                             {message.sender.fullName}{' '}
-                            <span className="text-xs font-normal text-slate-500">
+                            <span className="text-xs font-normal text-zinc-500">
                               {new Date(message.createdAt).toLocaleTimeString()}
                             </span>
                           </p>
@@ -316,12 +316,12 @@ const ChatPage = () => {
                         {editingMessageId === message._id ? (
                           <div className="flex gap-2">
                             <input
-                              className="flex-1 rounded-lg border border-slate-200 px-2 py-1 text-sm dark:border-slate-700 dark:bg-slate-950"
+                              className="flex-1 rounded-lg border border-white/10 px-2 py-1 text-sm dark:border-zinc-700 bg-black/20"
                               onChange={(event) => setEditingText(event.target.value)}
                               value={editingText}
                             />
                             <button
-                              className="rounded-lg bg-slate-900 px-2 py-1 text-xs text-white dark:bg-white dark:text-slate-900"
+                              className="rounded-lg bg-zinc-900 px-2 py-1 text-xs text-white dark:glass-card dark:text-white"
                               onClick={() => {
                                 dispatch(editMessageThunk({ messageId: message._id, content: editingText }))
                                 socket.emit('edit_message', {
@@ -337,26 +337,26 @@ const ChatPage = () => {
                             </button>
                           </div>
                         ) : (
-                          <div className="rounded-xl bg-slate-100 px-3 py-2 text-sm dark:bg-slate-800">
+                          <div className="rounded-xl glass-card/10 px-3 py-2 text-sm dark:bg-zinc-800">
                             <MentionText members={members} text={message.content} />
                             {message.attachments.length > 0 && (
                               <div className="mt-3 flex flex-wrap gap-2">
                                 {message.attachments.map((attachment) => (
-                                  <a className="rounded-full bg-white px-3 py-1 text-xs text-slate-700 dark:bg-slate-900 dark:text-slate-200" href={buildAssetUrl(attachment.url)} key={attachment.fileId || attachment.url} rel="noreferrer" target="_blank">
+                                  <a className="rounded-full glass-card px-3 py-1 text-xs text-zinc-700 dark:bg-zinc-900 dark:text-zinc-200" href={buildAssetUrl(attachment.url)} key={attachment.fileId || attachment.url} rel="noreferrer" target="_blank">
                                     {attachment.name}
                                   </a>
                                 ))}
                               </div>
                             )}
                             {message.editedAt && (
-                              <span className="ml-2 text-[11px] text-slate-500">(edited)</span>
+                              <span className="ml-2 text-[11px] text-zinc-500">(edited)</span>
                             )}
                           </div>
                         )}
                         {message.sender._id === user?.id && editingMessageId !== message._id && (
                           <div className="mt-1 flex gap-1 opacity-0 transition group-hover:opacity-100">
                             <button
-                              className="rounded-md border border-slate-200 p-1 text-xs dark:border-slate-700"
+                              className="rounded-md border border-white/10 p-1 text-xs dark:border-zinc-700"
                               onClick={() => {
                                 setEditingMessageId(message._id)
                                 setEditingText(message.content)
@@ -366,7 +366,7 @@ const ChatPage = () => {
                               <Pencil size={12} />
                             </button>
                             <button
-                              className="rounded-md border border-slate-200 p-1 text-xs dark:border-slate-700"
+                              className="rounded-md border border-white/10 p-1 text-xs dark:border-zinc-700"
                               onClick={async () => {
                                 await navigator.clipboard.writeText(message.content)
                                 dispatch(pushToast({
@@ -400,22 +400,22 @@ const ChatPage = () => {
           </div>
 
           {Boolean(typingUsers.length) && (
-            <div className="px-4 py-1 text-xs text-slate-500">
+            <div className="px-4 py-1 text-xs text-zinc-500">
               {typingUsers.length === 1
                 ? `${typingUsers[0].fullName} is typing...`
                 : `${typingUsers.length} people typing...`}
             </div>
           )}
 
-          <div className="sticky bottom-0 border-t border-slate-200 p-3 dark:border-slate-800">
-            <div className="flex items-end gap-2 rounded-2xl border border-slate-200 p-2 dark:border-slate-700">
-              <button className="rounded-lg p-1.5 hover:bg-slate-100 dark:hover:bg-slate-800" type="button">
+          <div className="sticky bottom-0 border-t border-white/10 p-3 dark:border-zinc-800">
+            <div className="flex items-end gap-2 rounded-2xl border border-white/10 p-2 dark:border-zinc-700">
+              <button className="rounded-lg p-1.5 hover:glass-card/10 dark:hover:bg-zinc-800" type="button">
                 <Smile size={16} />
               </button>
-              <button className="rounded-lg p-1.5 hover:bg-slate-100 dark:hover:bg-slate-800" onClick={() => fileInputRef.current?.click()} type="button">
+              <button className="rounded-lg p-1.5 hover:glass-card/10 dark:hover:bg-zinc-800" onClick={() => fileInputRef.current?.click()} type="button">
                 <Paperclip size={16} />
               </button>
-              <button className="rounded-lg p-1.5 hover:bg-slate-100 dark:hover:bg-slate-800" type="button">
+              <button className="rounded-lg p-1.5 hover:glass-card/10 dark:hover:bg-zinc-800" type="button">
                 <Users size={16} />
               </button>
               <input
@@ -485,7 +485,7 @@ const ChatPage = () => {
                 value={messageText}
               />
               <button
-                className="rounded-xl bg-violet-600 px-3 py-2 text-sm font-medium text-white hover:bg-violet-700 disabled:cursor-not-allowed disabled:opacity-60"
+                className="rounded-xl bg-brand-500 px-3 py-2 text-sm font-medium text-white hover:bg-brand-400 shadow-[0_0_15px_rgba(16,185,129,0.3)] transition-all hover:shadow-[0_0_25px_rgba(16,185,129,0.5)] hover:-tranzinc-y-0.5 duration-300 shadow-[0_0_15px_rgba(16,185,129,0.3)] transition-all hover:shadow-[0_0_25px_rgba(16,185,129,0.5)] hover:-tranzinc-y-0.5 duration-300 disabled:cursor-not-allowed disabled:opacity-60"
                 disabled={!messageText.trim()}
                 onClick={() => {
                   sendMessage()
@@ -497,10 +497,10 @@ const ChatPage = () => {
               </button>
             </div>
             {mentionSuggestions.length > 0 && (
-              <div className="mt-2 rounded-2xl border border-slate-200 bg-white p-1 shadow-sm dark:border-slate-700 dark:bg-slate-900">
+              <div className="mt-2 rounded-2xl border border-white/10 glass-card p-1 shadow-sm dark:border-zinc-700 dark:bg-zinc-900">
                 {mentionSuggestions.map((member) => (
                   <button
-                    className="block w-full rounded-xl px-3 py-2 text-left text-xs hover:bg-slate-100 dark:hover:bg-slate-800"
+                    className="block w-full rounded-xl px-3 py-2 text-left text-xs hover:glass-card/10 dark:hover:bg-zinc-800"
                     key={member.userId}
                     onClick={() => {
                       const result = applyMentionSelection(messageText, cursorPosition, getMentionHandle(member))
@@ -521,8 +521,8 @@ const ChatPage = () => {
           </div>
         </main>
 
-        <aside className="hidden w-72 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm xl:block dark:border-slate-800 dark:bg-slate-900">
-          <h3 className="mb-3 text-sm font-semibold text-slate-500">Online Members</h3>
+        <aside className="hidden w-72 rounded-2xl border border-white/10 glass-card p-4 shadow-sm xl:block dark:border-zinc-800 dark:bg-zinc-900">
+          <h3 className="mb-3 text-sm font-semibold text-zinc-500">Online Members</h3>
           <div className="space-y-2">
             {onlineUsers.map((member) => (
               <div className="flex items-center gap-2" key={member.userId}>
@@ -530,10 +530,10 @@ const ChatPage = () => {
                 <p className="text-sm">{member.fullName}</p>
               </div>
             ))}
-            {!onlineUsers.length && <p className="text-sm text-slate-500">No one online.</p>}
+            {!onlineUsers.length && <p className="text-sm text-zinc-500">No one online.</p>}
           </div>
-          <div className="mt-6 rounded-xl border border-slate-200 p-3 text-xs text-slate-500 dark:border-slate-700">
-            <p className="font-semibold text-slate-700 dark:text-slate-200">Conversation snapshot</p>
+          <div className="mt-6 rounded-xl border border-white/10 p-3 text-xs text-zinc-500 dark:border-zinc-700">
+            <p className="font-semibold text-zinc-200">Conversation snapshot</p>
             <p className="mt-2">Messages: {messageCount}</p>
             <p className="mt-1">Shared files: {sharedAttachmentCount}</p>
             <p className="mt-2">
@@ -587,19 +587,19 @@ const ChatPage = () => {
 
       {showChannelModal && (
         <div
-          className="fixed inset-0 z-50 bg-slate-900/50 p-4"
+          className="fixed inset-0 z-50 bg-zinc-900/50 p-4"
           onClick={closeChannelModal}
           role="presentation"
         >
           <div
-            className="mx-auto mt-20 w-full max-w-md rounded-2xl border border-slate-200 bg-white p-5 shadow-xl dark:border-slate-700 dark:bg-slate-900"
+            className="mx-auto mt-20 w-full max-w-md rounded-2xl border border-white/10 glass-panel p-5 shadow-xl dark:border-zinc-700 dark:bg-zinc-900"
             onClick={(event) => event.stopPropagation()}
             role="dialog"
           >
             <h2 className="text-lg font-semibold">Create Channel</h2>
             <div className="mt-3 space-y-3">
               <input
-                className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-950"
+                className="w-full rounded-xl border border-white/10 px-3 py-2 text-sm dark:border-zinc-700 bg-black/20"
                 onChange={(event) => {
                   setNewChannelName(event.target.value)
                   setChannelError('')
@@ -608,7 +608,7 @@ const ChatPage = () => {
                 value={newChannelName}
               />
               <textarea
-                className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-950"
+                className="w-full rounded-xl border border-white/10 px-3 py-2 text-sm dark:border-zinc-700 bg-black/20"
                 onChange={(event) => {
                   setNewChannelDescription(event.target.value)
                   setChannelError('')
@@ -629,14 +629,14 @@ const ChatPage = () => {
             </div>
             <div className="mt-4 flex justify-end gap-2">
               <button
-                className="rounded-xl border border-slate-200 px-4 py-2 text-sm dark:border-slate-700"
+                className="rounded-xl border border-white/10 px-4 py-2 text-sm dark:border-zinc-700"
                 onClick={closeChannelModal}
                 type="button"
               >
                 Cancel
               </button>
               <button
-                className="rounded-xl bg-violet-600 px-4 py-2 text-sm font-medium text-white hover:bg-violet-700 disabled:opacity-60"
+                className="rounded-xl bg-brand-500 px-4 py-2 text-sm font-medium text-white hover:bg-brand-400 shadow-[0_0_15px_rgba(16,185,129,0.3)] transition-all hover:shadow-[0_0_25px_rgba(16,185,129,0.5)] hover:-tranzinc-y-0.5 duration-300 shadow-[0_0_15px_rgba(16,185,129,0.3)] transition-all hover:shadow-[0_0_25px_rgba(16,185,129,0.5)] hover:-tranzinc-y-0.5 duration-300 disabled:opacity-60"
                 disabled={creatingChannel || newChannelName.trim().length < 2}
                 onClick={async () => {
                   const trimmedName = newChannelName.trim()

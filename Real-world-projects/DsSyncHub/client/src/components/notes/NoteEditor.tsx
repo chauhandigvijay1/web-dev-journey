@@ -48,15 +48,27 @@ const NoteEditor = ({ note, onPatchNote, onSavingState }: NoteEditorProps) => {
   }
 
   const applyCommand = (action: string, value?: string) => {
-    document.execCommand(action, false, value)
+    const supported = document.queryCommandSupported(action)
+    if (supported) {
+      document.execCommand(action, false, value)
+    } else if (action === 'createLink' && value) {
+      const selection = window.getSelection()
+      if (selection && selection.rangeCount > 0) {
+        const range = selection.getRangeAt(0)
+        const link = document.createElement('a')
+        link.href = value
+        link.target = '_blank'
+        range.surroundContents(link)
+      }
+    }
     const updatedHtml = editorRef.current?.innerHTML || '<p></p>'
     setContent(updatedHtml)
     scheduleSave(title, updatedHtml)
   }
 
   return (
-    <div className="flex h-full flex-col rounded-2xl border border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900">
-      <div className="sticky top-0 z-10 border-b border-slate-200 bg-white p-3 dark:border-slate-800 dark:bg-slate-900">
+    <div className="flex h-full flex-col rounded-2xl border border-white/10 glass-card dark:border-zinc-800 dark:bg-zinc-900">
+      <div className="sticky top-0 z-10 border-b border-white/10 glass-card p-3 dark:border-zinc-800 dark:bg-zinc-900">
         <div className="mb-2 flex items-center gap-2">
           <span className="text-xl">{note.icon || 'N'}</span>
           <input
@@ -74,7 +86,7 @@ const NoteEditor = ({ note, onPatchNote, onSavingState }: NoteEditorProps) => {
             const Icon = item.icon
             return (
               <button
-                className="rounded-lg border border-slate-200 p-2 hover:bg-slate-100 dark:border-slate-700 dark:hover:bg-slate-800"
+                className="rounded-lg border border-white/10 p-2 hover:glass-card/10 dark:border-zinc-700 dark:hover:bg-zinc-800"
                 key={item.action + (item.value || '')}
                 onClick={() => applyCommand(item.action, item.value)}
                 type="button"

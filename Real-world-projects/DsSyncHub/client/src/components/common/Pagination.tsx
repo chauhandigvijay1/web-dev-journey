@@ -14,7 +14,7 @@ const Pagination = ({ currentPage, totalPages, onPageChange }: PaginationProps) 
   return (
     <div className="flex flex-wrap items-center justify-center gap-2">
       <button
-        className="rounded-xl border border-slate-200 px-3 py-2 text-sm disabled:cursor-not-allowed disabled:opacity-50 dark:border-slate-700"
+        className="rounded-xl border border-white/10 px-3 py-2 text-sm disabled:cursor-not-allowed disabled:opacity-50 dark:border-zinc-700"
         disabled={currentPage === 1}
         onClick={() => onPageChange(currentPage - 1)}
         type="button"
@@ -25,8 +25,8 @@ const Pagination = ({ currentPage, totalPages, onPageChange }: PaginationProps) 
         <button
           className={`rounded-xl px-3 py-2 text-sm ${
             page === currentPage
-              ? 'bg-violet-600 text-white'
-              : 'border border-slate-200 text-slate-600 dark:border-slate-700 dark:text-slate-300'
+              ? 'bg-brand-500 text-white'
+              : 'border border-white/10 text-zinc-300 dark:border-zinc-700 dark:text-zinc-300'
           }`}
           key={page}
           onClick={() => onPageChange(page)}
@@ -36,7 +36,7 @@ const Pagination = ({ currentPage, totalPages, onPageChange }: PaginationProps) 
         </button>
       ))}
       <button
-        className="rounded-xl border border-slate-200 px-3 py-2 text-sm disabled:cursor-not-allowed disabled:opacity-50 dark:border-slate-700"
+        className="rounded-xl border border-white/10 px-3 py-2 text-sm disabled:cursor-not-allowed disabled:opacity-50 dark:border-zinc-700"
         disabled={currentPage === totalPages}
         onClick={() => onPageChange(currentPage + 1)}
         type="button"

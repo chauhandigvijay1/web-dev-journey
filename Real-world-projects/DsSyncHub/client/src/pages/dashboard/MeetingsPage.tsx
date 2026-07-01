@@ -34,15 +34,15 @@ const MeetingsPage = () => {
   return (
     <section className="space-y-4 pb-5">
       <div className="grid gap-4 lg:grid-cols-[1.2fr,0.8fr]">
-        <article className="rounded-[30px] border border-slate-200 bg-[radial-gradient(circle_at_top_left,_rgba(124,58,237,0.12),_transparent_40%),linear-gradient(135deg,#0f172a,#1e293b)] p-6 text-white shadow-sm">
-          <p className="text-xs font-semibold uppercase tracking-[0.3em] text-violet-200">Meetings</p>
+        <article className="rounded-[30px] border border-white/10 bg-[radial-gradient(circle_at_top_left,_rgba(124,58,237,0.12),_transparent_40%),linear-gradient(135deg,#0f172a,#1e293b)] p-6 text-white shadow-sm">
+          <p className="text-xs font-semibold uppercase tracking-[0.3em] text-brand-200">Meetings</p>
           <h1 className="mt-3 text-3xl font-semibold">Instant huddles without leaving your workspace</h1>
-          <p className="mt-3 max-w-xl text-sm leading-6 text-slate-200">
+          <p className="mt-3 max-w-xl text-sm leading-6 text-zinc-200">
             Start a room in one click, invite teammates with a clean room code, and keep planning, notes, and follow-up work in the same product flow.
           </p>
           <div className="mt-5 flex flex-wrap gap-3">
             <button
-              className="rounded-xl bg-white px-4 py-2 text-sm font-medium text-slate-900 hover:bg-slate-100"
+              className="rounded-xl glass-card px-4 py-2 text-sm font-medium text-white hover:glass-card/10"
               onClick={() =>
                 activeWorkspaceId &&
                 dispatch(createMeetingRoomThunk({ workspace: activeWorkspaceId }))
@@ -54,65 +54,65 @@ const MeetingsPage = () => {
               <Video className="mr-1 inline" size={14} />
               Start Instant Meeting
             </button>
-            <button className="rounded-xl border border-white/20 px-4 py-2 text-sm text-white hover:bg-white/10" onClick={() => document.getElementById('join-room-input')?.focus()} type="button">
+            <button className="rounded-xl border border-white/20 px-4 py-2 text-sm text-white hover:glass-card/10" onClick={() => document.getElementById('join-room-input')?.focus()} type="button">
               Join by Code
             </button>
           </div>
         </article>
 
-        <article className="rounded-[30px] border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
-          <h2 className="text-lg font-semibold text-slate-900 dark:text-white">Join a room</h2>
-          <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">Paste a room code from your teammate.</p>
+        <article className="rounded-[30px] border border-white/10 glass-panel p-5">
+          <h2 className="text-lg font-semibold text-white font-semibold drop-shadow-md">Join a room</h2>
+          <p className="mt-1 text-sm text-zinc-400">Paste a room code from your teammate.</p>
           <div className="mt-4 flex gap-2">
             <input
-              className="flex-1 rounded-xl border border-slate-200 px-3 py-2 text-sm uppercase dark:border-slate-700 dark:bg-slate-950"
+              className="flex-1 rounded-xl border border-white/10 px-3 py-2 text-sm uppercase dark:border-zinc-700 bg-black/20"
               id="join-room-input"
               onChange={(event) => setRoomCode(event.target.value.toUpperCase())}
               placeholder="AB12CD34"
               value={roomCode}
             />
-            <button className="rounded-xl bg-violet-600 px-4 py-2 text-sm font-medium text-white hover:bg-violet-700" onClick={() => roomCode && navigate(`/meetings/${roomCode}`)} type="button">
+            <button className="rounded-xl bg-brand-500 px-4 py-2 text-sm font-medium text-white hover:bg-brand-400 shadow-[0_0_15px_rgba(16,185,129,0.3)] transition-all hover:shadow-[0_0_25px_rgba(16,185,129,0.5)] hover:-tranzinc-y-0.5 duration-300 shadow-[0_0_15px_rgba(16,185,129,0.3)] transition-all hover:shadow-[0_0_25px_rgba(16,185,129,0.5)] hover:-tranzinc-y-0.5 duration-300" onClick={() => roomCode && navigate(`/meetings/${roomCode}`)} type="button">
               Join
             </button>
           </div>
-          <div className="mt-5 rounded-2xl border border-slate-200 p-4 text-sm text-slate-500 dark:border-slate-700">
+          <div className="mt-5 rounded-2xl border border-white/10 p-4 text-sm text-zinc-500 dark:border-zinc-700">
             Rooms open instantly today, with enough structure already in place for scheduling, recordings, and richer live media later.
           </div>
         </article>
       </div>
 
-      <article className="rounded-[30px] border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+      <article className="rounded-[30px] border border-white/10 glass-panel p-5">
         <div className="flex items-center justify-between gap-3">
           <div>
-            <h2 className="text-lg font-semibold text-slate-900 dark:text-white">Upcoming meetings</h2>
-            <p className="text-sm text-slate-500 dark:text-slate-400">Live rooms and scheduled syncs for the active workspace.</p>
+            <h2 className="text-lg font-semibold text-white font-semibold drop-shadow-md">Upcoming meetings</h2>
+            <p className="text-sm text-zinc-400">Live rooms and scheduled syncs for the active workspace.</p>
           </div>
         </div>
         <div className="mt-4 space-y-3">
-          {loading && <p className="text-sm text-slate-500">Loading meetings...</p>}
+          {loading && <p className="text-sm text-zinc-500">Loading meetings...</p>}
           {!loading && !meetings.length && (
-            <div className="rounded-2xl border border-dashed border-slate-300 p-10 text-center dark:border-slate-700">
-              <VideoOff className="mx-auto text-slate-400" size={26} />
-              <p className="mt-3 text-sm text-slate-500">No live or upcoming rooms yet.</p>
+            <div className="rounded-2xl border border-dashed border-zinc-300 p-10 text-center dark:border-zinc-700">
+              <VideoOff className="mx-auto text-zinc-400" size={26} />
+              <p className="mt-3 text-sm text-zinc-500">No live or upcoming rooms yet.</p>
             </div>
           )}
           {meetings.map((meeting) => (
-            <div className="flex flex-col gap-3 rounded-2xl border border-slate-200 p-4 dark:border-slate-700 md:flex-row md:items-center md:justify-between" key={meeting.id}>
+            <div className="flex flex-col gap-3 rounded-2xl border border-white/10 p-4 dark:border-zinc-700 md:flex-row md:items-center md:justify-between" key={meeting.id}>
               <div>
-                <p className="text-sm font-semibold text-slate-900 dark:text-white">{meeting.title}</p>
-                <p className="mt-1 text-xs text-slate-500">
+                <p className="text-sm font-semibold text-white font-semibold drop-shadow-md">{meeting.title}</p>
+                <p className="mt-1 text-xs text-zinc-500">
                   Room {meeting.roomId} | {meeting.status} | {meeting.scheduledFor ? new Date(meeting.scheduledFor).toLocaleString() : 'Started instantly'}
                 </p>
-                <p className="mt-2 text-xs text-slate-500">
+                <p className="mt-2 text-xs text-zinc-500">
                   {meeting.participants.length} participant{meeting.participants.length === 1 ? '' : 's'}
                 </p>
               </div>
               <div className="flex flex-wrap gap-2">
-                <span className="inline-flex items-center rounded-full bg-slate-100 px-3 py-1 text-xs text-slate-600 dark:bg-slate-800 dark:text-slate-300">
+                <span className="inline-flex items-center rounded-full glass-card/10 px-3 py-1 text-xs text-zinc-300 dark:bg-zinc-800 dark:text-zinc-300">
                   <CalendarClock className="mr-1 inline" size={12} />
                   {meeting.status}
                 </span>
-                <button className="rounded-xl border border-slate-200 px-3 py-2 text-sm dark:border-slate-700" onClick={() => navigate(`/meetings/${meeting.roomId}`)} type="button">
+                <button className="rounded-xl border border-white/10 px-3 py-2 text-sm dark:border-zinc-700" onClick={() => navigate(`/meetings/${meeting.roomId}`)} type="button">
                   Open room
                   <ArrowRight className="ml-1 inline" size={14} />
                 </button>

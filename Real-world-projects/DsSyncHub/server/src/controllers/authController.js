@@ -2,7 +2,7 @@ const crypto = require('crypto')
 const bcrypt = require('bcryptjs')
 const { OAuth2Client } = require('google-auth-library')
 const User = require('../models/User')
-const { sendPasswordResetEmail } = require('../services/emailService')
+const { sendPasswordResetEmail, sendVerificationEmail } = require('../services/emailService')
 const { getAuthCookieOptions } = require('../utils/cookies')
 const { signAccessToken } = require('../utils/jwt')
 const { isStrongPassword, isValidEmail, isValidPhone } = require('../utils/validators')
@@ -43,16 +43,20 @@ const registerUser = async (req, res, next) => {
     }
 
     const passwordHash = await bcrypt.hash(password, 12)
-    const user = await User.create({
+    const userData = {
       fullName,
       username: normalizedUsername,
       email: normalizedEmail,
-      phone: phone || null,
       passwordHash,
       provider: 'local',
       emailVerified: false,
       lastLoginAt: new Date(),
-    })
+    }
+    if (phone) {
+      userData.phone = phone
+    }
+
+    const user = await User.create(userData)
 
     const accessToken = signAccessToken(user._id.toString(), user.tokenVersion)
     res.cookie('accessToken', accessToken, getAuthCookieOptions())
@@ -258,6 +262,55 @@ const googleAuth = async (req, res, next) => {
   }
 }
 
+const sendVerificationEmailController = async (req, res, next) => {
+  try {
+    if (req.user.emailVerified) {
+      return res.status(400).json({ success: false, message: 'Email is already verified.' })
+    }
+
+    const token = crypto.randomBytes(24).toString('hex')
+    req.user.emailVerificationToken = crypto.createHash('sha256').update(token).digest('hex')
+    req.user.emailVerificationExpiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000)
+    await req.user.save()
+
+    const clientUrl = (process.env.CLIENT_URL || 'http://localhost:5173').replace(/\/$/, '')
+    const verifyUrl = `${clientUrl}/verify-email/${token}`
+    await sendVerificationEmail({ toEmail: req.user.email, verifyUrl })
+
+    return res.status(200).json({ success: true, message: 'Verification email sent.' })
+  } catch (error) {
+    return next(error)
+  }
+}
+
+const verifyEmail = async (req, res, next) => {
+  try {
+    const { token } = req.params
+    if (!token || typeof token !== 'string') {
+      return res.status(400).json({ success: false, message: 'A valid verification token is required.' })
+    }
+
+    const emailVerificationToken = crypto.createHash('sha256').update(token).digest('hex')
+    const user = await User.findOne({
+      emailVerificationToken,
+      emailVerificationExpiresAt: { $gt: new Date() },
+    }).select('+emailVerificationToken +emailVerificationExpiresAt')
+
+    if (!user) {
+      return res.status(400).json({ success: false, message: 'The verification link is invalid or has expired.' })
+    }
+
+    user.emailVerified = true
+    user.emailVerificationToken = null
+    user.emailVerificationExpiresAt = null
+    await user.save()
+
+    return res.status(200).json({ success: true, message: 'Email verified successfully.' })
+  } catch (error) {
+    return next(error)
+  }
+}
+
 module.exports = {
   registerUser,
   loginUser,
@@ -266,4 +319,6 @@ module.exports = {
   logoutUser,
   getCurrentUser,
   googleAuth,
+  sendVerificationEmailController,
+  verifyEmail,
 }

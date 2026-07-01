@@ -6,6 +6,7 @@ const User = require('../models/User')
 const Workspace = require('../models/Workspace')
 const { createActivityLog, createNotification } = require('../utils/collabEvents')
 const { enforceMemberLimit, enforceWorkspaceCreateLimit } = require('../services/planLimits')
+const { sendInviteEmail } = require('../services/emailService')
 
 const ROLE_WEIGHT = {
   viewer: 1,
@@ -440,6 +441,19 @@ const inviteMember = async (req, res, next) => {
         link: `/workspaces/${workspace._id}`,
         metadata: { inviteId: invite._id },
       })
+    }
+
+    try {
+      const clientUrl = (process.env.CLIENT_URL || 'http://localhost:5173').replace(/\/$/, '')
+      const inviteUrl = `${clientUrl}/join-workspace/${invite.token}`
+      await sendInviteEmail({
+        toEmail: normalizedEmail,
+        inviteUrl,
+        inviterName: req.user.fullName,
+        workspaceName: workspace.name,
+      })
+    } catch (_emailErr) {
+      console.error('Failed to send invite email:', _emailErr.message)
     }
 
     return res.status(200).json({

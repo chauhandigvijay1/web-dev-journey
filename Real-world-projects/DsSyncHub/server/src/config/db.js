@@ -59,6 +59,14 @@ const connectDB = async () => {
     throw new Error('MONGO_URI is missing in environment variables.')
   }
 
+  mongoose.connection.on('disconnected', () => {
+    console.warn('MongoDB disconnected. Attempting to reconnect...')
+  })
+
+  mongoose.connection.on('error', (err) => {
+    console.error('MongoDB connection error:', err)
+  })
+
   try {
     await mongoose.connect(mongoUri)
   } catch (error) {

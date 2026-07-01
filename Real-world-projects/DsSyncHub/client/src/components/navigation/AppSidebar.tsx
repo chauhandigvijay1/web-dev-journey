@@ -13,31 +13,31 @@ const AppSidebar = ({ collapsed, onLogout, onNavigate }: AppSidebarProps) => {
 
   return (
     <aside
-      className={`flex h-full flex-col rounded-2xl border border-slate-200 bg-white p-3 shadow-sm transition-all duration-300 dark:border-slate-800 dark:bg-slate-900 ${
+      className={`flex h-full flex-col rounded-2xl glass-panel p-3 shadow-sm transition-all duration-300 ${
         collapsed ? 'w-20' : 'w-72'
       }`}
     >
       <div className="mb-4 flex items-center gap-3 rounded-xl px-2 py-3">
-        <div className="grid h-10 w-10 place-items-center rounded-xl bg-violet-600 text-white shadow-sm">
+        <div className="grid h-10 w-10 place-items-center rounded-xl bg-brand-500 text-dark-950 shadow-[0_0_12px_rgba(16,185,129,0.5)]">
           <Sparkles size={18} />
         </div>
         {!collapsed && (
           <div>
-            <p className="text-sm text-slate-500 dark:text-slate-400">Workspace OS</p>
-            <h2 className="text-lg font-semibold text-slate-900 dark:text-white">DsSync Hub</h2>
+            <p className="text-xs tracking-wide text-brand-400">Workspace OS</p>
+            <h2 className="text-lg font-semibold text-white">DsSync Hub</h2>
           </div>
         )}
       </div>
 
-      <nav className="flex-1 space-y-1">
+      <nav className="flex-1 space-y-1 overflow-y-auto custom-scrollbar pr-1">
         {appMenuItems.map(({ label, path, icon: Icon }) => (
           <NavLink
             key={path}
             className={({ isActive }) =>
               `flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm transition ${
                 isActive
-                  ? 'bg-violet-100 text-violet-700 dark:bg-violet-500/20 dark:text-violet-200'
-                  : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-white'
+                  ? 'bg-brand-500/20 text-brand-400 shadow-[inset_0_0_12px_rgba(16,185,129,0.1)]'
+                  : 'text-zinc-400 hover:glass-card/10 hover:text-white'
               }`
             }
             onClick={onNavigate}
@@ -51,11 +51,11 @@ const AppSidebar = ({ collapsed, onLogout, onNavigate }: AppSidebarProps) => {
 
       <div className="mt-4 space-y-3">
         {!collapsed && (
-          <div className="rounded-2xl bg-gradient-to-br from-violet-600 to-indigo-600 p-4 text-white">
-            <p className="text-xs uppercase tracking-wide text-violet-100">Upgrade Plan</p>
-            <p className="mt-1 text-sm font-medium">Unlock AI automations and advanced analytics.</p>
+          <div className="rounded-2xl glass-card border border-brand-500/30 p-4 text-white">
+            <p className="text-[10px] font-bold uppercase tracking-wider text-brand-400">Upgrade Plan</p>
+            <p className="mt-1 text-xs font-medium text-zinc-300">Unlock AI automations and advanced analytics.</p>
             <button
-              className="mt-3 rounded-lg bg-white/20 px-3 py-1.5 text-xs font-semibold hover:bg-white/30"
+              className="mt-3 w-full rounded-lg bg-brand-500 px-3 py-2 text-xs font-semibold text-dark-950 hover:bg-brand-400 shadow-[0_0_12px_rgba(16,185,129,0.3)] transition-all"
               onClick={() => {
                 navigate('/billing')
                 onNavigate?.()
@@ -67,7 +67,7 @@ const AppSidebar = ({ collapsed, onLogout, onNavigate }: AppSidebarProps) => {
           </div>
         )}
         <button
-          className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-100 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800"
+          className="w-full rounded-xl border border-white/10 px-3 py-2 text-sm font-medium text-zinc-300 hover:glass-card/10 hover:text-white transition-all"
           onClick={onLogout}
           type="button"
         >

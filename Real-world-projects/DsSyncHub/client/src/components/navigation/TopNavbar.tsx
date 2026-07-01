@@ -89,26 +89,26 @@ const TopNavbar = () => {
 
   return (
     <>
-      <header className="sticky top-0 z-20 mb-4 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-slate-200 bg-white/80 p-3 backdrop-blur dark:border-slate-800 dark:bg-slate-900/80">
+      <header className="sticky top-0 z-20 mb-4 flex flex-wrap items-center justify-between gap-3 rounded-2xl glass-panel p-3 text-zinc-200">
         <div className="flex min-w-0 flex-1 flex-wrap items-center gap-2 md:gap-3">
           <button
-            className="rounded-xl border border-slate-200 p-2 hover:bg-slate-100 dark:border-slate-700 dark:hover:bg-slate-800 lg:hidden"
+            className="rounded-xl border border-white/10 p-2 hover:glass-card/10 dark:border-zinc-700 dark:hover:bg-zinc-800 lg:hidden"
             onClick={() => dispatch(toggleMobileSidebar())}
             type="button"
           >
             <Menu size={18} />
           </button>
           <button
-            className="hidden items-center gap-2 rounded-xl border border-slate-200 px-3 py-2 text-sm text-slate-500 hover:bg-slate-100 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800 md:flex"
+            className="hidden items-center gap-2 rounded-xl border border-white/10 px-3 py-2 text-sm text-zinc-500 hover:glass-card/10 dark:border-zinc-700 dark:text-zinc-300 dark:hover:bg-zinc-800 md:flex"
             onClick={() => dispatch(openSearchModal())}
             type="button"
           >
             <Search size={16} />
             Search...
-            <kbd className="rounded border border-slate-200 px-1 text-xs dark:border-slate-600">Ctrl + K</kbd>
+            <kbd className="rounded border border-white/10 px-1 text-xs dark:border-zinc-600">Ctrl + K</kbd>
           </button>
           <select
-            className="min-w-0 max-w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-900 sm:max-w-[260px]"
+            className="min-w-0 max-w-full rounded-xl border border-white/10 bg-black/20 backdrop-blur-md px-3 py-2 text-sm text-zinc-200 sm:max-w-[260px] custom-select"
             onChange={(event) => dispatch(setActiveWorkspaceId(event.target.value))}
             value={activeWorkspaceId || ''}
           >
@@ -123,7 +123,7 @@ const TopNavbar = () => {
 
         <div className="relative flex shrink-0 items-center gap-2">
           <button
-            className="hidden rounded-xl bg-violet-600 px-3 py-2 text-sm font-medium text-white hover:bg-violet-700 sm:block"
+            className="hidden rounded-xl bg-brand-500 px-3 py-2 text-sm font-medium text-white hover:bg-brand-400 shadow-[0_0_15px_rgba(16,185,129,0.3)] transition-all hover:shadow-[0_0_25px_rgba(16,185,129,0.5)] hover:-tranzinc-y-0.5 duration-300 shadow-[0_0_15px_rgba(16,185,129,0.3)] transition-all hover:shadow-[0_0_25px_rgba(16,185,129,0.5)] hover:-tranzinc-y-0.5 duration-300 sm:block"
             onClick={openMembers}
             type="button"
           >
@@ -132,17 +132,17 @@ const TopNavbar = () => {
           </button>
           <div ref={notificationsRef}>
             <button
-              className="relative rounded-xl border border-slate-200 p-2 hover:bg-slate-100 dark:border-slate-700 dark:hover:bg-slate-800"
+              className="relative rounded-xl border border-white/10 p-2 hover:glass-card/10 dark:border-zinc-700 dark:hover:bg-zinc-800"
               onClick={() => dispatch(toggleNotifications())}
               type="button"
             >
               <Bell size={18} />
-              {unreadCount > 0 && <span className="absolute -right-1 -top-1 h-4 min-w-4 rounded-full bg-violet-600 px-1 text-[10px] text-white">{unreadCount}</span>}
+              {unreadCount > 0 && <span className="absolute -right-1 -top-1 h-4 min-w-4 rounded-full bg-brand-500 px-1 text-[10px] text-white">{unreadCount}</span>}
             </button>
             {notificationsOpen && <NotificationsDropdown onClose={() => dispatch(closeNotifications())} open={notificationsOpen} />}
           </div>
           <button
-            className="rounded-xl border border-slate-200 p-2 hover:bg-slate-100 dark:border-slate-700 dark:hover:bg-slate-800"
+            className="rounded-xl border border-white/10 p-2 hover:glass-card/10 dark:border-zinc-700 dark:hover:bg-zinc-800"
             onClick={() => dispatch(setTheme(theme === 'dark' ? 'light' : 'dark'))}
             type="button"
           >
@@ -150,7 +150,7 @@ const TopNavbar = () => {
           </button>
           <div ref={actionsRef}>
             <button
-              className="flex items-center gap-2 rounded-xl border border-slate-200 px-2 py-1.5 hover:bg-slate-100 dark:border-slate-700 dark:hover:bg-slate-800"
+              className="flex items-center gap-2 rounded-xl border border-white/10 px-2 py-1.5 hover:glass-card/10 dark:border-zinc-700 dark:hover:bg-zinc-800"
               onClick={() => setQuickActionsOpen((prev) => !prev)}
               type="button"
             >
@@ -159,8 +159,8 @@ const TopNavbar = () => {
             </button>
             {quickActionsOpen && (
               <>
-                <div className="fixed inset-0 z-20 bg-slate-950/20 md:hidden" onClick={() => setQuickActionsOpen(false)} role="presentation" />
-                <div className="fixed inset-x-3 bottom-3 z-30 rounded-[28px] border border-slate-200 bg-white p-2 shadow-lg md:absolute md:inset-auto md:right-14 md:top-12 md:w-64 dark:border-slate-700 dark:bg-slate-900">
+                <div className="fixed inset-0 z-20 bg-zinc-950/20 md:hidden" onClick={() => setQuickActionsOpen(false)} role="presentation" />
+                <div className="fixed inset-x-3 bottom-3 z-30 rounded-[28px] glass-card p-2 md:absolute md:inset-auto md:right-14 md:top-12 md:w-64">
                   {[
                     { label: 'New Task', action: () => navigate('/tasks?create=1') },
                     { label: 'New Note', action: () => navigate('/notes?create=1') },
@@ -170,7 +170,7 @@ const TopNavbar = () => {
                     { label: 'Start Meeting', action: () => navigate('/meetings?start=1') },
                   ].map((item) => (
                     <button
-                      className="w-full rounded-xl px-3 py-2 text-left text-sm hover:bg-slate-100 dark:hover:bg-slate-800"
+                      className="w-full rounded-xl px-3 py-2 text-left text-sm hover:glass-card/10 dark:hover:bg-zinc-800"
                       key={item.label}
                       onClick={() => {
                         setQuickActionsOpen(false)
@@ -187,7 +187,7 @@ const TopNavbar = () => {
           </div>
           <div ref={profileRef}>
             <button
-              className="flex items-center gap-2 rounded-xl border border-slate-200 px-2 py-1.5 hover:bg-slate-100 dark:border-slate-700 dark:hover:bg-slate-800"
+              className="flex items-center gap-2 rounded-xl border border-white/10 px-2 py-1.5 hover:glass-card/10 dark:border-zinc-700 dark:hover:bg-zinc-800"
               onClick={() => setProfileOpen((prev) => !prev)}
               type="button"
             >
@@ -195,11 +195,11 @@ const TopNavbar = () => {
               <ChevronDown size={14} />
             </button>
             {profileOpen && (
-              <div className="absolute right-0 top-12 z-30 w-44 rounded-xl border border-slate-200 bg-white p-1 shadow-lg dark:border-slate-700 dark:bg-slate-900">
-                <button className="w-full rounded-lg px-3 py-2 text-left text-sm hover:bg-slate-100 dark:hover:bg-slate-800" onClick={() => navigate('/settings')} type="button">
+              <div className="absolute right-0 top-12 z-30 w-44 rounded-xl glass-card p-1">
+                <button className="w-full rounded-lg px-3 py-2 text-left text-sm hover:glass-card/10 dark:hover:bg-zinc-800" onClick={() => navigate('/settings')} type="button">
                   Settings
                 </button>
-                <button className="w-full rounded-lg px-3 py-2 text-left text-sm hover:bg-slate-100 dark:hover:bg-slate-800" onClick={() => navigate('/billing')} type="button">
+                <button className="w-full rounded-lg px-3 py-2 text-left text-sm hover:glass-card/10 dark:hover:bg-zinc-800" onClick={() => navigate('/billing')} type="button">
                   Billing
                 </button>
                 <button

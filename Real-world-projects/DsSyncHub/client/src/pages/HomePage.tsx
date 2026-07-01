@@ -1,435 +1,204 @@
-import { ArrowRight, CheckCircle2, ChevronDown, Menu, Moon, Sparkles, Sun, X } from 'lucide-react'
-import { useMemo, useState } from 'react'
+import { Menu, X, Shield, Sparkles, Code, Lock, ArrowRight } from 'lucide-react'
+import { useState } from 'react'
 import { Link } from 'react-router-dom'
-import heroPreview from '../assets/hero.png'
-import { useAppDispatch, useAppSelector } from '../hooks/redux'
-import { setTheme } from '../store/uiSlice'
 
-const features = [
-  {
-    title: 'Shared execution, not scattered updates',
-    description: 'Tasks, chat, notes, files, and meetings all stay anchored to the same workspace context.',
-  },
-  {
-    title: 'AI that actually helps managers ship',
-    description: 'Turn notes into task lists, summarize noisy threads, and generate clear sprint plans in seconds.',
-  },
-  {
-    title: 'Built for real client and team visibility',
-    description: 'Invite teammates fast, control roles cleanly, and keep every handoff traceable in one timeline.',
-  },
-  {
-    title: 'Storage, activity, and billing in one place',
-    description: 'Operational details are surfaced clearly so growing teams trust the product day to day.',
-  },
-] as const
-
-const howItWorks = [
-  {
-    title: 'Create your workspace',
-    description: 'Start with one workspace, define your scope, and invite the right people from day one.',
-  },
-  {
-    title: 'Run daily operations',
-    description: 'Plan in tasks, capture decisions in notes, and keep discussion in chat without switching tools.',
-  },
-  {
-    title: 'Scale with confidence',
-    description: 'Track usage, update billing when needed, and keep every project handoff documented.',
-  },
-] as const
-
-const pricing = [
-  {
-    name: 'Starter',
-    price: 'Free',
-    summary: 'For lean teams setting up one shared workspace.',
-    features: ['1 workspace', '3 members included', 'Core tasks, notes, chat, and files', 'Daily AI usage limits'],
-    cta: 'Start free',
-    highlighted: false,
-  },
-  {
-    name: 'Growth',
-    price: 'Rs. 999/mo',
-    summary: 'For teams that need more members, storage, and AI depth.',
-    features: ['Unlimited workspaces', 'Unlimited members', '10 GB workspace storage', 'Advanced AI automations'],
-    cta: 'Choose Growth',
-    highlighted: true,
-  },
-  {
-    name: 'Annual Pro',
-    price: 'Rs. 9,999/yr',
-    summary: 'For scaling teams that want more runway and more usage headroom.',
-    features: ['Everything in Growth', 'Higher AI limits', '25 GB storage', 'Best value for annual planning'],
-    cta: 'Talk to sales',
-    highlighted: false,
-  },
-] as const
-
-const testimonials = [
-  {
-    quote: 'DsSync Hub finally gave us one operating surface for delivery, communication, and follow-through.',
-    name: 'Anika Sharma',
-    role: 'Founder, Northlane Studio',
-  },
-  {
-    quote: 'The dashboard feels like a real operating system for our sprint rhythm, not another disconnected tool.',
-    name: 'Rahul Mehta',
-    role: 'Product Lead, Interval Labs',
-  },
-  {
-    quote: 'We replaced three spreadsheets, our internal notes doc, and half our chat check-ins in two weeks.',
-    name: 'Mira Kapoor',
-    role: 'Ops Manager, Cloudframe',
-  },
-] as const
-
-const faqs = [
-  {
-    question: 'Is DsSync Hub meant for internal teams or client workspaces?',
-    answer: 'Both. Teams can run their own execution cadence internally or spin up separate workspaces for clients, departments, and pods.',
-  },
-  {
-    question: 'Do I need to connect external tools first?',
-    answer: 'No. The core workspace is usable immediately with tasks, notes, chat, files, meetings, and AI assistance built in.',
-  },
-  {
-    question: 'How does the free plan differ from Pro?',
-    answer: 'Free is sized for early validation. Pro removes workspace and member limits, expands storage, and increases AI usage substantially.',
-  },
-  {
-    question: 'Can non-admin members still use the workspace fully?',
-    answer: 'Yes. Members can collaborate across the product, while billing and certain management controls stay limited to admins.',
-  },
-] as const
-
-const trustSignals = [
-  'Northlane Studio',
-  'Interval Labs',
-  'Cloudframe',
-  'Signal Foundry',
-  'Atlas Ops',
-] as const
+const BrandLogo = ({ className = "" }) => (
+  <div className={`flex items-center gap-2 ${className}`}>
+    <img src="/logo-icon.svg" alt="DsSync Hub Icon" className="w-8 h-8 shrink-0 drop-shadow-[0_0_8px_rgba(99,102,241,0.5)]" />
+    <span className="text-xl font-bold text-white tracking-tight">DsSync Hub</span>
+  </div>
+)
 
 const navItems = [
-  { label: 'Features', href: '#features', id: 'features' },
-  { label: 'Preview', href: '#preview', id: 'preview' },
-  { label: 'Pricing', href: '#pricing', id: 'pricing' },
-  { label: 'Testimonials', href: '#testimonials', id: 'testimonials' },
-  { label: 'FAQ', href: '#faq', id: 'faq' },
-] as const
+  { label: 'Features', href: '#features' },
+  { label: 'Solutions', href: '#solutions' },
+  { label: 'Pricing', href: '#pricing' },
+  { label: 'Testimonials', href: '#testimonials' },
+  { label: 'Roadmap', href: '#roadmap' },
+]
+
+const statsBoxes = [
+  { icon: <Shield size={24} className="text-brand-500" />, title: 'Privacy First', subtitle: 'Zero Knowledge Architecture', sparkline: 'M0,10 Q5,5 10,12 T20,8 T30,15 T40,5 T50,10', color: '#10b981' },
+  { icon: <Sparkles size={24} className="text-brand-500" />, title: 'AI Powered', subtitle: 'Intelligent Workflows', sparkline: 'M0,15 Q10,5 20,12 T35,8 T50,14', color: '#10b981' },
+  { icon: <Lock size={24} className="text-brand-500" />, title: 'E2E Encrypted', subtitle: '256-bit AES Encryption', sparkline: 'M0,10 L5,10 L10,10 L15,10 L20,10 L25,10 L30,10 L35,10 L40,10 L45,10 L50,10', isDashed: true, color: '#10b981' },
+  { icon: <Code size={24} className="text-brand-500" />, title: 'Dev Friendly', subtitle: 'Powerful API & Webhooks', sparkline: 'M0,12 Q10,18 20,8 T35,12 T50,5', color: '#10b981' },
+]
 
 const HomePage = () => {
-  const dispatch = useAppDispatch()
-  const theme = useAppSelector((state) => state.ui.theme)
-  const [openFaq, setOpenFaq] = useState(0)
   const [mobileNavOpen, setMobileNavOpen] = useState(false)
 
-  const resolvedTheme = useMemo(() => {
-    if (theme !== 'system') {
-      return theme
-    }
-
-    return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
-  }, [theme])
-
   return (
-    <div className="w-full">
-      <header className="sticky top-0 z-40 border-b border-slate-200/80 bg-white/75 backdrop-blur-xl dark:border-slate-800/80 dark:bg-slate-950/70">
-        <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-6 py-4">
-          <Link className="flex items-center gap-3" to="/">
-            <div className="grid h-11 w-11 place-items-center rounded-2xl bg-[linear-gradient(135deg,#0f172a,#4338ca)] text-white shadow-lg shadow-indigo-500/25">
-              <Sparkles size={18} />
-            </div>
-            <div>
-              <p className="text-xs uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">Workspace OS</p>
-              <p className="text-sm font-semibold text-slate-900 dark:text-white">DsSync Hub</p>
-            </div>
+    <div className="w-full min-h-screen text-zinc-300 font-sans selection:bg-brand-500/30 selection:text-white pb-10 flex flex-col relative overflow-hidden">
+      
+      {/* Navbar */}
+      <header className="relative z-40 w-full pt-6">
+        <div className="mx-auto flex max-w-[1400px] items-center justify-between gap-4 px-6 lg:px-12">
+          <Link className="flex items-center gap-3 transition-transform hover:scale-105" to="/">
+            <BrandLogo />
           </Link>
 
-          <nav className="hidden items-center gap-1 rounded-full border border-slate-200/80 bg-white/75 p-1 shadow-sm dark:border-slate-800 dark:bg-slate-900/80 md:flex">
+          <nav className="hidden lg:flex items-center gap-8">
             {navItems.map((item) => (
               <a
-                className="rounded-full px-4 py-2 text-sm text-slate-500 transition hover:text-slate-900 dark:text-slate-400 dark:hover:text-white"
+                className="text-sm font-medium text-zinc-300 transition-colors hover:text-white hover:drop-shadow-[0_0_8px_rgba(255,255,255,0.5)]"
                 href={item.href}
-                key={item.id}
+                key={item.label}
               >
                 {item.label}
               </a>
             ))}
           </nav>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-4">
             <button
-              className="rounded-full border border-slate-200 bg-white p-2.5 text-slate-600 shadow-sm hover:bg-slate-100 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300 dark:hover:bg-slate-800 md:hidden"
-              onClick={() => setMobileNavOpen((current) => !current)}
-              type="button"
+              className="rounded p-2 text-zinc-400 hover:glass-card/10 lg:hidden transition-colors"
+              onClick={() => setMobileNavOpen(!mobileNavOpen)}
             >
-              {mobileNavOpen ? <X size={18} /> : <Menu size={18} />}
+              {mobileNavOpen ? <X size={20} /> : <Menu size={20} />}
             </button>
-            <button
-              className="hidden rounded-full border border-slate-200 bg-white p-2.5 text-slate-600 shadow-sm hover:bg-slate-100 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300 dark:hover:bg-slate-800 md:inline-flex"
-              onClick={() => dispatch(setTheme(resolvedTheme === 'dark' ? 'light' : 'dark'))}
-              type="button"
-            >
-              {resolvedTheme === 'dark' ? <Sun size={18} /> : <Moon size={18} />}
-            </button>
-            <Link className="hidden rounded-full px-4 py-2 text-sm font-medium text-slate-600 hover:text-slate-900 dark:text-slate-300 dark:hover:text-white sm:inline-flex" to="/login">
-              Log in
+            <Link className="hidden rounded-lg border border-white/20 bg-black/20 backdrop-blur-md px-6 py-2.5 text-sm font-medium text-zinc-200 hover:glass-card/10 hover:border-white/40 transition-all sm:inline-flex" to="/login">
+              Login
             </Link>
-            <Link className="inline-flex rounded-full bg-slate-900 px-5 py-2.5 text-sm font-medium text-white shadow-lg shadow-slate-900/20 hover:bg-slate-800 dark:bg-white dark:text-slate-900 dark:hover:bg-slate-100" to="/signup">
-              Get started
+            <Link className="hidden lg:inline-flex rounded-lg bg-brand-500 px-6 py-2.5 text-sm font-semibold text-white shadow-[0_0_20px_rgba(16,185,129,0.3)] hover:bg-brand-400 hover:shadow-[0_0_30px_rgba(16,185,129,0.5)] transition-all items-center gap-2" to="/signup">
+              Get Started <ArrowRight size={16} />
             </Link>
           </div>
         </div>
+
+        {/* Mobile Nav */}
         {mobileNavOpen && (
-          <div className="border-t border-slate-200/80 px-6 py-4 md:hidden dark:border-slate-800/80">
-            <div className="space-y-3 rounded-[28px] border border-slate-200/80 bg-white/90 p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900/90">
-              <div className="grid gap-2">
-                {navItems.map((item) => (
-                  <a
-                    className="rounded-2xl border border-slate-200 px-4 py-3 text-sm text-slate-600 dark:border-slate-700 dark:text-slate-300"
-                    href={item.href}
-                    key={item.id}
-                    onClick={() => setMobileNavOpen(false)}
-                  >
-                    {item.label}
-                  </a>
-                ))}
-              </div>
-              <div className="flex items-center gap-2">
-                <button
-                  className="rounded-full border border-slate-200 bg-white p-2.5 text-slate-600 shadow-sm hover:bg-slate-100 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300 dark:hover:bg-slate-800"
-                  onClick={() => dispatch(setTheme(resolvedTheme === 'dark' ? 'light' : 'dark'))}
-                  type="button"
+          <div className="absolute top-full left-0 w-full border-b border-white/10 bg-black/60 backdrop-blur-2xl p-6 lg:hidden shadow-2xl animate-fade-rise z-50">
+            <div className="flex flex-col gap-4">
+              {navItems.map((item) => (
+                <a
+                  className="text-sm font-medium text-zinc-200"
+                  href={item.href}
+                  key={item.label}
+                  onClick={() => setMobileNavOpen(false)}
                 >
-                  {resolvedTheme === 'dark' ? <Sun size={18} /> : <Moon size={18} />}
-                </button>
-                <Link className="flex-1 rounded-full border border-slate-200 px-4 py-2.5 text-center text-sm font-medium text-slate-700 dark:border-slate-700 dark:text-slate-200" onClick={() => setMobileNavOpen(false)} to="/login">
-                  Log in
-                </Link>
-                <Link className="flex-1 rounded-full bg-slate-900 px-4 py-2.5 text-center text-sm font-medium text-white dark:bg-white dark:text-slate-900" onClick={() => setMobileNavOpen(false)} to="/signup">
-                  Get started
-                </Link>
-              </div>
+                  {item.label}
+                </a>
+              ))}
+              <hr className="border-white/10 my-2" />
+              <Link className="rounded-lg border border-white/20 px-5 py-3 text-center text-sm font-medium text-zinc-200 glass-card/5" to="/login">
+                Login
+              </Link>
+              <Link className="rounded-lg bg-brand-500 px-5 py-3 text-center text-sm font-bold text-white shadow-lg" to="/signup">
+                Get Started
+              </Link>
             </div>
           </div>
         )}
       </header>
 
-      <main>
-        <section className="relative overflow-hidden">
-          <div className="absolute inset-x-0 top-0 -z-10 h-[38rem] bg-[radial-gradient(circle_at_top_left,_rgba(59,130,246,0.2),_transparent_30%),radial-gradient(circle_at_top_right,_rgba(16,185,129,0.18),_transparent_26%),linear-gradient(180deg,rgba(255,255,255,0.9),rgba(248,250,252,0.95))] dark:bg-[radial-gradient(circle_at_top_left,_rgba(59,130,246,0.22),_transparent_30%),radial-gradient(circle_at_top_right,_rgba(16,185,129,0.18),_transparent_26%),linear-gradient(180deg,rgba(2,6,23,0.92),rgba(2,6,23,0.98))]" />
-          <div className="absolute inset-0 -z-10 ambient-grid opacity-70" />
-          <div className="mx-auto grid max-w-7xl gap-12 px-6 py-18 lg:grid-cols-[1fr,0.95fr] lg:items-center lg:py-24">
-            <div className="animate-fade-rise">
-              <p className="inline-flex items-center gap-2 rounded-full border border-sky-200 bg-white/80 px-4 py-1.5 text-xs font-semibold uppercase tracking-[0.24em] text-sky-700 shadow-sm dark:border-sky-500/20 dark:bg-slate-900/80 dark:text-sky-300">Modern team workspace SaaS</p>
-              <h1 className="mt-6 max-w-3xl text-5xl font-semibold tracking-tight text-slate-950 md:text-6xl dark:text-white">
-                Turn scattered team work into one clear operating system.
+      {/* Main Content */}
+      <main className="relative z-10 flex-1 flex flex-col justify-center px-6 lg:px-12 pt-16 pb-12">
+        <div className="mx-auto w-full max-w-[1400px] h-full flex flex-col justify-between">
+          
+          <div className="flex justify-between items-start w-full">
+            {/* Left side text */}
+            <div className="animate-fade-rise max-w-2xl mt-12 lg:mt-24">
+              <p className="text-[11px] font-bold uppercase tracking-[0.25em] text-brand-400 mb-8 flex gap-4 drop-shadow-[0_0_4px_rgba(16,185,129,0.3)]">
+                <span>COLLABORATE</span>
+                <span className="opacity-50">•</span>
+                <span>ORGANIZE</span>
+                <span className="opacity-50">•</span>
+                <span>ACHIEVE</span>
+              </p>
+              
+              <h1 className="text-5xl sm:text-6xl lg:text-[5.5rem] font-bold tracking-tight text-white leading-[1.05] mb-8 font-serif drop-shadow-xl">
+                One Workspace.<br />
+                <span className="text-brand-500 drop-shadow-[0_0_20px_rgba(16,185,129,0.4)]">Limitless</span> Potential.
               </h1>
-              <p className="mt-5 max-w-2xl text-lg leading-8 text-slate-600 dark:text-slate-300">
-                DsSync Hub brings tasks, notes, conversations, meetings, files, and AI workflows into one realistic SaaS experience built for fast-moving teams.
+              
+              <p className="text-lg sm:text-xl text-zinc-300 leading-relaxed mb-10 max-w-xl font-light drop-shadow-md">
+                DsSync Hub is your all-in-one platform to manage tasks, notes, teams, and projects — built for high-performance teams <strong className="text-white font-medium">who build the future.</strong>
               </p>
-              <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-                <Link className="inline-flex items-center justify-center rounded-full bg-slate-900 px-6 py-3.5 text-sm font-medium text-white shadow-xl shadow-slate-900/20 hover:bg-slate-800 dark:bg-white dark:text-slate-900 dark:hover:bg-slate-100" to="/signup">
-                  Get Started
-                  <ArrowRight className="ml-2" size={16} />
+              
+              <div className="flex flex-col sm:flex-row items-center gap-5 mb-12">
+                <Link className="inline-flex items-center justify-center rounded-lg bg-brand-500 px-8 py-4 text-sm font-bold text-white hover:bg-brand-400 transition-all shadow-[0_0_24px_rgba(16,185,129,0.4)] hover:shadow-[0_0_36px_rgba(16,185,129,0.6)] w-full sm:w-auto" to="/signup">
+                  Start Free Trial <ArrowRight className="ml-2" size={18} />
                 </Link>
-                <Link className="inline-flex items-center justify-center rounded-full border border-slate-200 bg-white/80 px-6 py-3.5 text-sm font-medium text-slate-700 shadow-sm hover:bg-white dark:border-slate-700 dark:bg-slate-900/80 dark:text-slate-200 dark:hover:bg-slate-900" to="/signup">
-                  Continue with Google
-                </Link>
+                <button className="inline-flex items-center justify-center rounded-lg border border-white/20 bg-black/20 backdrop-blur-md px-8 py-4 text-sm font-semibold text-white hover:glass-card/10 hover:border-white/40 transition-all shadow-lg w-full sm:w-auto">
+                   Explore Features
+                </button>
               </div>
-              <div className="mt-8 flex flex-wrap gap-2">
-                {trustSignals.map((item) => (
-                  <span className="rounded-full border border-slate-200/80 bg-white/70 px-4 py-2 text-xs font-semibold uppercase tracking-[0.18em] text-slate-500 dark:border-slate-800 dark:bg-slate-900/70 dark:text-slate-300" key={item}>
-                    {item}
-                  </span>
-                ))}
-              </div>
-            </div>
-
-            <div className="relative animate-fade-rise">
-              <div className="animate-float-card relative overflow-hidden rounded-[32px] border border-slate-200/80 bg-white/90 p-4 shadow-[0_30px_80px_rgba(15,23,42,0.15)] backdrop-blur dark:border-slate-800 dark:bg-slate-900/90">
-                <img alt="DsSync Hub dashboard preview" className="h-full w-full rounded-[24px] object-cover" src={heroPreview} />
+              
+              <div className="flex flex-wrap gap-5 sm:gap-8 text-xs sm:text-sm text-zinc-300 font-medium tracking-wide">
+                <div className="flex items-center gap-2"><div className="w-4 h-4 rounded glass-card/10 flex items-center justify-center"><Shield size={10} className="text-white" /></div> Secure by Design</div>
+                <div className="flex items-center gap-2"><div className="w-4 h-4 rounded glass-card/10 flex items-center justify-center"><Sparkles size={10} className="text-white" /></div> Powered by AI</div>
+                <div className="flex items-center gap-2"><div className="w-4 h-4 rounded glass-card/10 flex items-center justify-center"><Code size={10} className="text-white" /></div> Multi-tenant</div>
               </div>
             </div>
-          </div>
-        </section>
 
-        <section className="mx-auto max-w-7xl px-6 py-4">
-          <div className="rounded-[28px] border border-slate-200/80 bg-white/75 p-5 text-center shadow-sm dark:border-slate-800 dark:bg-slate-900/75">
-            <p className="text-xs font-semibold uppercase tracking-[0.26em] text-slate-500 dark:text-slate-400">Trusted by teams</p>
-            <div className="mt-4 flex flex-wrap justify-center gap-2">
-              {trustSignals.map((item) => (
-                <span className="rounded-full border border-slate-200 bg-slate-50 px-4 py-2 text-xs font-semibold tracking-[0.18em] text-slate-600 dark:border-slate-700 dark:bg-slate-800/60 dark:text-slate-300" key={item}>
-                  {item}
-                </span>
-              ))}
+            {/* Right side giant DS Logo (Absolute) */}
+            <div className="hidden lg:block absolute top-[10%] right-[15%] opacity-60 pointer-events-none animate-float">
+               <img src="/logo-icon.svg" className="w-[320px] h-[320px] drop-shadow-[0_0_100px_rgba(99,102,241,0.5)]" alt="" />
             </div>
-          </div>
-        </section>
 
-        <section className="mx-auto max-w-7xl px-6 py-16" id="features">
-          <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
-            <div>
-              <p className="text-sm font-semibold uppercase tracking-[0.24em] text-sky-600 dark:text-sky-300">Features</p>
-              <h2 className="mt-3 text-3xl font-semibold tracking-tight text-slate-950 dark:text-white">Everything your team needs to execute in one place.</h2>
-            </div>
-            <p className="max-w-2xl text-sm leading-6 text-slate-500 dark:text-slate-400">
-              The product is designed to feel like a real collaborative workspace from day one, not a stitched-together prototype.
-            </p>
-          </div>
-          <div className="mt-8 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-            {features.map((feature) => (
-              <article className="rounded-[28px] border border-slate-200 bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md dark:border-slate-800 dark:bg-slate-900" key={feature.title}>
-                <div className="grid h-11 w-11 place-items-center rounded-2xl bg-sky-100 text-sky-700 dark:bg-sky-500/15 dark:text-sky-300">
-                  <CheckCircle2 size={18} />
-                </div>
-                <h3 className="mt-5 text-lg font-semibold text-slate-950 dark:text-white">{feature.title}</h3>
-                <p className="mt-3 text-sm leading-6 text-slate-500 dark:text-slate-400">{feature.description}</p>
-              </article>
-            ))}
-          </div>
-        </section>
-
-        <section className="bg-slate-950/[0.03] py-16 dark:bg-white/[0.02]" id="preview">
-          <div className="mx-auto max-w-7xl px-6">
-            <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
-              <div>
-                <p className="text-sm font-semibold uppercase tracking-[0.24em] text-emerald-600 dark:text-emerald-300">How it works</p>
-                <h2 className="mt-3 text-3xl font-semibold tracking-tight text-slate-950 dark:text-white">From onboarding to execution in three clear steps.</h2>
-              </div>
-              <p className="max-w-2xl text-sm leading-6 text-slate-500 dark:text-slate-400">
-                DsSync Hub keeps planning, execution, and collaboration under one product surface that stays easy to maintain.
-              </p>
-            </div>
-            <div className="mt-8 grid gap-4 lg:grid-cols-3">
-              {howItWorks.map((item, index) => (
-                <article className="rounded-[28px] border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900" key={item.title}>
-                  <span className="inline-flex h-9 w-9 items-center justify-center rounded-full bg-emerald-100 text-sm font-semibold text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-300">{index + 1}</span>
-                  <h3 className="mt-4 text-lg font-semibold text-slate-950 dark:text-white">{item.title}</h3>
-                  <p className="mt-3 text-sm leading-6 text-slate-500 dark:text-slate-400">{item.description}</p>
-                </article>
-              ))}
-            </div>
-            <div className="mt-8 overflow-hidden rounded-[30px] border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900">
-              <img alt="Clean dashboard preview" className="w-full rounded-[20px] object-cover" src={heroPreview} />
+            {/* Vertical right side dots */}
+            <div className="hidden lg:flex flex-col items-center gap-8 mt-24 animate-fade-rise delay-200">
+               <div className="flex flex-col items-center gap-2 relative">
+                 <div className="h-16 w-[1px] glass-card/20 absolute -top-20"></div>
+                 <span className="text-[10px] font-bold tracking-[0.2em] text-white rotate-90 my-6">FOCUS</span>
+                 <div className="w-1.5 h-1.5 rounded-full glass-card/40"></div>
+               </div>
+               <div className="flex flex-col items-center gap-2">
+                 <span className="text-[10px] font-bold tracking-[0.2em] text-white rotate-90 my-6">SYNC</span>
+                 <div className="w-1.5 h-1.5 rounded-full glass-card/40"></div>
+               </div>
+               <div className="flex flex-col items-center gap-2 relative">
+                 <span className="text-[10px] font-bold tracking-[0.2em] text-white rotate-90 my-6">BUILD</span>
+                 <div className="w-2 h-2 rounded-full bg-brand-500 shadow-[0_0_12px_rgba(16,185,129,0.8)]"></div>
+                 <div className="h-32 w-[1px] bg-gradient-to-b from-brand-500 to-transparent absolute top-14"></div>
+               </div>
             </div>
           </div>
-        </section>
-
-        <section className="mx-auto max-w-7xl px-6 py-16" id="pricing">
-          <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
-            <div>
-              <p className="text-sm font-semibold uppercase tracking-[0.24em] text-violet-600 dark:text-violet-300">Pricing</p>
-              <h2 className="mt-3 text-3xl font-semibold tracking-tight text-slate-950 dark:text-white">Transparent plans that match real team maturity.</h2>
-            </div>
-            <p className="max-w-2xl text-sm leading-6 text-slate-500 dark:text-slate-400">
-              Start free, upgrade when workspace count, member count, storage, or AI usage becomes a real operational need.
-            </p>
-          </div>
-          <div className="mt-8 grid gap-4 lg:grid-cols-3">
-            {pricing.map((plan) => (
-              <article className={`rounded-[30px] border p-6 shadow-sm ${
-                plan.highlighted
-                  ? 'border-violet-500 bg-slate-950 text-white shadow-violet-500/15'
-                  : 'border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900'
-              }`} key={plan.name}>
-                <p className={`text-sm font-semibold uppercase tracking-[0.24em] ${plan.highlighted ? 'text-violet-200' : 'text-slate-500 dark:text-slate-400'}`}>{plan.name}</p>
-                <p className={`mt-4 text-4xl font-semibold ${plan.highlighted ? 'text-white' : 'text-slate-950 dark:text-white'}`}>{plan.price}</p>
-                <p className={`mt-3 text-sm leading-6 ${plan.highlighted ? 'text-slate-200' : 'text-slate-500 dark:text-slate-400'}`}>{plan.summary}</p>
-                <div className="mt-6 space-y-3">
-                  {plan.features.map((item) => (
-                    <div className="flex items-start gap-3 text-sm" key={item}>
-                      <CheckCircle2 className={plan.highlighted ? 'text-violet-300' : 'text-emerald-500'} size={16} />
-                      <span className={plan.highlighted ? 'text-slate-100' : 'text-slate-600 dark:text-slate-300'}>{item}</span>
-                    </div>
-                  ))}
-                </div>
-                <Link className={`mt-8 inline-flex rounded-full px-5 py-3 text-sm font-medium ${
-                  plan.highlighted
-                    ? 'bg-white text-slate-950 hover:bg-slate-100'
-                    : 'bg-slate-900 text-white hover:bg-slate-800 dark:bg-white dark:text-slate-900 dark:hover:bg-slate-100'
-                }`} to="/signup">
-                  {plan.cta}
-                </Link>
-              </article>
-            ))}
-          </div>
-        </section>
-
-        <section className="bg-slate-950/[0.03] py-16 dark:bg-white/[0.02]" id="testimonials">
-          <div className="mx-auto max-w-7xl px-6">
-            <div>
-              <p className="text-sm font-semibold uppercase tracking-[0.24em] text-amber-600 dark:text-amber-300">Testimonials</p>
-              <h2 className="mt-3 text-3xl font-semibold tracking-tight text-slate-950 dark:text-white">Teams use it because the workflow feels grounded in real operations.</h2>
-            </div>
-            <div className="mt-8 grid gap-4 lg:grid-cols-3">
-              {testimonials.map((item) => (
-                <article className="rounded-[28px] border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900" key={item.name}>
-                  <p className="text-base leading-7 text-slate-700 dark:text-slate-200">&ldquo;{item.quote}&rdquo;</p>
-                  <div className="mt-6">
-                    <p className="text-sm font-semibold text-slate-950 dark:text-white">{item.name}</p>
-                    <p className="text-xs uppercase tracking-[0.18em] text-slate-500 dark:text-slate-400">{item.role}</p>
+          
+          {/* Bottom Cards */}
+          <div className="mt-28 lg:mt-auto w-full">
+             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 relative z-20">
+                {statsBoxes.map((stat, i) => (
+                  <div key={i} className="glass-card rounded-2xl p-6 sm:p-8 flex flex-col justify-between animate-fade-rise" style={{ animationDelay: `${i * 100}ms` }}>
+                     <div className="flex items-center gap-4 mb-8">
+                        <div className="w-12 h-12 rounded-full bg-black/40 border border-white/10 flex items-center justify-center shadow-[inset_0_1px_1px_rgba(255,255,255,0.1)]">
+                           {stat.icon}
+                        </div>
+                        <div>
+                           <p className="text-xl font-bold text-white tracking-tight">{stat.title}</p>
+                           <p className="text-[11px] text-zinc-400 uppercase tracking-wider mt-1">{stat.subtitle}</p>
+                        </div>
+                     </div>
+                     <div className="w-full h-8 opacity-60">
+                       <svg className="w-full h-full overflow-visible" preserveAspectRatio="none" viewBox="0 0 50 20">
+                          <path 
+                            d={stat.sparkline} 
+                            fill="none" 
+                            stroke={stat.color} 
+                            strokeWidth="1.5" 
+                            strokeLinecap="round" 
+                            strokeLinejoin="round" 
+                            strokeDasharray={stat.isDashed ? "3,3" : "none"}
+                            className="drop-shadow-[0_2px_4px_rgba(0,0,0,0.5)]" 
+                          />
+                       </svg>
+                     </div>
                   </div>
-                </article>
-              ))}
-            </div>
+                ))}
+             </div>
+             <div className="mt-8 text-center animate-fade-rise delay-400">
+               <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-zinc-400 drop-shadow-md">
+                 BUILT FOR <span className="text-brand-500">DEVELOPERS</span>. DESIGNED FOR <span className="text-white underline decoration-brand-500/50 underline-offset-4">TEAMS</span>.
+               </p>
+               <div className="mt-8 flex justify-center pb-4">
+                 <div className="w-5 h-8 border-2 border-white/20 rounded-full flex justify-center p-1 bg-black/20 backdrop-blur-sm">
+                    <div className="w-1 h-2 bg-brand-500 rounded-full animate-bounce shadow-[0_0_8px_rgba(16,185,129,0.8)]"></div>
+                 </div>
+               </div>
+             </div>
           </div>
-        </section>
-
-        <section className="mx-auto max-w-7xl px-6 py-16" id="faq">
-          <div className="grid gap-8 lg:grid-cols-[0.85fr,1.15fr]">
-            <div>
-              <p className="text-sm font-semibold uppercase tracking-[0.24em] text-sky-600 dark:text-sky-300">FAQ</p>
-              <h2 className="mt-3 text-3xl font-semibold tracking-tight text-slate-950 dark:text-white">Questions teams ask before switching their workflow.</h2>
-              <p className="mt-4 text-sm leading-6 text-slate-500 dark:text-slate-400">
-                The product is meant to replace fragmented execution habits, so teams usually want clarity on structure, limits, and rollout.
-              </p>
-            </div>
-            <div className="space-y-3">
-              {faqs.map((item, index) => (
-                <article className="rounded-[28px] border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900" key={item.question}>
-                  <button
-                    className="flex w-full items-center justify-between gap-4 text-left"
-                    onClick={() => setOpenFaq((current) => (current === index ? -1 : index))}
-                    type="button"
-                  >
-                    <span className="text-base font-semibold text-slate-950 dark:text-white">{item.question}</span>
-                    <ChevronDown className={`shrink-0 text-slate-400 transition ${openFaq === index ? 'rotate-180' : ''}`} size={18} />
-                  </button>
-                  {openFaq === index && (
-                    <p className="mt-4 text-sm leading-6 text-slate-500 dark:text-slate-400">{item.answer}</p>
-                  )}
-                </article>
-              ))}
-            </div>
-          </div>
-        </section>
-
-        <section className="pb-20">
-          <div className="mx-auto max-w-7xl px-6">
-            <div className="overflow-hidden rounded-[36px] border border-slate-200 bg-[radial-gradient(circle_at_top_right,_rgba(56,189,248,0.16),_transparent_28%),linear-gradient(135deg,#0f172a,#1e293b)] p-8 text-white shadow-[0_30px_80px_rgba(15,23,42,0.18)] md:p-10">
-              <p className="text-sm font-semibold uppercase tracking-[0.24em] text-sky-100">Final call to action</p>
-              <div className="mt-5 flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
-                <div className="max-w-3xl">
-                  <h2 className="text-3xl font-semibold tracking-tight md:text-4xl">Launch your next workspace with a product that already feels trustworthy.</h2>
-                  <p className="mt-4 text-sm leading-7 text-slate-200">
-                    Set up a workspace, invite your team, and move from planning to shipping without juggling five separate tools.
-                  </p>
-                </div>
-                <div className="flex flex-col gap-3 sm:flex-row">
-                  <Link className="inline-flex items-center justify-center rounded-full bg-white px-6 py-3 text-sm font-medium text-slate-950 hover:bg-slate-100" to="/signup">
-                    Create workspace
-                  </Link>
-                  <Link className="inline-flex items-center justify-center rounded-full border border-white/15 px-6 py-3 text-sm font-medium text-white hover:bg-white/10" to="/signup">
-                    Continue with Google
-                  </Link>
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
+          
+        </div>
       </main>
     </div>
   )

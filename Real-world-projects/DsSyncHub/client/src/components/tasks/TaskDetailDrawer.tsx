@@ -51,7 +51,7 @@ const TaskDetailDrawer = ({ task, open, onClose }: TaskDetailDrawerProps) => {
     return task.assignee._id
   }, [task?.assignee])
 
-  if (!open || !task) return null
+  if (!task) return null
 
   const updateField = async (payload: Partial<TaskItem>) => {
     await dispatch(updateTaskThunk({ taskId: task.id, data: payload })).unwrap()
@@ -69,20 +69,20 @@ const TaskDetailDrawer = ({ task, open, onClose }: TaskDetailDrawerProps) => {
   const buildAssetUrl = (url: string) => `${apiBaseUrl.replace(/\/api$/, '')}${url}`
 
   return (
-    <div className="fixed inset-0 z-50 bg-slate-900/40" onClick={onClose} role="presentation">
+    <div className={`fixed inset-0 z-50 bg-zinc-900/40 backdrop-blur-sm transition-opacity duration-300 ${open ? 'opacity-100' : 'opacity-0 pointer-events-none'}`} onClick={onClose} role="presentation">
       <aside
-        className="ml-auto h-full w-full overflow-y-auto bg-white p-5 shadow-xl sm:w-[560px] dark:bg-slate-900"
+        className={`ml-auto h-full w-full overflow-y-auto glass-card p-5 shadow-xl sm:w-[560px] dark:bg-zinc-900 transition-transform duration-300 ease-in-out ${open ? 'tranzinc-x-0' : 'tranzinc-x-full'}`}
         onClick={(event) => event.stopPropagation()}
         role="dialog"
       >
         <div className="mb-4 flex items-center justify-between">
           <h2 className="text-lg font-semibold">Task Details</h2>
-          <button className="rounded-lg px-3 py-1 text-sm hover:bg-slate-100 dark:hover:bg-slate-800" onClick={onClose} type="button">Close</button>
+          <button className="rounded-lg px-3 py-1 text-sm hover:bg-white/10 dark:hover:bg-zinc-800" onClick={onClose} type="button">Close</button>
         </div>
 
         <div className="space-y-3">
           <input
-            className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-950"
+            className="w-full rounded-xl border border-white/10 px-3 py-2 text-sm dark:border-zinc-700 bg-black/20"
             onBlur={async () => {
               const trimmedTitle = titleValue.trim()
 
@@ -105,7 +105,7 @@ const TaskDetailDrawer = ({ task, open, onClose }: TaskDetailDrawerProps) => {
             value={titleValue}
           />
           <textarea
-            className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-950"
+            className="w-full rounded-xl border border-white/10 px-3 py-2 text-sm dark:border-zinc-700 bg-black/20"
             onBlur={async () => {
               const trimmedDescription = descriptionValue.trim()
 
@@ -130,19 +130,19 @@ const TaskDetailDrawer = ({ task, open, onClose }: TaskDetailDrawerProps) => {
           />
 
           <div className="grid gap-3 sm:grid-cols-2">
-            <select className="rounded-xl border border-slate-200 px-3 py-2 text-sm capitalize dark:border-slate-700 dark:bg-slate-950" defaultValue={task.status} onChange={(event) => updateField({ status: event.target.value as TaskStatus })}>
+            <select className="rounded-xl border border-white/10 px-3 py-2 text-sm capitalize dark:border-zinc-700 bg-black/20" defaultValue={task.status} onChange={(event) => updateField({ status: event.target.value as TaskStatus })}>
               <option value="todo">todo</option>
               <option value="in_progress">in progress</option>
               <option value="review">review</option>
               <option value="done">done</option>
             </select>
-            <select className="rounded-xl border border-slate-200 px-3 py-2 text-sm capitalize dark:border-slate-700 dark:bg-slate-950" defaultValue={task.priority} onChange={(event) => updateField({ priority: event.target.value as TaskPriority })}>
+            <select className="rounded-xl border border-white/10 px-3 py-2 text-sm capitalize dark:border-zinc-700 bg-black/20" defaultValue={task.priority} onChange={(event) => updateField({ priority: event.target.value as TaskPriority })}>
               <option value="low">low</option>
               <option value="medium">medium</option>
               <option value="high">high</option>
               <option value="critical">critical</option>
             </select>
-            <select className="rounded-xl border border-slate-200 px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-950" defaultValue={assigneeId} onChange={(event) => updateField({ assignee: (event.target.value || null) as TaskItem['assignee'] })}>
+            <select className="rounded-xl border border-white/10 px-3 py-2 text-sm dark:border-zinc-700 bg-black/20" defaultValue={assigneeId} onChange={(event) => updateField({ assignee: (event.target.value || null) as TaskItem['assignee'] })}>
               <option value="">Unassigned</option>
               {members.map((member) => (
                 <option key={member.userId} value={member.userId}>
@@ -151,7 +151,7 @@ const TaskDetailDrawer = ({ task, open, onClose }: TaskDetailDrawerProps) => {
               ))}
             </select>
             <input
-              className="rounded-xl border border-slate-200 px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-950"
+              className="rounded-xl border border-white/10 px-3 py-2 text-sm dark:border-zinc-700 bg-black/20"
               onBlur={async () => {
                 if (!dueDateValue) {
                   if (task.dueDate) {
@@ -183,7 +183,7 @@ const TaskDetailDrawer = ({ task, open, onClose }: TaskDetailDrawerProps) => {
           </div>
 
           <input
-            className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-950"
+            className="w-full rounded-xl border border-white/10 px-3 py-2 text-sm dark:border-zinc-700 bg-black/20"
             onBlur={async () => {
               const nextLabels = Array.from(
                 new Set(
@@ -203,10 +203,10 @@ const TaskDetailDrawer = ({ task, open, onClose }: TaskDetailDrawerProps) => {
             placeholder="Labels (comma-separated)"
             value={labelsValue}
           />
-          <div className="rounded-2xl border border-slate-200 p-3 dark:border-slate-700">
+          <div className="rounded-2xl border border-white/10 p-3 dark:border-zinc-700">
             <div className="flex flex-wrap items-center justify-between gap-2">
-              <p className="text-sm font-medium text-slate-900 dark:text-white">Attachments</p>
-              <button className="rounded-xl border border-slate-200 px-3 py-2 text-xs dark:border-slate-700" onClick={() => fileInputRef.current?.click()} type="button">
+              <p className="text-sm font-medium text-white font-semibold drop-shadow-md">Attachments</p>
+              <button className="rounded-xl border border-white/10 px-3 py-2 text-xs dark:border-zinc-700" onClick={() => fileInputRef.current?.click()} type="button">
                 <Paperclip className="mr-1 inline" size={12} />
                 Upload file
               </button>
@@ -239,11 +239,11 @@ const TaskDetailDrawer = ({ task, open, onClose }: TaskDetailDrawerProps) => {
             </div>
             <div className="mt-3 flex flex-wrap gap-2">
               {task.attachments.map((attachment) => (
-                <a className="rounded-full bg-slate-100 px-3 py-1.5 text-xs text-slate-700 dark:bg-slate-800 dark:text-slate-200" href={buildAssetUrl(attachment.url)} key={attachment.fileId || attachment.url} rel="noreferrer" target="_blank">
+                <a className="rounded-full bg-white/10 px-3 py-1.5 text-xs text-zinc-700 dark:bg-zinc-800 dark:text-zinc-200" href={buildAssetUrl(attachment.url)} key={attachment.fileId || attachment.url} rel="noreferrer" target="_blank">
                   {attachment.name}
                 </a>
               ))}
-              {!task.attachments.length && <p className="text-sm text-slate-500">No attachments yet.</p>}
+              {!task.attachments.length && <p className="text-sm text-zinc-500">No attachments yet.</p>}
             </div>
           </div>
         </div>
@@ -254,18 +254,18 @@ const TaskDetailDrawer = ({ task, open, onClose }: TaskDetailDrawerProps) => {
         </div>
 
         <div className="mt-6">
-          <h3 className="text-sm font-semibold text-slate-700 dark:text-slate-200">Comments</h3>
+          <h3 className="text-sm font-semibold text-zinc-200">Comments</h3>
           <div className="mt-3 space-y-2">
             {comments.map((comment) => (
-              <div className="rounded-xl border border-slate-200 p-3 dark:border-slate-700" key={comment.id}>
+              <div className="rounded-xl border border-white/10 p-3 dark:border-zinc-700" key={comment.id}>
                 <div className="flex items-center justify-between">
                   <p className="text-sm font-medium">{comment.userName}</p>
-                  <span className="text-xs text-slate-500">{new Date(comment.createdAt).toLocaleString()}</span>
+                  <span className="text-xs text-zinc-500">{new Date(comment.createdAt).toLocaleString()}</span>
                 </div>
                 {editingCommentId === comment.id ? (
                   <div className="mt-2 space-y-2">
                     <textarea
-                      className="w-full rounded-lg border border-slate-200 px-2 py-1 text-sm dark:border-slate-700 dark:bg-slate-950"
+                      className="w-full rounded-lg border border-white/10 px-2 py-1 text-sm dark:border-zinc-700 bg-black/20"
                       onChange={(event) => {
                         setEditingCommentContent(event.target.value)
                         setEditCursorPosition(event.target.selectionStart)
@@ -277,10 +277,10 @@ const TaskDetailDrawer = ({ task, open, onClose }: TaskDetailDrawerProps) => {
                       ref={editRef}
                     />
                     {editMentionSuggestions.length > 0 && (
-                      <div className="rounded-xl border border-slate-200 bg-white p-1 dark:border-slate-700 dark:bg-slate-900">
+                      <div className="rounded-xl border border-white/10 glass-card p-1 dark:border-zinc-700 dark:bg-zinc-900">
                         {editMentionSuggestions.map((member) => (
                           <button
-                            className="block w-full rounded-lg px-2 py-1 text-left text-xs hover:bg-slate-100 dark:hover:bg-slate-800"
+                            className="block w-full rounded-lg px-2 py-1 text-left text-xs hover:bg-white/10 dark:hover:bg-zinc-800"
                             key={member.userId}
                             onClick={() => {
                               const result = applyMentionSelection(editingCommentContent, editCursorPosition, getMentionHandle(member))
@@ -300,7 +300,7 @@ const TaskDetailDrawer = ({ task, open, onClose }: TaskDetailDrawerProps) => {
                     )}
                     <div className="flex gap-2">
                       <button
-                        className="rounded-lg bg-slate-900 px-2 py-1 text-xs text-white dark:bg-white dark:text-slate-900"
+                        className="rounded-lg bg-zinc-900 px-2 py-1 text-xs text-white dark:glass-card dark:text-white"
                         onClick={() => {
                           dispatch(
                             updateTaskCommentThunk({
@@ -318,7 +318,7 @@ const TaskDetailDrawer = ({ task, open, onClose }: TaskDetailDrawerProps) => {
                         Save
                       </button>
                       <button
-                        className="rounded-lg border border-slate-200 px-2 py-1 text-xs dark:border-slate-700"
+                        className="rounded-lg border border-white/10 px-2 py-1 text-xs dark:border-zinc-700"
                         onClick={() => {
                           setEditingCommentId(null)
                           setEditingCommentContent('')
@@ -330,14 +330,14 @@ const TaskDetailDrawer = ({ task, open, onClose }: TaskDetailDrawerProps) => {
                     </div>
                   </div>
                 ) : (
-                  <div className="mt-1 text-sm text-slate-700 dark:text-slate-200">
+                  <div className="mt-1 text-sm text-zinc-200">
                     <MentionText members={members} text={comment.content} />
                   </div>
                 )}
                 {comment.userId === currentUserId && editingCommentId !== comment.id && (
                   <div className="mt-2 flex gap-2">
                     <button
-                      className="rounded-md border border-slate-200 px-2 py-1 text-xs dark:border-slate-700"
+                      className="rounded-md border border-white/10 px-2 py-1 text-xs dark:border-zinc-700"
                       onClick={() => {
                         setEditingCommentId(comment.id)
                         setEditingCommentContent(comment.content)
@@ -362,7 +362,7 @@ const TaskDetailDrawer = ({ task, open, onClose }: TaskDetailDrawerProps) => {
           </div>
           <div className="mt-3 space-y-2">
             <textarea
-              className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-950"
+              className="w-full rounded-xl border border-white/10 px-3 py-2 text-sm dark:border-zinc-700 bg-black/20"
               onChange={(event) => {
                 setCommentDraft(event.target.value)
                 setCursorPosition(event.target.selectionStart)
@@ -375,10 +375,10 @@ const TaskDetailDrawer = ({ task, open, onClose }: TaskDetailDrawerProps) => {
               value={commentDraft}
             />
             {mentionSuggestions.length > 0 && (
-              <div className="rounded-xl border border-slate-200 bg-white p-1 dark:border-slate-700 dark:bg-slate-900">
+              <div className="rounded-xl border border-white/10 glass-card p-1 dark:border-zinc-700 dark:bg-zinc-900">
                 {mentionSuggestions.map((member) => (
                   <button
-                    className="block w-full rounded-lg px-2 py-1 text-left text-xs hover:bg-slate-100 dark:hover:bg-slate-800"
+                    className="block w-full rounded-lg px-2 py-1 text-left text-xs hover:bg-white/10 dark:hover:bg-zinc-800"
                     key={member.userId}
                     onClick={() => {
                       const result = applyMentionSelection(commentDraft, cursorPosition, getMentionHandle(member))
@@ -398,7 +398,7 @@ const TaskDetailDrawer = ({ task, open, onClose }: TaskDetailDrawerProps) => {
             )}
             <div className="flex justify-end">
             <button
-              className="rounded-xl bg-violet-600 px-3 py-2 text-sm font-medium text-white hover:bg-violet-700"
+              className="rounded-xl bg-brand-500 px-3 py-2 text-sm font-medium text-white hover:bg-brand-400 shadow-[0_0_15px_rgba(16,185,129,0.3)] transition-all hover:shadow-[0_0_25px_rgba(16,185,129,0.5)] hover:-tranzinc-y-0.5 duration-300"
               onClick={() => {
                 if (!commentDraft.trim()) return
                 dispatch(addTaskCommentThunk({ taskId: task.id, content: commentDraft.trim(), mentions: extractMentionIds(commentDraft, members) }))

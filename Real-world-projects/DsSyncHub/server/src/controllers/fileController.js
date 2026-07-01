@@ -11,7 +11,7 @@ const {
   ensureStorageAvailable,
   removeLocalFile,
   serializeFileAsset,
-  storeLocally,
+  storeFile,
   validateIncomingFile,
 } = require('../services/storageService')
 
@@ -96,7 +96,7 @@ const uploadFile = async (req, res, next) => {
       })
     }
 
-    const stored = await storeLocally(req.file)
+    const stored = await storeFile(req.file, workspace)
     const fileAsset = await FileAsset.create({
       workspace,
       uploadedBy: req.user._id,
@@ -156,7 +156,7 @@ const deleteFile = async (req, res, next) => {
 
 const streamFileContent = async (req, res, next) => {
   try {
-    const storedName = path.basename(req.params.storedName || '')
+    const storedName = path.basename(req.params.filename || req.params.storedName || '')
     const fileAsset = await FileAsset.findOne({ name: storedName })
     if (!fileAsset) return res.status(404).json({ success: false, message: 'File not found.' })
 

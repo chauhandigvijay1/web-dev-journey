@@ -15,7 +15,8 @@ router.use(authMiddleware)
 
 router.get('/', listFiles)
 router.get('/recent', listRecentFiles)
-router.get('/content/:storedName', streamFileContent)
+router.get('/content/:workspaceId/:filename', streamFileContent)
+router.get('/content/:filename', streamFileContent)
 router.post('/upload', upload.single('file'), uploadFile)
 router.delete('/:id', deleteFile)
 

@@ -28,7 +28,6 @@ const userSchema = new mongoose.Schema(
     phone: {
       type: String,
       trim: true,
-      default: null,
       sparse: true,
       unique: true,
     },
@@ -105,6 +104,16 @@ const userSchema = new mongoose.Schema(
       select: false,
     },
     passwordResetExpiresAt: {
+      type: Date,
+      default: null,
+      select: false,
+    },
+    emailVerificationToken: {
+      type: String,
+      default: null,
+      select: false,
+    },
+    emailVerificationExpiresAt: {
       type: Date,
       default: null,
       select: false,

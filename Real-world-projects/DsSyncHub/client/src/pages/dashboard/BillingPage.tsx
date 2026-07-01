@@ -108,25 +108,25 @@ const BillingPage = () => {
 
   return (
     <section className="space-y-4 pb-5">
-      <article className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+      <article className="rounded-2xl border border-white/10 glass-panel p-5">
         <h1 className="text-2xl font-semibold">Billing</h1>
         {loading || !current ? (
-          <p className="mt-2 text-sm text-slate-500">Loading billing details...</p>
+          <p className="mt-2 text-sm text-zinc-500">Loading billing details...</p>
         ) : (
           <div className="mt-3 grid gap-3 md:grid-cols-2">
-            <div className="rounded-xl border border-slate-200 p-3 dark:border-slate-700">
-              <p className="text-sm text-slate-500">Current plan</p>
+            <div className="rounded-xl border border-white/10 p-3 dark:border-zinc-700">
+              <p className="text-sm text-zinc-500">Current plan</p>
               <p className="text-lg font-semibold">{current.subscription.plan.replace('_', ' ')}</p>
-              <p className="text-xs text-slate-500">Status: {current.subscription.status}</p>
-              <p className="text-xs text-slate-500">Renews: {new Date(current.subscription.currentPeriodEnd).toLocaleDateString()}</p>
+              <p className="text-xs text-zinc-500">Status: {current.subscription.status}</p>
+              <p className="text-xs text-zinc-500">Renews: {new Date(current.subscription.currentPeriodEnd).toLocaleDateString()}</p>
               <div className="mt-3 flex flex-wrap gap-2">
-                <button className="rounded-xl bg-violet-600 px-3 py-2 text-xs text-white disabled:opacity-60" disabled={checkoutPlan === 'pro_monthly'} onClick={() => handleCheckout('pro_monthly')} type="button">{checkoutPlan === 'pro_monthly' ? 'Opening checkout...' : 'Upgrade Plan'}</button>
-                <button className="rounded-xl border border-slate-200 px-3 py-2 text-xs dark:border-slate-700 disabled:opacity-60" disabled={loading} onClick={() => activeWorkspaceId && dispatch(cancelBillingThunk(activeWorkspaceId))} type="button">Cancel Plan</button>
-                <button className="rounded-xl border border-slate-200 px-3 py-2 text-xs dark:border-slate-700 disabled:opacity-60" disabled={loading} onClick={() => activeWorkspaceId && dispatch(resumeBillingThunk(activeWorkspaceId))} type="button">Resume Plan</button>
+                <button className="rounded-xl bg-brand-500 px-3 py-2 text-xs text-white disabled:opacity-60" disabled={checkoutPlan === 'pro_monthly'} onClick={() => handleCheckout('pro_monthly')} type="button">{checkoutPlan === 'pro_monthly' ? 'Opening checkout...' : 'Upgrade Plan'}</button>
+                <button className="rounded-xl border border-white/10 px-3 py-2 text-xs dark:border-zinc-700 disabled:opacity-60" disabled={loading} onClick={() => activeWorkspaceId && dispatch(cancelBillingThunk(activeWorkspaceId))} type="button">Cancel Plan</button>
+                <button className="rounded-xl border border-white/10 px-3 py-2 text-xs dark:border-zinc-700 disabled:opacity-60" disabled={loading} onClick={() => activeWorkspaceId && dispatch(resumeBillingThunk(activeWorkspaceId))} type="button">Resume Plan</button>
               </div>
             </div>
-            <div className="rounded-xl border border-slate-200 p-3 dark:border-slate-700">
-              <p className="text-sm text-slate-500">Usage</p>
+            <div className="rounded-xl border border-white/10 p-3 dark:border-zinc-700">
+              <p className="text-sm text-zinc-500">Usage</p>
               <p className="text-sm">Members: {current.usage.membersUsed}</p>
               <p className="text-sm">AI used today: {current.usage.aiUsed}</p>
               <p className="text-sm">Storage: {current.usage.storageUsedMb}MB / {current.usage.storageLimitMb}MB</p>
@@ -145,7 +145,7 @@ const BillingPage = () => {
         />
       )}
 
-      <article className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+      <article className="rounded-2xl border border-white/10 glass-panel p-5">
         <h2 className="text-lg font-semibold">Pricing</h2>
         <div className="mt-3 grid gap-3 md:grid-cols-3">
           {[
@@ -153,10 +153,10 @@ const BillingPage = () => {
             { key: 'pro_monthly', title: 'Pro Monthly', desc: 'Unlimited workspaces, members, 10GB storage, advanced AI' },
             { key: 'pro_yearly', title: 'Pro Yearly', desc: 'Yearly savings, premium AI, 25GB storage' },
           ].map((item) => (
-            <div className="rounded-xl border border-slate-200 p-3 dark:border-slate-700" key={item.key}>
+            <div className="rounded-xl border border-white/10 p-3 dark:border-zinc-700" key={item.key}>
               <p className="font-semibold">{item.title}</p>
-              <p className="mt-1 text-xs text-slate-500">{item.desc}</p>
-              <button className="mt-3 rounded-lg border border-slate-200 px-3 py-1.5 text-xs dark:border-slate-700 disabled:opacity-60" disabled={checkoutPlan === item.key} onClick={() => item.key !== 'free' && handleCheckout(item.key as 'pro_monthly' | 'pro_yearly')} type="button">
+              <p className="mt-1 text-xs text-zinc-500">{item.desc}</p>
+              <button className="mt-3 rounded-lg border border-white/10 px-3 py-1.5 text-xs dark:border-zinc-700 disabled:opacity-60" disabled={checkoutPlan === item.key} onClick={() => item.key !== 'free' && handleCheckout(item.key as 'pro_monthly' | 'pro_yearly')} type="button">
                 {current?.subscription.plan === item.key ? 'Current Plan' : 'Choose Plan'}
               </button>
             </div>
@@ -164,18 +164,18 @@ const BillingPage = () => {
         </div>
       </article>
 
-      <article className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+      <article className="rounded-2xl border border-white/10 glass-panel p-5">
         <h2 className="text-lg font-semibold">Billing History</h2>
         <div className="mt-3 space-y-2">
           {!history.length ? (
-            <p className="text-sm text-slate-500">No invoices yet.</p>
+            <p className="text-sm text-zinc-500">No invoices yet.</p>
           ) : (
             history.map((item) => (
-              <div className="flex items-center justify-between rounded-xl border border-slate-200 px-3 py-2 text-sm dark:border-slate-700" key={item.id}>
+              <div className="flex items-center justify-between rounded-xl border border-white/10 px-3 py-2 text-sm dark:border-zinc-700" key={item.id}>
                 <span>{new Date(item.billedAt).toLocaleDateString()}</span>
                 <span>{item.currency} {item.amount}</span>
                 <span className="capitalize">{item.status}</span>
-                <button className="text-xs text-violet-600" type="button">Download</button>
+                <button className="text-xs text-brand-500" type="button">Download</button>
               </div>
             ))
           )}

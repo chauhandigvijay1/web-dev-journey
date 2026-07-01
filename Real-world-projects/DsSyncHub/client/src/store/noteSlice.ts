@@ -83,6 +83,16 @@ const noteSlice = createSlice({
     patchNoteInState: (state, action: PayloadAction<NoteItem>) => {
       state.items = state.items.map((note) => (note.id === action.payload.id ? action.payload : note))
     },
+    addIncomingNote: (state, action: PayloadAction<NoteItem>) => {
+      const exists = state.items.some((n) => n.id === action.payload.id)
+      if (!exists) state.items.unshift(action.payload)
+    },
+    updateIncomingNote: (state, action: PayloadAction<NoteItem>) => {
+      state.items = state.items.map((n) => (n.id === action.payload.id ? action.payload : n))
+    },
+    removeIncomingNote: (state, action: PayloadAction<string>) => {
+      state.items = state.items.filter((n) => n.id !== action.payload)
+    },
   },
   extraReducers: (builder) => {
     builder
@@ -139,5 +149,8 @@ export const {
   setNoteDirty,
   setSavingState,
   patchNoteInState,
+  addIncomingNote,
+  updateIncomingNote,
+  removeIncomingNote,
 } = noteSlice.actions
 export default noteSlice.reducer

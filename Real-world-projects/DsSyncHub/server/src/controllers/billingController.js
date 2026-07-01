@@ -207,13 +207,15 @@ const verifyBillingPayment = async (req, res, next) => {
     )
 
     await Workspace.findByIdAndUpdate(workspace, { plan: 'pro' })
+    const invoiceId = new mongoose.Types.ObjectId()
     await BillingInvoice.create({
+      _id: invoiceId,
       workspace,
       subscription: subscription._id,
       amount: amountByPlan[plan],
       currency: 'INR',
       status: 'paid',
-      invoiceUrl: '',
+      invoiceUrl: `/api/billing/invoice/${invoiceId}`,
     })
 
     return res.status(200).json({

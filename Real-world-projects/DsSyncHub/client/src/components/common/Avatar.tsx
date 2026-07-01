@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { resolveAssetUrl } from '../../utils/assets'
 
 type AvatarProps = {
@@ -37,6 +37,9 @@ const getColorIndex = (name = '') =>
 
 const Avatar = ({ name = 'DsSync Hub user', src, alt, size = 'md', className = '' }: AvatarProps) => {
   const [imageErrored, setImageErrored] = useState(false)
+  useEffect(() => {
+    setImageErrored(false)
+  }, [src])
   const resolvedSrc = useMemo(() => resolveAssetUrl(src), [src])
   const fallbackClass = colorClasses[getColorIndex(name)]
 

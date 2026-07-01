@@ -29,23 +29,21 @@ const AIAssistantDrawer = ({ open, onClose, workspaceId, title, actions, onInser
     [actions, activeAction],
   )
 
-  if (!open) return null
-
   return (
-    <div className="fixed inset-0 z-50 bg-slate-950/40" onClick={onClose} role="presentation">
-      <div className="fixed bottom-0 right-0 h-[85vh] w-full max-w-xl rounded-t-3xl border border-slate-200 bg-white p-4 shadow-2xl md:top-0 md:h-full md:rounded-none md:rounded-l-3xl dark:border-slate-700 dark:bg-slate-900" onClick={(event) => event.stopPropagation()} role="dialog">
+    <div className={`fixed inset-0 z-50 bg-zinc-950/40 backdrop-blur-sm transition-opacity duration-300 ${open ? 'opacity-100' : 'opacity-0 pointer-events-none'}`} onClick={onClose} role="presentation">
+      <div className={`fixed bottom-0 right-0 h-[85vh] w-full max-w-xl rounded-t-3xl border border-white/10 glass-card p-4 shadow-2xl md:top-0 md:h-full md:rounded-none md:rounded-l-3xl dark:border-zinc-700 dark:bg-zinc-900 transition-transform duration-300 ease-in-out ${open ? 'tranzinc-y-0 md:tranzinc-x-0' : 'tranzinc-y-full md:tranzinc-y-0 md:tranzinc-x-full'}`} onClick={(event) => event.stopPropagation()} role="dialog">
         <div className="mb-3 flex items-center justify-between">
           <h3 className="text-lg font-semibold">
             <Sparkles className="mr-1 inline" size={16} />
             {title}
           </h3>
-          <button className="rounded-xl border border-slate-200 px-3 py-1 text-sm dark:border-slate-700" onClick={onClose} type="button">Close</button>
+          <button className="rounded-xl border border-white/10 px-3 py-1 text-sm dark:border-zinc-700" onClick={onClose} type="button">Close</button>
         </div>
 
         <div className="grid gap-2 sm:grid-cols-2">
           {actions.map((item) => (
             <button
-              className="rounded-xl border border-slate-200 px-3 py-2 text-left text-sm hover:bg-slate-50 dark:border-slate-700 dark:hover:bg-slate-800"
+              className="rounded-xl border border-white/10 px-3 py-2 text-left text-sm hover:bg-white/5 dark:border-zinc-700 dark:hover:bg-zinc-800"
               key={item.action}
               onClick={() => {
                 if (!workspaceId) return
@@ -72,10 +70,10 @@ const AIAssistantDrawer = ({ open, onClose, workspaceId, title, actions, onInser
           ))}
         </div>
 
-        <div className="mt-4 rounded-2xl border border-slate-200 p-3 dark:border-slate-700">
-          <p className="text-xs uppercase text-slate-500">{currentLabel}</p>
+        <div className="mt-4 rounded-2xl border border-white/10 p-3 dark:border-zinc-700">
+          <p className="text-xs uppercase text-zinc-500">{currentLabel}</p>
           {loading ? (
-            <div className="mt-3 flex items-center gap-2 text-sm text-slate-500">
+            <div className="mt-3 flex items-center gap-2 text-sm text-zinc-500">
               <Loader2 className="animate-spin" size={16} />
               Generating...
             </div>
@@ -84,7 +82,7 @@ const AIAssistantDrawer = ({ open, onClose, workspaceId, title, actions, onInser
           )}
           <div className="mt-3 flex gap-2">
             <button
-              className="rounded-xl border border-slate-200 px-3 py-2 text-xs dark:border-slate-700"
+              className="rounded-xl border border-white/10 px-3 py-2 text-xs dark:border-zinc-700"
               onClick={async () => {
                 if (!output) return
                 await navigator.clipboard.writeText(output)
@@ -95,7 +93,7 @@ const AIAssistantDrawer = ({ open, onClose, workspaceId, title, actions, onInser
               <Copy className="mr-1 inline" size={12} />
               Copy
             </button>
-            {onInsert && <button className="rounded-xl bg-violet-600 px-3 py-2 text-xs text-white" onClick={() => output && onInsert(output)} type="button">Insert</button>}
+            {onInsert && <button className="rounded-xl bg-brand-500 px-3 py-2 text-xs text-white" onClick={() => output && onInsert(output)} type="button">Insert</button>}
           </div>
         </div>
       </div>

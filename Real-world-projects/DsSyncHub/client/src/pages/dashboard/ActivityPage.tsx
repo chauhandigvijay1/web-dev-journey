@@ -40,12 +40,12 @@ const ActivityPage = () => {
 
   return (
     <section className="space-y-4 pb-5">
-      <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+      <div className="rounded-2xl border border-white/10 glass-card p-4 shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
         <h1 className="text-2xl font-semibold">Activity</h1>
         <div className="mt-3 flex flex-wrap gap-2">
           {['today', 'week', 'tasks', 'notes', 'members'].map((value) => (
             <button
-              className={`rounded-xl px-3 py-2 text-sm ${filter === value ? 'bg-violet-600 text-white' : 'border border-slate-200 dark:border-slate-700'}`}
+              className={`rounded-xl px-3 py-2 text-sm ${filter === value ? 'bg-brand-500 text-white' : 'border border-white/10'}`}
               key={value}
               onClick={() => {
                 setFilter(value as typeof filter)
@@ -61,7 +61,7 @@ const ActivityPage = () => {
       {loading ? (
         <div className="space-y-3">
           {Array.from({ length: 4 }).map((_, index) => (
-            <div className="h-24 animate-pulse rounded-2xl border border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900" key={index} />
+            <div className="h-24 animate-pulse rounded-2xl border border-white/10 glass-card dark:border-zinc-800 dark:bg-zinc-900" key={index} />
           ))}
         </div>
       ) : !filtered.length ? (
@@ -73,13 +73,13 @@ const ActivityPage = () => {
         <>
           <div className="space-y-3">
             {paginatedItems.map((item) => (
-            <article className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900" key={item.id}>
+            <article className="rounded-2xl border border-white/10 glass-card p-4 shadow-sm dark:border-zinc-800 dark:bg-zinc-900" key={item.id}>
               <div className="flex items-center gap-3">
                 <Avatar name={item.actor?.fullName || 'Workspace activity'} src={item.actor?.avatarUrl} />
                 <div className="min-w-0 flex-1">
                   <p className="text-sm">{item.summary}</p>
-                  <div className="mt-1 flex items-center gap-2 text-xs text-slate-500">
-                    <span className="rounded-full bg-slate-100 px-2 py-1 dark:bg-slate-800">{item.entityType}</span>
+                  <div className="mt-1 flex items-center gap-2 text-xs text-zinc-500">
+                    <span className="rounded-full glass-card/10 px-2 py-1 dark:bg-zinc-800">{item.entityType}</span>
                     <span>{new Date(item.createdAt).toLocaleString()}</span>
                   </div>
                 </div>

@@ -2,6 +2,7 @@ const bcrypt = require('bcryptjs')
 const User = require('../models/User')
 const { getAuthCookieOptions } = require('../utils/cookies')
 const { isValidEmail, isValidPhone, isValidUsername, isStrongPassword } = require('../utils/validators')
+const { storeFile, validateIncomingFile } = require('../services/storageService')
 
 const toPublicUser = (user) => ({
   id: user._id,
@@ -149,11 +150,42 @@ const logoutAllSessions = async (_req, res) => {
   return res.status(200).json({ success: true, message: 'Signed out from all active sessions.' })
 }
 
+const uploadAvatar = async (req, res, next) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ success: false, message: 'Avatar file is required.' })
+    }
+
+    const validationError = validateIncomingFile(req.file)
+    if (validationError) {
+      return res.status(400).json({ success: false, message: validationError })
+    }
+
+    const user = await User.findById(req.user._id)
+    if (!user) return res.status(404).json({ success: false, message: 'User not found.' })
+
+    const stored = await storeFile(req.file, null)
+    user.avatarUrl = stored.url.startsWith('http') ? stored.url : `/api/users/avatar/${stored.name}`
+    await user.save()
+
+    return res.status(200).json({ success: true, user: toPublicUser(user) })
+  } catch (error) {
+    return next(error)
+  }
+}
+
+const serveAvatar = (req, res) => {
+  const path = require("path");
+  res.sendFile(path.resolve(__dirname, "../../uploads", req.params.filename));
+};
+
 module.exports = {
+  serveAvatar,
   getProfile,
   updateProfile,
   updateAccount,
   changePassword,
   updateAppearance,
   logoutAllSessions,
+  uploadAvatar,
 }

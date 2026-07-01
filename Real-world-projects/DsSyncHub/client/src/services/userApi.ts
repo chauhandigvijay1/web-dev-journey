@@ -36,4 +36,14 @@ export const userApi = {
     const response = await api.post<{ success: boolean; message: string }>('/users/logout-all')
     return response.data
   },
+  uploadAvatar: async (file: File) => {
+    const formData = new FormData()
+    formData.append('file', file)
+    const response = await api.post<{ success: boolean; user: AuthUser }>('/users/avatar', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    })
+    return response.data
+  },
 }

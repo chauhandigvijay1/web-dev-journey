@@ -120,14 +120,14 @@ const NotesPage = () => {
   }
 
   return (
-    <section className="flex min-h-[calc(100vh-9rem)] gap-4">
+    <section className="flex flex-1 h-full min-h-0 gap-4">
       {mobileSidebarOpen && (
-        <div className="fixed inset-0 z-40 bg-slate-900/40 md:hidden" onClick={() => setMobileSidebarOpen(false)} role="presentation" />
+        <div className="fixed inset-0 z-40 bg-zinc-900/40 md:hidden" onClick={() => setMobileSidebarOpen(false)} role="presentation" />
       )}
-      <aside className={`z-40 w-[300px] rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900 ${mobileSidebarOpen ? 'fixed bottom-3 left-3 top-24 md:static' : 'hidden md:block'}`}>
+      <aside className={`z-40 w-[300px] rounded-2xl border border-white/10 glass-card p-4 shadow-sm dark:border-zinc-800 dark:bg-zinc-900 ${mobileSidebarOpen ? 'fixed bottom-3 left-3 top-24 md:static' : 'hidden md:block'}`}>
         <div className="space-y-2">
-          <div className="flex items-center gap-2 rounded-xl border border-slate-200 px-3 py-2 dark:border-slate-700">
-            <Search size={15} className="text-slate-400" />
+          <div className="flex items-center gap-2 rounded-xl border border-white/10 px-3 py-2 dark:border-zinc-700">
+            <Search size={15} className="text-zinc-400" />
             <input
               className="w-full bg-transparent text-sm outline-none"
               onChange={(event) => {
@@ -139,7 +139,7 @@ const NotesPage = () => {
             />
           </div>
           <button
-            className="w-full rounded-xl bg-violet-600 px-3 py-2 text-sm font-medium text-white hover:bg-violet-700"
+            className="w-full rounded-xl bg-brand-500 px-3 py-2 text-sm font-medium text-white hover:bg-brand-400 shadow-[0_0_15px_rgba(16,185,129,0.3)] transition-all hover:shadow-[0_0_25px_rgba(16,185,129,0.5)] hover:-tranzinc-y-0.5 duration-300 shadow-[0_0_15px_rgba(16,185,129,0.3)] transition-all hover:shadow-[0_0_25px_rgba(16,185,129,0.5)] hover:-tranzinc-y-0.5 duration-300"
             onClick={handleCreateNote}
             type="button"
           >
@@ -153,8 +153,8 @@ const NotesPage = () => {
             <button
               className={`w-full rounded-xl px-3 py-2 text-left text-sm ${
                 filter === item.key
-                  ? 'bg-violet-100 text-violet-700 dark:bg-violet-500/20 dark:text-violet-300'
-                  : 'hover:bg-slate-100 dark:hover:bg-slate-800'
+                  ? 'bg-brand-500/10 text-brand-400 dark:bg-brand-500/20 dark:text-brand-300'
+                  : 'hover:glass-card/10 dark:hover:bg-zinc-800'
               }`}
               key={item.key}
               onClick={() => {
@@ -169,39 +169,39 @@ const NotesPage = () => {
         </div>
 
         <div className="mt-4">
-          <p className="mb-2 text-xs font-semibold uppercase text-slate-400">Folders</p>
-          <div className="space-y-1 text-sm text-slate-600 dark:text-slate-300">
+          <p className="mb-2 text-xs font-semibold uppercase text-zinc-400">Folders</p>
+          <div className="space-y-1 text-sm text-zinc-300">
             {folders.length ? folders.map((folder) => <p key={folder}>{folder}</p>) : <p>No folders yet</p>}
           </div>
         </div>
 
         <div className="mt-4">
-          <p className="mb-2 text-xs font-semibold uppercase text-slate-400">Tags</p>
+          <p className="mb-2 text-xs font-semibold uppercase text-zinc-400">Tags</p>
           <div className="flex flex-wrap gap-1">
             {tags.length ? tags.map((tag) => (
-              <span className="rounded-full bg-slate-100 px-2 py-1 text-xs dark:bg-slate-800" key={tag}>
+              <span className="rounded-full glass-card/10 px-2 py-1 text-xs dark:bg-zinc-800" key={tag}>
                 #{tag}
               </span>
-            )) : <span className="text-sm text-slate-500">No tags yet</span>}
+            )) : <span className="text-sm text-zinc-500">No tags yet</span>}
           </div>
         </div>
 
-        <div className="mt-6 rounded-xl border border-slate-200 p-3 text-xs text-slate-500 dark:border-slate-700">
+        <div className="mt-6 rounded-xl border border-white/10 p-3 text-xs text-zinc-500 dark:border-zinc-700">
           Storage used: {billingCurrent?.usage.storageUsedMb || 0} MB / {billingCurrent?.usage.storageLimitMb || 0} MB
         </div>
       </aside>
 
       <div className="min-w-0 flex-1">
         <div className="mb-3 flex items-center justify-between md:hidden">
-          <button className="rounded-xl border border-slate-200 px-3 py-2 text-sm dark:border-slate-700" onClick={() => setMobileSidebarOpen(true)} type="button">Browse Notes</button>
-          <button className="rounded-xl bg-violet-600 px-3 py-2 text-sm font-medium text-white" onClick={handleCreateNote} type="button">New</button>
+          <button className="rounded-xl border border-white/10 px-3 py-2 text-sm dark:border-zinc-700" onClick={() => setMobileSidebarOpen(true)} type="button">Browse Notes</button>
+          <button className="rounded-xl bg-brand-500 px-3 py-2 text-sm font-medium text-white" onClick={handleCreateNote} type="button">New</button>
         </div>
 
         <div className="mb-3 grid gap-2">
           {loading ? (
-            <div className="space-y-2 rounded-2xl border border-slate-200 bg-white p-3 dark:border-slate-800 dark:bg-slate-900">
+            <div className="space-y-2 rounded-2xl border border-white/10 glass-card p-3 dark:border-zinc-800 dark:bg-zinc-900">
               {Array.from({ length: 4 }).map((_, index) => (
-                <div className="h-16 animate-pulse rounded-2xl bg-slate-100 dark:bg-slate-800" key={index} />
+                <div className="h-16 animate-pulse rounded-2xl glass-card/10 dark:bg-zinc-800" key={index} />
               ))}
             </div>
           ) : filteredNotes.length === 0 ? (
@@ -218,11 +218,11 @@ const NotesPage = () => {
             />
           ) : (
             <>
-              <div className="rounded-2xl border border-slate-200 bg-white p-2 dark:border-slate-800 dark:bg-slate-900">
+              <div className="rounded-2xl border border-white/10 glass-card p-2 dark:border-zinc-800 dark:bg-zinc-900">
                 {visibleNotes.map((note) => (
                 <button
                   className={`mb-1 flex w-full items-center justify-between rounded-xl px-3 py-2 text-left ${
-                    selectedNoteId === note.id ? 'bg-violet-100 dark:bg-violet-500/20' : 'hover:bg-slate-100 dark:hover:bg-slate-800'
+                    selectedNoteId === note.id ? 'bg-brand-500/10 dark:bg-brand-500/20' : 'hover:glass-card/10 dark:hover:bg-zinc-800'
                   }`}
                   key={note.id}
                   onClick={() => dispatch(setSelectedNoteId(note.id))}
@@ -230,7 +230,7 @@ const NotesPage = () => {
                 >
                   <div className="min-w-0">
                     <p className="truncate text-sm font-medium">{note.icon || 'N'} {note.title}</p>
-                    <p className="truncate text-xs text-slate-500">
+                    <p className="truncate text-xs text-zinc-500">
                       {note.plainText || 'No content yet'} | {new Date(note.updatedAt).toLocaleString()}
                     </p>
                   </div>
@@ -245,18 +245,18 @@ const NotesPage = () => {
 
         {selectedNote ? (
           <>
-            <div className="mb-3 flex flex-wrap items-center justify-between gap-2 rounded-2xl border border-slate-200 bg-white p-3 dark:border-slate-800 dark:bg-slate-900">
-              <div className="text-xs text-slate-500">
+            <div className="mb-3 flex flex-wrap items-center justify-between gap-2 rounded-2xl border border-white/10 glass-card p-3 dark:border-zinc-800 dark:bg-zinc-900">
+              <div className="text-xs text-zinc-500">
                 {saving === 'saving' && 'Saving...'}
                 {saving === 'saved' && 'Saved'}
                 {saving === 'error' && 'Error saving'}
                 {saving === 'idle' && 'Ready'}
               </div>
               <div className="flex flex-wrap gap-2">
-                <button className="rounded-lg border border-slate-200 px-2 py-1 text-xs dark:border-slate-700" onClick={() => dispatch(pinNoteThunk(selectedNote.id))} type="button"><Pin className="mr-1 inline" size={12} />{selectedNote.isPinned ? 'Unpin' : 'Pin'}</button>
-                <button className="rounded-lg border border-slate-200 px-2 py-1 text-xs dark:border-slate-700" onClick={() => fileInputRef.current?.click()} type="button"><Paperclip className="mr-1 inline" size={12} />Attach</button>
+                <button className="rounded-lg border border-white/10 px-2 py-1 text-xs dark:border-zinc-700" onClick={() => dispatch(pinNoteThunk(selectedNote.id))} type="button"><Pin className="mr-1 inline" size={12} />{selectedNote.isPinned ? 'Unpin' : 'Pin'}</button>
+                <button className="rounded-lg border border-white/10 px-2 py-1 text-xs dark:border-zinc-700" onClick={() => fileInputRef.current?.click()} type="button"><Paperclip className="mr-1 inline" size={12} />Attach</button>
                 <button
-                  className="rounded-lg border border-slate-200 px-2 py-1 text-xs dark:border-slate-700"
+                  className="rounded-lg border border-white/10 px-2 py-1 text-xs dark:border-zinc-700"
                   onClick={async () => {
                     const response = await noteApi.share(selectedNote.id)
                     const url = `${window.location.origin}/notes/shared/${response.token}`
@@ -272,16 +272,16 @@ const NotesPage = () => {
                   <Share2 className="mr-1 inline" size={12} />
                   Share
                 </button>
-                <button className="rounded-lg border border-slate-200 px-2 py-1 text-xs dark:border-slate-700" onClick={() => dispatch(duplicateNoteThunk(selectedNote.id))} type="button"><StickyNote className="mr-1 inline" size={12} />Duplicate</button>
-                <button className="rounded-lg border border-slate-200 px-2 py-1 text-xs dark:border-slate-700" onClick={() => dispatch(archiveNoteThunk(selectedNote.id))} type="button"><Archive className="mr-1 inline" size={12} />Archive</button>
+                <button className="rounded-lg border border-white/10 px-2 py-1 text-xs dark:border-zinc-700" onClick={() => dispatch(duplicateNoteThunk(selectedNote.id))} type="button"><StickyNote className="mr-1 inline" size={12} />Duplicate</button>
+                <button className="rounded-lg border border-white/10 px-2 py-1 text-xs dark:border-zinc-700" onClick={() => dispatch(archiveNoteThunk(selectedNote.id))} type="button"><Archive className="mr-1 inline" size={12} />Archive</button>
                 <button className="rounded-lg border border-rose-200 px-2 py-1 text-xs text-rose-600 dark:border-rose-900/40" onClick={() => dispatch(deleteNoteThunk(selectedNote.id))} type="button"><Trash2 className="mr-1 inline" size={12} />Delete</button>
-                <button className="rounded-lg bg-violet-600 px-2 py-1 text-xs text-white" onClick={() => setAiOpen(true)} type="button"><Sparkles className="mr-1 inline" size={12} />AI</button>
+                <button className="rounded-lg bg-brand-500 px-2 py-1 text-xs text-white" onClick={() => setAiOpen(true)} type="button"><Sparkles className="mr-1 inline" size={12} />AI</button>
               </div>
             </div>
             {selectedNote.attachments.length > 0 && (
-              <div className="mb-3 flex flex-wrap gap-2 rounded-2xl border border-slate-200 bg-white p-3 dark:border-slate-800 dark:bg-slate-900">
+              <div className="mb-3 flex flex-wrap gap-2 rounded-2xl border border-white/10 glass-card p-3 dark:border-zinc-800 dark:bg-zinc-900">
                 {selectedNote.attachments.map((attachment) => (
-                  <a className="rounded-full bg-slate-100 px-3 py-1.5 text-xs text-slate-700 dark:bg-slate-800 dark:text-slate-200" href={buildAssetUrl(attachment.url)} key={attachment.fileId || attachment.url} rel="noreferrer" target="_blank">
+                  <a className="rounded-full glass-card/10 px-3 py-1.5 text-xs text-zinc-700 dark:bg-zinc-800 dark:text-zinc-200" href={buildAssetUrl(attachment.url)} key={attachment.fileId || attachment.url} rel="noreferrer" target="_blank">
                     {attachment.name}
                   </a>
                 ))}
@@ -386,10 +386,10 @@ const NotesPage = () => {
             />
           </>
         ) : (
-          <div className="grid min-h-[420px] place-items-center rounded-2xl border border-dashed border-slate-300 bg-white p-8 text-center dark:border-slate-700 dark:bg-slate-900">
+          <div className="grid min-h-[420px] place-items-center rounded-2xl border border-dashed border-zinc-300 glass-card p-8 text-center dark:border-zinc-700 dark:bg-zinc-900">
             <div>
               <p className="text-lg font-medium">No note selected</p>
-              <p className="text-sm text-slate-500">Pick a note from the list or create a new one.</p>
+              <p className="text-sm text-zinc-500">Pick a note from the list or create a new one.</p>
             </div>
           </div>
         )}

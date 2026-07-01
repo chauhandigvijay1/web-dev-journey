@@ -31,7 +31,7 @@ const columns: { key: TaskStatus; title: string }[] = [
 ]
 
 const priorityColor: Record<string, string> = {
-  low: 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-200',
+  low: 'glass-card/10 text-zinc-700 dark:bg-zinc-800 dark:text-zinc-200',
   medium: 'bg-blue-100 text-blue-700 dark:bg-blue-500/20 dark:text-blue-300',
   high: 'bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-300',
   critical: 'bg-rose-100 text-rose-700 dark:bg-rose-500/20 dark:text-rose-300',
@@ -124,14 +124,14 @@ const TasksPage = () => {
 
   return (
     <section className="space-y-4 pb-5">
-      <div className="flex flex-col justify-between gap-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900 md:flex-row md:items-center">
+      <div className="flex flex-col justify-between gap-3 rounded-2xl border border-white/10 glass-card p-4 shadow-sm dark:border-zinc-800 dark:bg-zinc-900 md:flex-row md:items-center">
         <div>
-          <h1 className="text-2xl font-semibold text-slate-900 dark:text-white">Tasks</h1>
-          <p className="text-sm text-slate-500 dark:text-slate-400">{workspaceName}</p>
+          <h1 className="text-2xl font-semibold text-white font-semibold drop-shadow-md">Tasks</h1>
+          <p className="text-sm text-zinc-400">{workspaceName}</p>
         </div>
         <div className="flex flex-wrap gap-2">
           <input
-            className="rounded-xl border border-slate-200 px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-950"
+            className="rounded-xl border border-white/10 px-3 py-2 text-sm dark:border-zinc-700 bg-black/20"
             onChange={(event) => {
               setSearchInput(event.target.value)
               setCurrentPage(1)
@@ -140,7 +140,7 @@ const TasksPage = () => {
             value={searchInput}
           />
           <button
-            className="rounded-xl border border-slate-200 px-3 py-2 text-sm hover:bg-slate-100 dark:border-slate-700 dark:hover:bg-slate-800"
+            className="rounded-xl border border-white/10 px-3 py-2 text-sm hover:glass-card/10 dark:border-zinc-700 dark:hover:bg-zinc-800"
             onClick={() => {
               setSearchInput('')
               setCurrentPage(1)
@@ -152,7 +152,7 @@ const TasksPage = () => {
             Clear Filters
           </button>
           <button
-            className="rounded-xl bg-violet-600 px-3 py-2 text-sm font-medium text-white hover:bg-violet-700"
+            className="rounded-xl bg-brand-500 px-3 py-2 text-sm font-medium text-white hover:bg-brand-400 shadow-[0_0_15px_rgba(16,185,129,0.3)] transition-all hover:shadow-[0_0_25px_rgba(16,185,129,0.5)] hover:-tranzinc-y-0.5 duration-300 shadow-[0_0_15px_rgba(16,185,129,0.3)] transition-all hover:shadow-[0_0_25px_rgba(16,185,129,0.5)] hover:-tranzinc-y-0.5 duration-300"
             onClick={() => setAddTaskOpen(true)}
             type="button"
           >
@@ -160,7 +160,7 @@ const TasksPage = () => {
             Add Task
           </button>
           <button
-            className="rounded-xl border border-slate-200 px-3 py-2 text-sm hover:bg-slate-100 dark:border-slate-700 dark:hover:bg-slate-800"
+            className="rounded-xl border border-white/10 px-3 py-2 text-sm hover:glass-card/10 dark:border-zinc-700 dark:hover:bg-zinc-800"
             onClick={() => setAiOpen(true)}
             type="button"
           >
@@ -169,8 +169,8 @@ const TasksPage = () => {
         </div>
       </div>
 
-      <div className="grid gap-2 rounded-2xl border border-slate-200 bg-white p-3 dark:border-slate-800 dark:bg-slate-900 sm:grid-cols-2 lg:grid-cols-5">
-        <select className="rounded-xl border border-slate-200 px-3 py-2 text-sm capitalize dark:border-slate-700 dark:bg-slate-950" onChange={(event) => {
+      <div className="grid gap-2 rounded-2xl border border-white/10 glass-card p-3 dark:border-zinc-800 dark:bg-zinc-900 sm:grid-cols-2 lg:grid-cols-5">
+        <select className="rounded-xl border border-white/10 px-3 py-2 text-sm capitalize dark:border-zinc-700 bg-black/20" onChange={(event) => {
           setCurrentPage(1)
           dispatch(setTaskFilters({ status: event.target.value as 'all' | TaskStatus }))
         }} value={filters.status}>
@@ -180,7 +180,7 @@ const TasksPage = () => {
           <option value="review">review</option>
           <option value="done">done</option>
         </select>
-        <select className="rounded-xl border border-slate-200 px-3 py-2 text-sm capitalize dark:border-slate-700 dark:bg-slate-950" onChange={(event) => {
+        <select className="rounded-xl border border-white/10 px-3 py-2 text-sm capitalize dark:border-zinc-700 bg-black/20" onChange={(event) => {
           setCurrentPage(1)
           dispatch(setTaskFilters({ priority: event.target.value as typeof filters.priority }))
         }} value={filters.priority}>
@@ -190,7 +190,7 @@ const TasksPage = () => {
           <option value="high">high</option>
           <option value="critical">critical</option>
         </select>
-        <select className="rounded-xl border border-slate-200 px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-950" onChange={(event) => {
+        <select className="rounded-xl border border-white/10 px-3 py-2 text-sm dark:border-zinc-700 bg-black/20" onChange={(event) => {
           setCurrentPage(1)
           dispatch(setTaskFilters({ assignee: event.target.value }))
         }} value={filters.assignee}>
@@ -201,7 +201,7 @@ const TasksPage = () => {
             </option>
           ))}
         </select>
-        <select className="rounded-xl border border-slate-200 px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-950" onChange={(event) => {
+        <select className="rounded-xl border border-white/10 px-3 py-2 text-sm dark:border-zinc-700 bg-black/20" onChange={(event) => {
           setCurrentPage(1)
           dispatch(setTaskFilters({ due: event.target.value as typeof filters.due }))
         }} value={filters.due}>
@@ -214,11 +214,11 @@ const TasksPage = () => {
       {loading ? (
         <div className="grid gap-4 overflow-x-auto md:grid-cols-2 xl:grid-cols-4">
           {columns.map((column) => (
-            <article className="min-w-[280px] rounded-2xl border border-slate-200 bg-white p-3 shadow-sm dark:border-slate-800 dark:bg-slate-900" key={column.key}>
-              <div className="mb-3 h-6 w-28 animate-pulse rounded-full bg-slate-100 dark:bg-slate-800" />
+            <article className="min-w-[280px] rounded-2xl border border-white/10 glass-card p-3 shadow-sm dark:border-zinc-800 dark:bg-zinc-900" key={column.key}>
+              <div className="mb-3 h-6 w-28 animate-pulse rounded-full glass-card/10 dark:bg-zinc-800" />
               <div className="space-y-2">
                 {Array.from({ length: 3 }).map((_, index) => (
-                  <div className="h-28 animate-pulse rounded-xl bg-slate-100 dark:bg-slate-800" key={index} />
+                  <div className="h-28 animate-pulse rounded-xl glass-card/10 dark:bg-zinc-800" key={index} />
                 ))}
               </div>
             </article>
@@ -237,7 +237,7 @@ const TasksPage = () => {
         />
       ) : (
         <>
-          <div className="flex items-center justify-between text-sm text-slate-500 dark:text-slate-400">
+          <div className="flex items-center justify-between text-sm text-zinc-400">
             <p>
               Showing {(safeCurrentPage - 1) * pageSize + 1}-{Math.min(safeCurrentPage * pageSize, filteredTasks.length)} of {filteredTasks.length} tasks
             </p>
@@ -250,36 +250,36 @@ const TasksPage = () => {
                 .sort((a, b) => a.order - b.order)
               return (
                 <article
-                  className="min-w-[280px] rounded-2xl border border-slate-200 bg-white p-3 shadow-sm dark:border-slate-800 dark:bg-slate-900"
+                  className="min-w-[280px] rounded-2xl border border-white/10 glass-card p-3 shadow-sm dark:border-zinc-800 dark:bg-zinc-900"
                   key={column.key}
                 >
                   <div className="mb-3 flex items-center justify-between">
-                    <h2 className="font-semibold text-slate-900 dark:text-white">{column.title}</h2>
-                    <span className="rounded-full bg-slate-100 px-2 py-0.5 text-xs dark:bg-slate-800">{tasksInColumn.length}</span>
+                    <h2 className="font-semibold text-white font-semibold drop-shadow-md">{column.title}</h2>
+                    <span className="rounded-full glass-card/10 px-2 py-0.5 text-xs dark:bg-zinc-800">{tasksInColumn.length}</span>
                   </div>
                   <div className="space-y-2">
                     {tasksInColumn.map((task) => (
-                      <article className="rounded-xl border border-slate-200 dark:border-slate-700" key={task.id}>
+                      <article className="rounded-xl border border-white/10" key={task.id}>
                         <button
-                          className="w-full p-3 text-left transition hover:-translate-y-0.5 hover:shadow-sm"
+                          className="w-full p-3 text-left transition hover:-tranzinc-y-0.5 hover:shadow-sm"
                           onClick={() => openTask(task)}
                           type="button"
                         >
                           <div className="flex items-start justify-between gap-2">
-                            <p className="text-sm font-medium text-slate-900 dark:text-white">{task.title}</p>
+                            <p className="text-sm font-medium text-white font-semibold drop-shadow-md">{task.title}</p>
                             <span className={`rounded-full px-2 py-0.5 text-[11px] font-medium capitalize ${priorityColor[task.priority]}`}>
                               {task.priority}
                             </span>
                           </div>
-                          <p className="mt-1 line-clamp-2 text-xs text-slate-500 dark:text-slate-400">{task.description}</p>
+                          <p className="mt-1 line-clamp-2 text-xs text-zinc-400">{task.description}</p>
                           <div className="mt-2 flex flex-wrap gap-1">
                             {task.labels.slice(0, 3).map((label) => (
-                              <span className="rounded-full bg-violet-100 px-2 py-0.5 text-[11px] text-violet-700 dark:bg-violet-500/20 dark:text-violet-300" key={label}>
+                              <span className="rounded-full bg-brand-500/10 px-2 py-0.5 text-[11px] text-brand-400 dark:bg-brand-500/20 dark:text-brand-300" key={label}>
                                 {label}
                               </span>
                             ))}
                           </div>
-                          <div className="mt-3 flex items-center justify-between text-xs text-slate-500">
+                          <div className="mt-3 flex items-center justify-between text-xs text-zinc-500">
                             <div className="flex items-center gap-2">
                               <span>
                                 <MessageSquare className="mr-1 inline" size={12} />
@@ -300,7 +300,7 @@ const TasksPage = () => {
                         </button>
                         <div className="flex gap-2 px-3 pb-3">
                           <button
-                            className="rounded-md border border-slate-200 px-2 py-1 text-[11px] dark:border-slate-700"
+                            className="rounded-md border border-white/10 px-2 py-1 text-[11px] dark:border-zinc-700"
                             onClick={() => {
                               moveTask(task, 'left')
                             }}
@@ -309,7 +309,7 @@ const TasksPage = () => {
                             Prev
                           </button>
                           <button
-                            className="rounded-md border border-slate-200 px-2 py-1 text-[11px] dark:border-slate-700"
+                            className="rounded-md border border-white/10 px-2 py-1 text-[11px] dark:border-zinc-700"
                             onClick={() => {
                               moveTask(task, 'right')
                             }}
@@ -362,7 +362,7 @@ const TasksPage = () => {
       />
 
       <button
-        className="fixed bottom-6 right-6 z-20 rounded-full bg-violet-600 p-3 text-white shadow-lg hover:bg-violet-700 md:hidden"
+        className="fixed bottom-6 right-6 z-20 rounded-full bg-brand-500 p-3 text-white shadow-lg hover:bg-brand-400 md:hidden"
         onClick={() => setAddTaskOpen(true)}
         type="button"
       >

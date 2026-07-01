@@ -108,16 +108,16 @@ const FilesPage = () => {
 
   return (
     <section className="space-y-4 pb-5">
-      <div className="flex flex-col gap-3 rounded-[28px] border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900 lg:flex-row lg:items-center lg:justify-between">
+      <div className="flex flex-col gap-3 rounded-[28px] border border-white/10 glass-panel p-5 lg:flex-row lg:items-center lg:justify-between">
         <div>
-          <h1 className="text-2xl font-semibold text-slate-900 dark:text-white">Files</h1>
-          <p className="text-sm text-slate-500 dark:text-slate-400">
+          <h1 className="text-2xl font-semibold text-white font-semibold drop-shadow-md">Files</h1>
+          <p className="text-sm text-zinc-400">
             Shared documents, assets, and uploads across your workspace.
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
-          <div className="flex items-center gap-2 rounded-xl border border-slate-200 px-3 py-2 dark:border-slate-700">
-            <Search size={15} className="text-slate-400" />
+          <div className="flex items-center gap-2 rounded-xl border border-white/10 px-3 py-2 dark:border-zinc-700">
+            <Search size={15} className="text-zinc-400" />
             <input
               className="bg-transparent text-sm outline-none"
               onChange={(event) => {
@@ -129,7 +129,7 @@ const FilesPage = () => {
             />
           </div>
           <button
-            className="rounded-xl bg-violet-600 px-4 py-2 text-sm font-medium text-white hover:bg-violet-700"
+            className="rounded-xl bg-brand-500 px-4 py-2 text-sm font-medium text-white hover:bg-brand-400 shadow-[0_0_15px_rgba(16,185,129,0.3)] transition-all hover:shadow-[0_0_25px_rgba(16,185,129,0.5)] hover:-tranzinc-y-0.5 duration-300 shadow-[0_0_15px_rgba(16,185,129,0.3)] transition-all hover:shadow-[0_0_25px_rgba(16,185,129,0.5)] hover:-tranzinc-y-0.5 duration-300"
             onClick={() => fileInputRef.current?.click()}
             type="button"
           >
@@ -159,12 +159,12 @@ const FilesPage = () => {
       )}
 
       <div className="grid gap-4 lg:grid-cols-[1.4fr,0.9fr]">
-        <article className="rounded-[28px] border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+        <article className="rounded-[28px] border border-white/10 glass-card p-4 shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
           <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
             <div className="flex flex-wrap gap-2">
               {fileTypeOptions.map((item) => (
                 <button
-                  className={`rounded-full px-3 py-1.5 text-sm ${filter === item.key ? 'bg-violet-600 text-white' : 'border border-slate-200 text-slate-600 dark:border-slate-700 dark:text-slate-300'}`}
+                  className={`rounded-full px-3 py-1.5 text-sm ${filter === item.key ? 'bg-brand-500 text-white' : 'border border-white/10 text-zinc-300 dark:border-zinc-700 dark:text-zinc-300'}`}
                   key={item.key}
                   onClick={() => {
                     setFilter(item.key)
@@ -178,7 +178,7 @@ const FilesPage = () => {
             </div>
             <div className="flex items-center gap-2">
               <button
-                className={`rounded-xl border px-3 py-2 ${view === 'grid' ? 'border-violet-500 text-violet-600' : 'border-slate-200 dark:border-slate-700'}`}
+                className={`rounded-xl border px-3 py-2 ${view === 'grid' ? 'border-brand-500 text-brand-500' : 'border-white/10'}`}
                 onClick={() => {
                   setView('grid')
                   setCurrentPage(1)
@@ -188,7 +188,7 @@ const FilesPage = () => {
                 <Grid3X3 size={15} />
               </button>
               <button
-                className={`rounded-xl border px-3 py-2 ${view === 'list' ? 'border-violet-500 text-violet-600' : 'border-slate-200 dark:border-slate-700'}`}
+                className={`rounded-xl border px-3 py-2 ${view === 'list' ? 'border-brand-500 text-brand-500' : 'border-white/10'}`}
                 onClick={() => {
                   setView('list')
                   setCurrentPage(1)
@@ -203,7 +203,7 @@ const FilesPage = () => {
           {loading && (
             <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
               {Array.from({ length: 6 }).map((_, index) => (
-                <div className="h-44 animate-pulse rounded-2xl border border-slate-200 bg-slate-50 dark:border-slate-700 dark:bg-slate-950/60" key={index} />
+                <div className="h-44 animate-pulse rounded-2xl border border-white/10 glass-card/5 dark:border-zinc-700 bg-black/20" key={index} />
               ))}
             </div>
           )}
@@ -226,28 +226,28 @@ const FilesPage = () => {
               {paginatedFiles.map((file) => {
                 const canDelete = file.uploadedBy?.id === currentUserId || ['owner', 'admin'].includes(activeWorkspace?.role || '')
                 return (
-                  <article className="rounded-2xl border border-slate-200 p-4 dark:border-slate-700" key={file.id}>
+                  <article className="rounded-2xl border border-white/10 p-4 dark:border-zinc-700" key={file.id}>
                     <div className="flex items-start justify-between gap-3">
-                      <div className="grid h-11 w-11 place-items-center rounded-2xl bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-200">
+                      <div className="grid h-11 w-11 place-items-center rounded-2xl glass-card/10 text-zinc-700 dark:bg-zinc-800 dark:text-zinc-200">
                         <FileText size={18} />
                       </div>
-                      <span className="rounded-full bg-slate-100 px-2 py-1 text-[11px] uppercase text-slate-500 dark:bg-slate-800">
+                      <span className="rounded-full glass-card/10 px-2 py-1 text-[11px] uppercase text-zinc-500 dark:bg-zinc-800">
                         {file.source}
                       </span>
                     </div>
-                    <p className="mt-4 truncate text-sm font-semibold text-slate-900 dark:text-white">{file.originalName}</p>
-                    <p className="mt-1 text-xs text-slate-500">
+                    <p className="mt-4 truncate text-sm font-semibold text-white font-semibold drop-shadow-md">{file.originalName}</p>
+                    <p className="mt-1 text-xs text-zinc-500">
                       Uploaded by {file.uploadedBy?.fullName || 'Unknown'}
                     </p>
-                    <p className="mt-1 text-xs text-slate-500">
+                    <p className="mt-1 text-xs text-zinc-500">
                       {(file.size / 1024 / 1024).toFixed(2)} MB | {new Date(file.createdAt).toLocaleDateString()}
                     </p>
                     <div className="mt-4 flex flex-wrap gap-2">
-                      <button className="rounded-xl border border-slate-200 px-3 py-2 text-xs dark:border-slate-700" onClick={() => setPreviewUrl(buildUrl(file.previewUrl))} type="button">
+                      <button className="rounded-xl border border-white/10 px-3 py-2 text-xs dark:border-zinc-700" onClick={() => setPreviewUrl(buildUrl(file.previewUrl))} type="button">
                         <Eye className="mr-1 inline" size={12} />
                         Preview
                       </button>
-                      <a className="rounded-xl border border-slate-200 px-3 py-2 text-xs dark:border-slate-700" href={buildUrl(file.downloadUrl)} rel="noreferrer" target="_blank">
+                      <a className="rounded-xl border border-white/10 px-3 py-2 text-xs dark:border-zinc-700" href={buildUrl(file.downloadUrl)} rel="noreferrer" target="_blank">
                         <Download className="mr-1 inline" size={12} />
                         Download
                       </a>
@@ -277,16 +277,16 @@ const FilesPage = () => {
               {paginatedFiles.map((file) => {
                 const canDelete = file.uploadedBy?.id === currentUserId || ['owner', 'admin'].includes(activeWorkspace?.role || '')
                 return (
-                  <div className="flex flex-col gap-3 rounded-2xl border border-slate-200 p-4 dark:border-slate-700 md:flex-row md:items-center md:justify-between" key={file.id}>
+                  <div className="flex flex-col gap-3 rounded-2xl border border-white/10 p-4 dark:border-zinc-700 md:flex-row md:items-center md:justify-between" key={file.id}>
                     <div className="min-w-0">
-                      <p className="truncate text-sm font-semibold text-slate-900 dark:text-white">{file.originalName}</p>
-                      <p className="mt-1 text-xs text-slate-500">
+                      <p className="truncate text-sm font-semibold text-white font-semibold drop-shadow-md">{file.originalName}</p>
+                      <p className="mt-1 text-xs text-zinc-500">
                         {file.uploadedBy?.fullName || 'Unknown'} | {(file.size / 1024 / 1024).toFixed(2)} MB | {new Date(file.createdAt).toLocaleString()}
                       </p>
                     </div>
                     <div className="flex flex-wrap gap-2">
-                      <button className="rounded-xl border border-slate-200 px-3 py-2 text-xs dark:border-slate-700" onClick={() => setPreviewUrl(buildUrl(file.previewUrl))} type="button">Preview</button>
-                      <a className="rounded-xl border border-slate-200 px-3 py-2 text-xs dark:border-slate-700" href={buildUrl(file.downloadUrl)} rel="noreferrer" target="_blank">Download</a>
+                      <button className="rounded-xl border border-white/10 px-3 py-2 text-xs dark:border-zinc-700" onClick={() => setPreviewUrl(buildUrl(file.previewUrl))} type="button">Preview</button>
+                      <a className="rounded-xl border border-white/10 px-3 py-2 text-xs dark:border-zinc-700" href={buildUrl(file.downloadUrl)} rel="noreferrer" target="_blank">Download</a>
                       {canDelete && <button className="rounded-xl border border-rose-200 px-3 py-2 text-xs text-rose-600 dark:border-rose-900/40" onClick={async () => {
                         if (!activeWorkspaceId) return
                         await dispatch(deleteFileThunk({ fileId: file.id, workspaceId: activeWorkspaceId }))
@@ -306,19 +306,19 @@ const FilesPage = () => {
         </article>
 
         <div className="space-y-4">
-          <article className="rounded-[28px] border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900">
-            <h2 className="text-lg font-semibold text-slate-900 dark:text-white">Recent uploads</h2>
+          <article className="rounded-[28px] border border-white/10 glass-card p-4 shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
+            <h2 className="text-lg font-semibold text-white font-semibold drop-shadow-md">Recent uploads</h2>
             <div className="mt-4 space-y-2">
               {recent.map((file) => (
-                <button className="flex w-full items-center justify-between rounded-2xl border border-slate-200 px-3 py-3 text-left hover:bg-slate-50 dark:border-slate-700 dark:hover:bg-slate-800" key={file.id} onClick={() => setPreviewUrl(buildUrl(file.previewUrl))} type="button">
+                <button className="flex w-full items-center justify-between rounded-2xl border border-white/10 px-3 py-3 text-left hover:glass-card/5 dark:border-zinc-700 dark:hover:bg-zinc-800" key={file.id} onClick={() => setPreviewUrl(buildUrl(file.previewUrl))} type="button">
                   <span className="min-w-0">
-                    <span className="block truncate text-sm font-medium text-slate-900 dark:text-white">{file.originalName}</span>
-                    <span className="block text-xs text-slate-500">{file.uploadedBy?.fullName || 'Unknown'} | {new Date(file.createdAt).toLocaleDateString()}</span>
+                    <span className="block truncate text-sm font-medium text-white font-semibold drop-shadow-md">{file.originalName}</span>
+                    <span className="block text-xs text-zinc-500">{file.uploadedBy?.fullName || 'Unknown'} | {new Date(file.createdAt).toLocaleDateString()}</span>
                   </span>
-                  <Eye size={14} className="text-slate-400" />
+                  <Eye size={14} className="text-zinc-400" />
                 </button>
               ))}
-              {!recent.length && <p className="text-sm text-slate-500">No recent uploads yet.</p>}
+              {!recent.length && <p className="text-sm text-zinc-500">No recent uploads yet.</p>}
             </div>
           </article>
 
@@ -334,8 +334,8 @@ const FilesPage = () => {
       </div>
 
       {previewUrl && (
-        <div className="fixed inset-0 z-50 bg-slate-950/50 p-4" onClick={() => setPreviewUrl('')} role="presentation">
-          <div className="mx-auto mt-10 h-[80vh] w-full max-w-5xl overflow-hidden rounded-[28px] border border-slate-200 bg-white shadow-2xl dark:border-slate-700 dark:bg-slate-900" onClick={(event) => event.stopPropagation()} role="dialog">
+        <div className="fixed inset-0 z-50 bg-zinc-950/50 p-4" onClick={() => setPreviewUrl('')} role="presentation">
+          <div className="mx-auto mt-10 h-[80vh] w-full max-w-5xl overflow-hidden rounded-[28px] border border-white/10 glass-card shadow-2xl dark:border-zinc-700 dark:bg-zinc-900" onClick={(event) => event.stopPropagation()} role="dialog">
             <iframe className="h-full w-full" src={previewUrl} title="File preview" />
           </div>
         </div>

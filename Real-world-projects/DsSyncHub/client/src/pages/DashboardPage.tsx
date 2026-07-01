@@ -178,34 +178,34 @@ const DashboardPage = () => {
   return (
     <section className="space-y-4 pb-4">
       <div className="grid gap-4 xl:grid-cols-[1.35fr,0.65fr]">
-        <article className="overflow-hidden rounded-[32px] border border-slate-200 bg-[radial-gradient(circle_at_top_left,_rgba(168,85,247,0.18),_transparent_32%),linear-gradient(135deg,#0f172a,#111827,#1e293b)] p-6 text-white shadow-sm dark:border-slate-700">
+        <article className="glass-panel rounded-[32px] p-6 text-white shadow-sm">
           <div className="flex flex-wrap items-start justify-between gap-3">
             <div>
-              <p className="text-xs uppercase tracking-[0.32em] text-violet-200">Workspace Pulse</p>
+              <p className="text-xs uppercase tracking-[0.32em] text-brand-200">Workspace Pulse</p>
               <h1 className="mt-3 text-3xl font-semibold">
                 {workspace?.name || 'Current workspace'} is moving with purpose.
               </h1>
-              <p className="mt-3 max-w-2xl text-sm leading-6 text-slate-300">
+              <p className="mt-3 max-w-2xl text-sm leading-6 text-zinc-300">
                 {dueTodayTasks.length
                   ? `${dueTodayTasks.length} tasks need attention today and ${completedThisWeek} were completed this week.`
                   : `${completedThisWeek} tasks were completed this week and your team has room to push the next priority forward.`}
               </p>
             </div>
-            <div className="rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-xs font-medium text-slate-200">
+            <div className="rounded-full border border-white/10 glass-card/5 px-3 py-1.5 text-xs font-medium text-zinc-200">
               {workspace?.plan?.toUpperCase() || 'ACTIVE'} PLAN
             </div>
           </div>
 
           <div className="mt-6 flex flex-wrap gap-3">
             <button
-              className="rounded-full bg-white px-4 py-2 text-sm font-medium text-slate-900 hover:bg-slate-100"
+              className="rounded-full glass-card px-4 py-2 text-sm font-medium text-white hover:glass-card/10"
               onClick={() => navigate('/tasks')}
               type="button"
             >
               Review tasks
             </button>
             <button
-              className="rounded-full border border-white/15 px-4 py-2 text-sm font-medium text-white hover:bg-white/5"
+              className="rounded-full border border-white/15 px-4 py-2 text-sm font-medium text-white hover:glass-card/5"
               onClick={() => navigate('/files')}
               type="button"
             >
@@ -231,46 +231,46 @@ const DashboardPage = () => {
                 hint: meetings.length ? 'Upcoming syncs are scheduled' : 'No meetings scheduled',
               },
             ].map((item) => (
-              <div className="rounded-[26px] border border-white/10 bg-white/5 p-4" key={item.label}>
-                <p className="text-xs uppercase tracking-[0.2em] text-slate-400">{item.label}</p>
+              <div className="rounded-[26px] border border-white/10 glass-card/5 p-4" key={item.label}>
+                <p className="text-xs uppercase tracking-[0.2em] text-zinc-400">{item.label}</p>
                 <p className="mt-3 text-3xl font-semibold text-white">{item.value}</p>
-                <p className="mt-2 text-xs text-slate-300">{item.hint}</p>
+                <p className="mt-2 text-xs text-zinc-300">{item.hint}</p>
               </div>
             ))}
           </div>
         </article>
 
         <div className="space-y-4">
-          <article className="rounded-[30px] border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+          <article className="glass-card rounded-[30px] p-5 shadow-sm">
             <div className="flex items-center justify-between">
-              <p className="text-sm font-medium text-slate-500 dark:text-slate-400">AI requests used</p>
-              <Bot size={18} className="text-slate-400" />
+              <p className="text-sm font-medium text-zinc-400">AI requests used</p>
+              <Bot size={18} className="text-zinc-400" />
             </div>
-            <p className="mt-3 text-3xl font-semibold text-slate-900 dark:text-white">
+            <p className="mt-3 text-3xl font-semibold text-white font-semibold drop-shadow-md">
               {aiRequestsUsed}
-              <span className="text-base font-medium text-slate-400">/{aiRequestLimit || 0}</span>
+              <span className="text-base font-medium text-zinc-400">/{aiRequestLimit || 0}</span>
             </p>
-            <div className="mt-4 h-2 rounded-full bg-slate-100 dark:bg-slate-800">
+            <div className="mt-4 h-2 rounded-full glass-card/10 dark:bg-zinc-800">
               <div
                 className="h-full rounded-full bg-gradient-to-r from-violet-600 to-sky-500"
                 style={{ width: `${aiUsagePercent}%` }}
               />
             </div>
-            <p className="mt-3 text-sm text-slate-500 dark:text-slate-400">
+            <p className="mt-3 text-sm text-zinc-400">
               {aiUsagePercent >= 80
                 ? 'Heavy AI usage today. Consider saving a few requests for end-of-day wrap-ups.'
                 : 'Healthy AI headroom for briefs, summaries, and planning prompts.'}
             </p>
           </article>
 
-          <article className="rounded-[30px] border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+          <article className="glass-card rounded-[30px] p-5 shadow-sm">
             <div className="flex items-center justify-between">
-              <p className="text-sm font-medium text-slate-500 dark:text-slate-400">Storage used</p>
-              <HardDrive size={18} className="text-slate-400" />
+              <p className="text-sm font-medium text-zinc-400">Storage used</p>
+              <HardDrive size={18} className="text-zinc-400" />
             </div>
-            <p className="mt-3 text-3xl font-semibold text-slate-900 dark:text-white">
+            <p className="mt-3 text-3xl font-semibold text-white font-semibold drop-shadow-md">
               {billingCurrent?.usage.storageUsedMb || 0}
-              <span className="text-base font-medium text-slate-400">MB</span>
+              <span className="text-base font-medium text-zinc-400">MB</span>
             </p>
             {billingCurrent && (
               <div className="mt-4">
@@ -314,29 +314,29 @@ const DashboardPage = () => {
             label: 'Workspace growth',
             value: `${growthSignal.percent >= 0 ? '+' : ''}${growthSignal.percent}%`,
             description: 'Based on new work, activity volume, and member joins over the last 14 days.',
-            icon: <TrendingUp size={18} className={growthSignal.percent >= 0 ? 'text-violet-500' : 'text-rose-500'} />,
+            icon: <TrendingUp size={18} className={growthSignal.percent >= 0 ? 'text-brand-400' : 'text-rose-500'} />,
           },
         ].map((item) => (
-          <article className="rounded-[28px] border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900" key={item.label}>
+          <article className="glass-card rounded-[28px] p-5 shadow-sm" key={item.label}>
             <div className="flex items-center justify-between">
-              <p className="text-sm text-slate-500 dark:text-slate-400">{item.label}</p>
+              <p className="text-sm text-zinc-400">{item.label}</p>
               {item.icon}
             </div>
-            <p className="mt-4 text-3xl font-semibold text-slate-900 dark:text-white">{item.value}</p>
-            <p className="mt-3 text-sm leading-6 text-slate-500 dark:text-slate-400">{item.description}</p>
+            <p className="mt-4 text-3xl font-semibold text-white font-semibold drop-shadow-md">{item.value}</p>
+            <p className="mt-3 text-sm leading-6 text-zinc-400">{item.description}</p>
           </article>
         ))}
       </div>
 
       <div className="grid gap-4 xl:grid-cols-[1.15fr,0.85fr]">
-        <article className="rounded-[30px] border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+        <article className="rounded-[30px] border border-white/10 glass-panel p-5">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-slate-500 dark:text-slate-400">Productivity chart</p>
-              <h2 className="mt-1 text-xl font-semibold text-slate-900 dark:text-white">Last 7 days of execution</h2>
+              <p className="text-sm font-medium text-zinc-400">Productivity chart</p>
+              <h2 className="mt-1 text-xl font-semibold text-white font-semibold drop-shadow-md">Last 7 days of execution</h2>
             </div>
             <button
-              className="inline-flex items-center gap-1 rounded-full border border-slate-200 px-3 py-1.5 text-xs text-slate-600 hover:bg-slate-50 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800"
+              className="inline-flex items-center gap-1 rounded-full border border-white/10 px-3 py-1.5 text-xs text-zinc-300 hover:glass-card/5 dark:border-zinc-700 dark:text-zinc-300 dark:hover:bg-zinc-800"
               onClick={() => navigate('/activity')}
               type="button"
             >
@@ -348,7 +348,7 @@ const DashboardPage = () => {
           <div className="mt-8 flex min-h-[260px] items-end gap-3">
             {productivitySeries.map((item) => (
               <div className="flex flex-1 flex-col items-center" key={item.label}>
-                <div className="flex h-52 w-full items-end justify-center rounded-[24px] bg-slate-50 px-2 pb-2 dark:bg-slate-950/60">
+                <div className="flex h-52 w-full items-end justify-center rounded-[24px] glass-card/5 px-2 pb-2 bg-black/20">
                   <div
                     className="w-full rounded-[20px] bg-gradient-to-t from-violet-600 via-fuchsia-500 to-sky-400"
                     style={{
@@ -356,8 +356,8 @@ const DashboardPage = () => {
                     }}
                   />
                 </div>
-                <p className="mt-3 text-sm font-medium text-slate-700 dark:text-slate-200">{item.label}</p>
-                <p className="text-xs text-slate-500 dark:text-slate-400">
+                <p className="mt-3 text-sm font-medium text-zinc-200">{item.label}</p>
+                <p className="text-xs text-zinc-400">
                   {item.completed} done | {item.created} added
                 </p>
               </div>
@@ -366,64 +366,64 @@ const DashboardPage = () => {
         </article>
 
         <div className="space-y-4">
-          <article className="rounded-[30px] border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+          <article className="glass-card rounded-[30px] p-5 shadow-sm">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-slate-500 dark:text-slate-400">Focus queue</p>
-                <h2 className="mt-1 text-xl font-semibold text-slate-900 dark:text-white">What needs attention next</h2>
+                <p className="text-sm font-medium text-zinc-400">Focus queue</p>
+                <h2 className="mt-1 text-xl font-semibold text-white font-semibold drop-shadow-md">What needs attention next</h2>
               </div>
-              <Sparkles size={18} className="text-violet-500" />
+              <Sparkles size={18} className="text-brand-400" />
             </div>
             <div className="mt-4 space-y-3">
               {focusQueue.length ? (
                 focusQueue.map((task) => (
                   <button
-                    className="w-full rounded-[22px] border border-slate-200 p-4 text-left hover:bg-slate-50 dark:border-slate-700 dark:hover:bg-slate-800"
+                    className="w-full rounded-[22px] border border-white/10 p-4 text-left hover:glass-card/5 dark:border-zinc-700 dark:hover:bg-zinc-800"
                     key={task.id}
                     onClick={() => navigate('/tasks')}
                     type="button"
                   >
                     <div className="flex items-start justify-between gap-3">
                       <div>
-                        <p className="text-sm font-semibold text-slate-900 dark:text-white">{task.title}</p>
-                        <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+                        <p className="text-sm font-semibold text-white font-semibold drop-shadow-md">{task.title}</p>
+                        <p className="mt-1 text-xs text-zinc-400">
                           Due {new Date(task.dueDate || '').toLocaleDateString()}
                         </p>
                       </div>
-                      <span className="rounded-full bg-slate-100 px-2.5 py-1 text-[11px] capitalize text-slate-600 dark:bg-slate-800 dark:text-slate-300">
+                      <span className="rounded-full glass-card/10 px-2.5 py-1 text-[11px] capitalize text-zinc-300 dark:bg-zinc-800 dark:text-zinc-300">
                         {task.priority}
                       </span>
                     </div>
                   </button>
                 ))
               ) : (
-                <p className="text-sm text-slate-500 dark:text-slate-400">
+                <p className="text-sm text-zinc-400">
                   No urgent tasks are stacked for the next 48 hours.
                 </p>
               )}
             </div>
           </article>
 
-          <article className="rounded-[30px] border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
-            <p className="text-sm font-medium text-slate-500 dark:text-slate-400">Recent files</p>
+          <article className="glass-card rounded-[30px] p-5 shadow-sm">
+            <p className="text-sm font-medium text-zinc-400">Recent files</p>
             <div className="mt-4 space-y-3">
               {recentFiles.length ? (
                 recentFiles.map((file) => (
                   <button
-                    className="flex w-full items-center justify-between rounded-[22px] border border-slate-200 px-4 py-3 text-left hover:bg-slate-50 dark:border-slate-700 dark:hover:bg-slate-800"
+                    className="flex w-full items-center justify-between rounded-[22px] border border-white/10 px-4 py-3 text-left hover:glass-card/5 dark:border-zinc-700 dark:hover:bg-zinc-800"
                     key={file.id}
                     onClick={() => navigate('/files')}
                     type="button"
                   >
                     <span className="min-w-0">
-                      <span className="block truncate text-sm font-medium text-slate-900 dark:text-white">{file.originalName}</span>
-                      <span className="block text-xs text-slate-500 dark:text-slate-400">{file.uploadedBy?.fullName || 'Unknown uploader'}</span>
+                      <span className="block truncate text-sm font-medium text-white font-semibold drop-shadow-md">{file.originalName}</span>
+                      <span className="block text-xs text-zinc-400">{file.uploadedBy?.fullName || 'Unknown uploader'}</span>
                     </span>
-                    <ArrowUpRight size={14} className="text-slate-400" />
+                    <ArrowUpRight size={14} className="text-zinc-400" />
                   </button>
                 ))
               ) : (
-                <p className="text-sm text-slate-500 dark:text-slate-400">No files have been uploaded recently.</p>
+                <p className="text-sm text-zinc-400">No files have been uploaded recently.</p>
               )}
             </div>
           </article>
@@ -431,14 +431,14 @@ const DashboardPage = () => {
       </div>
 
       <div className="grid gap-4 xl:grid-cols-[1.1fr,0.9fr]">
-        <article className="rounded-[30px] border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+        <article className="rounded-[30px] border border-white/10 glass-panel p-5">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-slate-500 dark:text-slate-400">Recent activity</p>
-              <h2 className="mt-1 text-xl font-semibold text-slate-900 dark:text-white">Latest workspace movement</h2>
+              <p className="text-sm font-medium text-zinc-400">Recent activity</p>
+              <h2 className="mt-1 text-xl font-semibold text-white font-semibold drop-shadow-md">Latest workspace movement</h2>
             </div>
             <button
-              className="rounded-full border border-slate-200 px-3 py-1.5 text-xs text-slate-600 hover:bg-slate-50 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800"
+              className="rounded-full border border-white/10 px-3 py-1.5 text-xs text-zinc-300 hover:glass-card/5 dark:border-zinc-700 dark:text-zinc-300 dark:hover:bg-zinc-800"
               onClick={() => navigate('/activity')}
               type="button"
             >
@@ -448,35 +448,35 @@ const DashboardPage = () => {
           <div className="mt-5 space-y-3">
             {activity.length ? (
               activity.slice(0, 5).map((item) => (
-                <div className="flex items-start gap-3 rounded-[22px] border border-slate-200 p-4 dark:border-slate-700" key={item.id}>
+                <div className="flex items-start gap-3 rounded-[22px] border border-white/10 p-4 dark:border-zinc-700" key={item.id}>
                   <Avatar name={item.actor?.fullName || 'Workspace'} size="md" src={item.actor?.avatarUrl} />
                   <div className="min-w-0 flex-1">
                     <div className="flex flex-wrap items-center gap-2">
-                      <p className="text-sm font-medium text-slate-900 dark:text-white">{item.summary}</p>
-                      <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[11px] capitalize text-slate-500 dark:bg-slate-800 dark:text-slate-300">
+                      <p className="text-sm font-medium text-white font-semibold drop-shadow-md">{item.summary}</p>
+                      <span className="rounded-full glass-card/10 px-2 py-0.5 text-[11px] capitalize text-zinc-500 dark:bg-zinc-800 dark:text-zinc-300">
                         {item.entityType}
                       </span>
                     </div>
-                    <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+                    <p className="mt-1 text-xs text-zinc-400">
                       {new Date(item.createdAt).toLocaleString()}
                     </p>
                   </div>
                 </div>
               ))
             ) : (
-              <p className="text-sm text-slate-500 dark:text-slate-400">Workspace activity will appear here as soon as work starts moving.</p>
+              <p className="text-sm text-zinc-400">Workspace activity will appear here as soon as work starts moving.</p>
             )}
           </div>
         </article>
 
-        <article className="rounded-[30px] border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+        <article className="rounded-[30px] border border-white/10 glass-panel p-5">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-slate-500 dark:text-slate-400">Meetings and AI</p>
-              <h2 className="mt-1 text-xl font-semibold text-slate-900 dark:text-white">Support the next decision</h2>
+              <p className="text-sm font-medium text-zinc-400">Meetings and AI</p>
+              <h2 className="mt-1 text-xl font-semibold text-white font-semibold drop-shadow-md">Support the next decision</h2>
             </div>
             <button
-              className="rounded-full bg-slate-900 px-3 py-1.5 text-xs font-medium text-white dark:bg-white dark:text-slate-900"
+              className="rounded-full bg-zinc-900 px-3 py-1.5 text-xs font-medium text-white dark:glass-card dark:text-white"
               onClick={() => setAiOpen(true)}
               type="button"
             >
@@ -486,28 +486,28 @@ const DashboardPage = () => {
           <div className="mt-5 space-y-3">
             {meetings.slice(0, 3).map((meeting) => (
               <button
-                className="flex w-full items-center justify-between rounded-[22px] border border-slate-200 px-4 py-3 text-left hover:bg-slate-50 dark:border-slate-700 dark:hover:bg-slate-800"
+                className="flex w-full items-center justify-between rounded-[22px] border border-white/10 px-4 py-3 text-left hover:glass-card/5 dark:border-zinc-700 dark:hover:bg-zinc-800"
                 key={meeting.id}
                 onClick={() => navigate(`/meetings/${meeting.roomId}`)}
                 type="button"
               >
                 <span>
-                  <span className="block text-sm font-medium text-slate-900 dark:text-white">{meeting.title}</span>
-                  <span className="block text-xs text-slate-500 dark:text-slate-400">
+                  <span className="block text-sm font-medium text-white font-semibold drop-shadow-md">{meeting.title}</span>
+                  <span className="block text-xs text-zinc-400">
                     {meeting.roomId} | {meeting.status}
                   </span>
                 </span>
-                <ArrowUpRight size={14} className="text-slate-400" />
+                <ArrowUpRight size={14} className="text-zinc-400" />
               </button>
             ))}
             {!meetings.length && (
-              <p className="text-sm text-slate-500 dark:text-slate-400">
+              <p className="text-sm text-zinc-400">
                 No meetings are queued right now. Use AI to prepare the next planning brief anyway.
               </p>
             )}
           </div>
           {!!history.length && (
-            <div className="mt-5 rounded-[22px] bg-slate-50 p-4 text-sm text-slate-600 dark:bg-slate-950/60 dark:text-slate-300">
+            <div className="mt-5 rounded-[22px] glass-card/5 p-4 text-sm text-zinc-300 bg-black/20 dark:text-zinc-300">
               Last AI action: <span className="font-medium">{history[0].action}</span>
             </div>
           )}

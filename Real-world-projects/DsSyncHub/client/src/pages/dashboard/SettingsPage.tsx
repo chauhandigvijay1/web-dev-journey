@@ -4,10 +4,9 @@ import { useNavigate } from 'react-router-dom'
 import Avatar from '../../components/common/Avatar'
 import PlanUpgradeModal from '../../components/common/PlanUpgradeModal'
 import { useAppDispatch, useAppSelector } from '../../hooks/redux'
+import { authApi } from '../../services/authApi'
 import { userApi } from '../../services/userApi'
-import { fetchBillingCurrentThunk } from '../../store/billingSlice'
 import { logoutThunk, setCredentials } from '../../store/authSlice'
-import { uploadFileThunk } from '../../store/fileSlice'
 import { pushToast } from '../../store/toastSlice'
 import type { AuthUser } from '../../types/auth'
 import { getApiErrorCode, getApiErrorMessage } from '../../utils/errors'
@@ -60,12 +59,12 @@ const SettingsPage = () => {
   const navigate = useNavigate()
   const dispatch = useAppDispatch()
   const { user } = useAppSelector((state) => state.auth)
-  const activeWorkspaceId = useAppSelector((state) => state.workspace.activeWorkspaceId)
   const baseForm = useMemo(() => buildInitialForm(user), [user])
   const [activeTab, setActiveTab] = useState<TabKey>('profile')
   const [loadingSection, setLoadingSection] = useState<TabKey | null>(null)
   const [uploadingAvatar, setUploadingAvatar] = useState(false)
   const [upgradeOpen, setUpgradeOpen] = useState(false)
+  const [verifyingEmail, setVerifyingEmail] = useState(false)
   const [draftForm, setDraftForm] = useState<SettingsForm | null>(null)
   const form = draftForm ?? baseForm
 
@@ -296,30 +295,16 @@ const SettingsPage = () => {
       return
     }
 
-    if (!activeWorkspaceId) {
-      dispatch(pushToast({
-        title: 'Avatar upload unavailable',
-        description: 'Open a workspace first so your avatar can be stored with workspace assets, or paste an external image URL below.',
-        tone: 'error',
-      }))
-      return
-    }
-
     setUploadingAvatar(true)
     try {
-      const response = await dispatch(
-        uploadFileThunk({
-          workspace: activeWorkspaceId,
-          file,
-          source: 'general',
-        }),
-      ).unwrap()
-
-      updateForm((previous) => ({ ...previous, avatarUrl: response.file.url }))
-      dispatch(fetchBillingCurrentThunk(activeWorkspaceId))
+      const response = await userApi.uploadAvatar(file)
+      
+      updateForm((previous) => ({ ...previous, avatarUrl: response.user.avatarUrl }))
+      dispatch(setCredentials(response.user))
+      
       dispatch(pushToast({
         title: 'Avatar uploaded',
-        description: 'Save your profile to apply it everywhere in the workspace.',
+        description: 'Your profile picture has been updated globally.',
         tone: 'success',
       }))
     } catch (error) {
@@ -339,13 +324,13 @@ const SettingsPage = () => {
 
   return (
     <section className="space-y-4 pb-5">
-      <div className="rounded-[30px] border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+      <div className="rounded-[30px] border border-white/10 glass-panel p-5">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
           <div className="flex items-center gap-4">
             <Avatar name={user?.fullName || form.fullName} size="xl" src={form.avatarUrl || user?.avatarUrl} />
             <div>
-              <h1 className="text-2xl font-semibold text-slate-900 dark:text-white">Settings</h1>
-              <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">{profileSummary}</p>
+              <h1 className="text-2xl font-semibold text-white font-semibold drop-shadow-md">Settings</h1>
+              <p className="mt-1 text-sm text-zinc-400">{profileSummary}</p>
             </div>
           </div>
           <div className="flex flex-wrap gap-2">
@@ -353,8 +338,8 @@ const SettingsPage = () => {
               <button
                 className={`rounded-full px-4 py-2 text-sm capitalize ${
                   activeTab === item
-                    ? 'bg-violet-600 text-white'
-                    : 'border border-slate-200 text-slate-600 dark:border-slate-700 dark:text-slate-300'
+                    ? 'bg-brand-500 text-white'
+                    : 'border border-white/10 text-zinc-300 dark:border-zinc-700 dark:text-zinc-300'
                 }`}
                 key={item}
                 onClick={() => setActiveTab(item)}
@@ -369,14 +354,14 @@ const SettingsPage = () => {
 
       {activeTab === 'profile' && (
         <article className="grid gap-4 xl:grid-cols-[0.9fr,1.1fr]">
-          <div className="rounded-[30px] border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
-            <p className="text-sm font-semibold text-slate-900 dark:text-white">Profile picture</p>
-            <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
+          <div className="rounded-[30px] border border-white/10 glass-panel p-5">
+            <p className="text-sm font-semibold text-white font-semibold drop-shadow-md">Profile picture</p>
+            <p className="mt-1 text-sm text-zinc-400">
               Your avatar is used in the navbar, team directory, chat, and activity feeds.
             </p>
-            <div className="mt-6 flex flex-col items-center gap-4 rounded-[28px] border border-dashed border-slate-300 p-6 dark:border-slate-700">
+            <div className="mt-6 flex flex-col items-center gap-4 rounded-[28px] border border-dashed border-zinc-300 p-6 dark:border-zinc-700">
               <Avatar name={form.fullName || user?.fullName} size="xl" src={form.avatarUrl || user?.avatarUrl} />
-              <label className="inline-flex cursor-pointer items-center gap-2 rounded-full bg-slate-900 px-4 py-2 text-sm font-medium text-white hover:bg-slate-800 dark:bg-white dark:text-slate-900 dark:hover:bg-slate-100">
+              <label className="inline-flex cursor-pointer items-center gap-2 rounded-full bg-zinc-900 px-4 py-2 text-sm font-medium text-white hover:bg-zinc-800 dark:glass-card dark:text-white dark:hover:glass-card/10">
                 {uploadingAvatar ? <UploadCloud className="animate-pulse" size={16} /> : <Camera size={16} />}
                 {uploadingAvatar ? 'Uploading...' : 'Upload avatar'}
                 <input
@@ -389,35 +374,35 @@ const SettingsPage = () => {
                   type="file"
                 />
               </label>
-              <p className="text-xs text-slate-500 dark:text-slate-400">
+              <p className="text-xs text-zinc-400">
                 JPG, PNG, or WEBP up to 25MB. You can also keep using an external image URL below.
               </p>
             </div>
           </div>
 
-          <div className="rounded-[30px] border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+          <div className="rounded-[30px] border border-white/10 glass-panel p-5">
             <div className="grid gap-4 md:grid-cols-2">
               <label className="space-y-2 text-sm">
-                <span className="font-medium text-slate-700 dark:text-slate-200">Full name</span>
-                <input className="w-full rounded-2xl border border-slate-200 px-3 py-2.5 text-sm dark:border-slate-700 dark:bg-slate-950" value={form.fullName} onChange={(event) => updateForm((previous) => ({ ...previous, fullName: event.target.value }))} />
+                <span className="font-medium text-zinc-200">Full name</span>
+                <input className="w-full rounded-2xl border border-white/10 px-3 py-2.5 text-sm dark:border-zinc-700 bg-black/20" value={form.fullName} onChange={(event) => updateForm((previous) => ({ ...previous, fullName: event.target.value }))} />
               </label>
               <label className="space-y-2 text-sm">
-                <span className="font-medium text-slate-700 dark:text-slate-200">Username</span>
-                <input className="w-full rounded-2xl border border-slate-200 px-3 py-2.5 text-sm dark:border-slate-700 dark:bg-slate-950" value={form.username} onChange={(event) => updateForm((previous) => ({ ...previous, username: event.target.value }))} />
+                <span className="font-medium text-zinc-200">Username</span>
+                <input className="w-full rounded-2xl border border-white/10 px-3 py-2.5 text-sm dark:border-zinc-700 bg-black/20" value={form.username} onChange={(event) => updateForm((previous) => ({ ...previous, username: event.target.value }))} />
               </label>
             </div>
             <label className="mt-4 block space-y-2 text-sm">
-              <span className="font-medium text-slate-700 dark:text-slate-200">Avatar URL</span>
-              <input className="w-full rounded-2xl border border-slate-200 px-3 py-2.5 text-sm dark:border-slate-700 dark:bg-slate-950" value={form.avatarUrl} onChange={(event) => updateForm((previous) => ({ ...previous, avatarUrl: event.target.value }))} />
+              <span className="font-medium text-zinc-200">Avatar URL</span>
+              <input className="w-full rounded-2xl border border-white/10 px-3 py-2.5 text-sm dark:border-zinc-700 bg-black/20" value={form.avatarUrl} onChange={(event) => updateForm((previous) => ({ ...previous, avatarUrl: event.target.value }))} />
             </label>
             <label className="mt-4 block space-y-2 text-sm">
-              <span className="font-medium text-slate-700 dark:text-slate-200">Bio</span>
-              <textarea className="w-full rounded-2xl border border-slate-200 px-3 py-2.5 text-sm dark:border-slate-700 dark:bg-slate-950" maxLength={200} rows={4} value={form.bio} onChange={(event) => updateForm((previous) => ({ ...previous, bio: event.target.value }))} />
-              <span className="text-xs text-slate-500 dark:text-slate-400">{form.bio.trim().length}/200 characters</span>
+              <span className="font-medium text-zinc-200">Bio</span>
+              <textarea className="w-full rounded-2xl border border-white/10 px-3 py-2.5 text-sm dark:border-zinc-700 bg-black/20" maxLength={200} rows={4} value={form.bio} onChange={(event) => updateForm((previous) => ({ ...previous, bio: event.target.value }))} />
+              <span className="text-xs text-zinc-400">{form.bio.trim().length}/200 characters</span>
             </label>
             <label className="mt-4 block space-y-2 text-sm">
-              <span className="font-medium text-slate-700 dark:text-slate-200">Timezone</span>
-              <select className="w-full rounded-2xl border border-slate-200 px-3 py-2.5 text-sm dark:border-slate-700 dark:bg-slate-950" value={form.timezone} onChange={(event) => updateForm((previous) => ({ ...previous, timezone: event.target.value }))}>
+              <span className="font-medium text-zinc-200">Timezone</span>
+              <select className="w-full rounded-2xl border border-white/10 px-3 py-2.5 text-sm dark:border-zinc-700 bg-black/20" value={form.timezone} onChange={(event) => updateForm((previous) => ({ ...previous, timezone: event.target.value }))}>
                 {[form.timezone, ...commonTimezones].filter((value, index, items) => value && items.indexOf(value) === index).map((timezone) => (
                   <option key={timezone} value={timezone}>
                     {timezone}
@@ -425,7 +410,7 @@ const SettingsPage = () => {
                 ))}
               </select>
             </label>
-            <button className="mt-6 rounded-2xl bg-violet-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-violet-700 disabled:opacity-60" disabled={loadingSection === 'profile' || uploadingAvatar} onClick={saveProfile} type="button">
+            <button className="mt-6 rounded-2xl bg-brand-500 px-4 py-2.5 text-sm font-medium text-white hover:bg-brand-400 disabled:opacity-60" disabled={loadingSection === 'profile' || uploadingAvatar} onClick={saveProfile} type="button">
               {loadingSection === 'profile' ? 'Saving profile...' : 'Save profile'}
             </button>
           </div>
@@ -434,35 +419,62 @@ const SettingsPage = () => {
 
       {activeTab === 'account' && (
         <article className="grid gap-4 xl:grid-cols-[1.1fr,0.9fr]">
-          <div className="rounded-[30px] border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+          <div className="rounded-[30px] border border-white/10 glass-panel p-5">
             <div className="grid gap-4 md:grid-cols-2">
               <label className="space-y-2 text-sm">
-                <span className="inline-flex items-center gap-2 font-medium text-slate-700 dark:text-slate-200"><Mail size={15} />Primary email</span>
-                <input className="w-full rounded-2xl border border-slate-200 px-3 py-2.5 text-sm dark:border-slate-700 dark:bg-slate-950" value={form.email} onChange={(event) => updateForm((previous) => ({ ...previous, email: event.target.value }))} />
+                <span className="inline-flex items-center gap-2 font-medium text-zinc-200">
+                  <Mail size={15} />Primary email
+                  {user?.provider === 'local' && (
+                    user?.emailVerified
+                      ? <span className="rounded-full bg-green-900/40 px-2 py-0.5 text-xs text-green-400">Verified</span>
+                      : (
+                        <button
+                          className="rounded-full bg-amber-900/40 px-2 py-0.5 text-xs text-amber-400 hover:bg-amber-900/60"
+                          disabled={verifyingEmail}
+                          onClick={async (event) => {
+                            event.preventDefault()
+                            setVerifyingEmail(true)
+                            try {
+                              await authApi.sendVerificationEmail()
+                              dispatch(pushToast({ title: 'Verification email sent', description: 'Check your inbox.', tone: 'success' }))
+                            } catch {
+                              dispatch(pushToast({ title: 'Failed to send', description: 'Try again later.', tone: 'error' }))
+                            } finally {
+                              setVerifyingEmail(false)
+                            }
+                          }}
+                          type="button"
+                        >
+                          {verifyingEmail ? 'Sending...' : 'Unverified — send verification'}
+                        </button>
+                      )
+                  )}
+                </span>
+                <input className="w-full rounded-2xl border border-white/10 px-3 py-2.5 text-sm dark:border-zinc-700 bg-black/20" value={form.email} onChange={(event) => updateForm((previous) => ({ ...previous, email: event.target.value }))} />
               </label>
               <label className="space-y-2 text-sm">
-                <span className="inline-flex items-center gap-2 font-medium text-slate-700 dark:text-slate-200"><Phone size={15} />Phone</span>
-                <input className="w-full rounded-2xl border border-slate-200 px-3 py-2.5 text-sm dark:border-slate-700 dark:bg-slate-950" value={form.phone} onChange={(event) => updateForm((previous) => ({ ...previous, phone: event.target.value }))} />
+                <span className="inline-flex items-center gap-2 font-medium text-zinc-200"><Phone size={15} />Phone</span>
+                <input className="w-full rounded-2xl border border-white/10 px-3 py-2.5 text-sm dark:border-zinc-700 bg-black/20" value={form.phone} onChange={(event) => updateForm((previous) => ({ ...previous, phone: event.target.value }))} />
               </label>
             </div>
             <label className="mt-4 block space-y-2 text-sm">
-              <span className="font-medium text-slate-700 dark:text-slate-200">Backup email</span>
-              <input className="w-full rounded-2xl border border-slate-200 px-3 py-2.5 text-sm dark:border-slate-700 dark:bg-slate-950" value={form.backupEmail} onChange={(event) => updateForm((previous) => ({ ...previous, backupEmail: event.target.value }))} />
+              <span className="font-medium text-zinc-200">Backup email</span>
+              <input className="w-full rounded-2xl border border-white/10 px-3 py-2.5 text-sm dark:border-zinc-700 bg-black/20" value={form.backupEmail} onChange={(event) => updateForm((previous) => ({ ...previous, backupEmail: event.target.value }))} />
             </label>
-            <button className="mt-6 rounded-2xl bg-violet-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-violet-700 disabled:opacity-60" disabled={loadingSection === 'account'} onClick={saveAccount} type="button">
+            <button className="mt-6 rounded-2xl bg-brand-500 px-4 py-2.5 text-sm font-medium text-white hover:bg-brand-400 disabled:opacity-60" disabled={loadingSection === 'account'} onClick={saveAccount} type="button">
               {loadingSection === 'account' ? 'Saving account...' : 'Save account'}
             </button>
           </div>
 
-          <div className="rounded-[30px] border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
-            <p className="text-sm font-semibold text-slate-900 dark:text-white">Recovery guidance</p>
+          <div className="rounded-[30px] border border-white/10 glass-panel p-5">
+            <p className="text-sm font-semibold text-white font-semibold drop-shadow-md">Recovery guidance</p>
             <div className="mt-4 space-y-3">
               {[
                 'Keep a backup email on file so password recovery stays reliable.',
                 'Use an international phone format if your team works across regions.',
                 'Primary email changes may affect future login and notification routing.',
               ].map((item) => (
-                <div className="rounded-2xl bg-slate-50 p-3 text-sm text-slate-600 dark:bg-slate-950/60 dark:text-slate-300" key={item}>
+                <div className="rounded-2xl glass-card/5 p-3 text-sm text-zinc-300 bg-black/20 dark:text-zinc-300" key={item}>
                   {item}
                 </div>
               ))}
@@ -473,40 +485,40 @@ const SettingsPage = () => {
 
       {activeTab === 'security' && (
         <article className="grid gap-4 xl:grid-cols-[1.1fr,0.9fr]">
-          <div className="rounded-[30px] border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
-            <p className="text-sm font-semibold text-slate-900 dark:text-white">Change password</p>
-            <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
+          <div className="rounded-[30px] border border-white/10 glass-panel p-5">
+            <p className="text-sm font-semibold text-white font-semibold drop-shadow-md">Change password</p>
+            <p className="mt-1 text-sm text-zinc-400">
               Updating your password signs out every active session so your account stays safe.
             </p>
             <div className="mt-5 grid gap-4">
               <label className="space-y-2 text-sm">
-                <span className="font-medium text-slate-700 dark:text-slate-200">Current password</span>
-                <input className="w-full rounded-2xl border border-slate-200 px-3 py-2.5 text-sm dark:border-slate-700 dark:bg-slate-950" placeholder="Current password" type="password" value={form.currentPassword} onChange={(event) => updateForm((previous) => ({ ...previous, currentPassword: event.target.value }))} />
+                <span className="font-medium text-zinc-200">Current password</span>
+                <input className="w-full rounded-2xl border border-white/10 px-3 py-2.5 text-sm dark:border-zinc-700 bg-black/20" placeholder="Current password" type="password" value={form.currentPassword} onChange={(event) => updateForm((previous) => ({ ...previous, currentPassword: event.target.value }))} />
               </label>
               <label className="space-y-2 text-sm">
-                <span className="font-medium text-slate-700 dark:text-slate-200">New password</span>
-                <input className="w-full rounded-2xl border border-slate-200 px-3 py-2.5 text-sm dark:border-slate-700 dark:bg-slate-950" placeholder="New password" type="password" value={form.newPassword} onChange={(event) => updateForm((previous) => ({ ...previous, newPassword: event.target.value }))} />
+                <span className="font-medium text-zinc-200">New password</span>
+                <input className="w-full rounded-2xl border border-white/10 px-3 py-2.5 text-sm dark:border-zinc-700 bg-black/20" placeholder="New password" type="password" value={form.newPassword} onChange={(event) => updateForm((previous) => ({ ...previous, newPassword: event.target.value }))} />
               </label>
             </div>
             <div className="mt-6 flex flex-wrap gap-2">
-              <button className="rounded-2xl bg-violet-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-violet-700 disabled:opacity-60" disabled={loadingSection === 'security'} onClick={saveSecurity} type="button">
+              <button className="rounded-2xl bg-brand-500 px-4 py-2.5 text-sm font-medium text-white hover:bg-brand-400 disabled:opacity-60" disabled={loadingSection === 'security'} onClick={saveSecurity} type="button">
                 {loadingSection === 'security' ? 'Updating security...' : 'Change password'}
               </button>
-              <button className="rounded-2xl border border-slate-200 px-4 py-2.5 text-sm dark:border-slate-700" disabled={loadingSection === 'security'} onClick={logoutAllDevices} type="button">
+              <button className="rounded-2xl border border-white/10 px-4 py-2.5 text-sm dark:border-zinc-700" disabled={loadingSection === 'security'} onClick={logoutAllDevices} type="button">
                 Logout all devices
               </button>
             </div>
           </div>
 
-          <div className="rounded-[30px] border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
-            <p className="inline-flex items-center gap-2 text-sm font-semibold text-slate-900 dark:text-white"><ShieldCheck size={16} />Security reminders</p>
+          <div className="rounded-[30px] border border-white/10 glass-panel p-5">
+            <p className="inline-flex items-center gap-2 text-sm font-semibold text-white font-semibold drop-shadow-md"><ShieldCheck size={16} />Security reminders</p>
             <div className="mt-4 space-y-3">
               {[
                 'Use a unique password for DsSync Hub.',
                 'Reset links expire automatically to reduce account risk.',
                 'Logout all devices is available if you suspect credential sharing.',
               ].map((item) => (
-                <div className="rounded-2xl bg-slate-50 p-3 text-sm text-slate-600 dark:bg-slate-950/60 dark:text-slate-300" key={item}>
+                <div className="rounded-2xl glass-card/5 p-3 text-sm text-zinc-300 bg-black/20 dark:text-zinc-300" key={item}>
                   {item}
                 </div>
               ))}
@@ -516,17 +528,17 @@ const SettingsPage = () => {
       )}
 
       {activeTab === 'appearance' && (
-        <article className="rounded-[30px] border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+        <article className="rounded-[30px] border border-white/10 glass-panel p-5">
           <div className="grid gap-4 md:grid-cols-2">
             <div>
-              <p className="text-sm font-semibold text-slate-900 dark:text-white">Theme</p>
+              <p className="text-sm font-semibold text-white font-semibold drop-shadow-md">Theme</p>
               <div className="mt-4 flex flex-wrap gap-2">
                 {(['light', 'dark', 'system'] as const).map((item) => (
                   <button
                     className={`rounded-full px-4 py-2 text-sm capitalize ${
                       form.previewTheme === item
-                        ? 'bg-violet-600 text-white'
-                        : 'border border-slate-200 text-slate-600 dark:border-slate-700 dark:text-slate-300'
+                        ? 'bg-brand-500 text-white'
+                        : 'border border-white/10 text-zinc-300 dark:border-zinc-700 dark:text-zinc-300'
                     }`}
                     key={item}
                     onClick={() => updateForm((previous) => ({ ...previous, previewTheme: item }))}
@@ -538,21 +550,21 @@ const SettingsPage = () => {
               </div>
             </div>
             <div>
-              <p className="text-sm font-semibold text-slate-900 dark:text-white">Workspace density</p>
-              <label className="mt-4 inline-flex items-center gap-2 text-sm text-slate-600 dark:text-slate-300">
+              <p className="text-sm font-semibold text-white font-semibold drop-shadow-md">Workspace density</p>
+              <label className="mt-4 inline-flex items-center gap-2 text-sm text-zinc-300">
                 <input checked={form.compactMode} onChange={(event) => updateForm((previous) => ({ ...previous, compactMode: event.target.checked }))} type="checkbox" />
                 Compact mode
               </label>
             </div>
           </div>
           <label className="mt-6 block max-w-md space-y-2 text-sm">
-            <span className="font-medium text-slate-700 dark:text-slate-200">Accent color token</span>
-            <input className="w-full rounded-2xl border border-slate-200 px-3 py-2.5 text-sm dark:border-slate-700 dark:bg-slate-950" value={form.accentColor} onChange={(event) => updateForm((previous) => ({ ...previous, accentColor: event.target.value }))} />
+            <span className="font-medium text-zinc-200">Accent color token</span>
+            <input className="w-full rounded-2xl border border-white/10 px-3 py-2.5 text-sm dark:border-zinc-700 bg-black/20" value={form.accentColor} onChange={(event) => updateForm((previous) => ({ ...previous, accentColor: event.target.value }))} />
           </label>
-          <p className="mt-3 text-xs text-slate-500 dark:text-slate-400">
+          <p className="mt-3 text-xs text-zinc-400">
             Appearance changes apply after save and are restored automatically the next time your session is loaded.
           </p>
-          <button className="mt-6 rounded-2xl bg-violet-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-violet-700 disabled:opacity-60" disabled={loadingSection === 'appearance'} onClick={saveAppearance} type="button">
+          <button className="mt-6 rounded-2xl bg-brand-500 px-4 py-2.5 text-sm font-medium text-white hover:bg-brand-400 disabled:opacity-60" disabled={loadingSection === 'appearance'} onClick={saveAppearance} type="button">
             {loadingSection === 'appearance' ? 'Saving appearance...' : 'Save appearance'}
           </button>
         </article>
