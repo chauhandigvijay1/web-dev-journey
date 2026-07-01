@@ -4,7 +4,7 @@ import { Link } from 'react-router-dom'
 
 const BrandLogo = ({ className = "" }) => (
   <div className={`flex items-center gap-2 ${className}`}>
-    <img src="/logo-icon.svg" alt="DsSync Hub Icon" className="w-8 h-8 shrink-0 drop-shadow-[0_0_8px_rgba(99,102,241,0.5)]" />
+    <img src="/logo_icon.svg" alt="DsSync Hub Icon" className="w-8 h-8 shrink-0 drop-shadow-[0_0_8px_rgba(99,102,241,0.5)]" />
     <span className="text-xl font-bold text-white tracking-tight">DsSync Hub</span>
   </div>
 )
@@ -133,7 +133,7 @@ const HomePage = () => {
 
             {/* Right side giant DS Logo (Absolute) */}
             <div className="hidden lg:block absolute top-[10%] right-[15%] opacity-60 pointer-events-none animate-float">
-               <img src="/logo-icon.svg" className="w-[320px] h-[320px] drop-shadow-[0_0_100px_rgba(99,102,241,0.5)]" alt="" />
+               <img src="/logo_icon.svg" className="w-[320px] h-[320px] drop-shadow-[0_0_100px_rgba(99,102,241,0.5)]" alt="" />
             </div>
 
             {/* Vertical right side dots */}
