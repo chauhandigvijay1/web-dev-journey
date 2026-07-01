@@ -1312,11 +1312,16 @@ export default function CareerBrainPage() {
         return;
       }
       setProfile(normaliseProfile(data.data));
-    } catch (err) {
-      const msg =
-        axios.isAxiosError(err) && err.response?.data && typeof (err.response.data as { message?: string }).message === "string"
-          ? (err.response.data as { message: string }).message
-          : "Could not upload resume";
+    } catch (err: unknown) {
+      let msg = "Could not upload resume";
+      if (axios.isAxiosError(err)) {
+        if (err.response?.data) {
+          const body = err.response.data as Record<string, unknown>;
+          msg = typeof body.message === "string" ? body.message : msg;
+        } else if (err.code === "ECONNABORTED") {
+          msg = "Upload timed out. Try a smaller file or check your connection.";
+        }
+      }
       setUploadError(msg);
     } finally {
       setUploading(false);
