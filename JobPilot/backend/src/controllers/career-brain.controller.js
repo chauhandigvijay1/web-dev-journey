@@ -10,8 +10,8 @@ async function extractPdfText(buffer) {
     const { PDFParse } = await import("pdf-parse");
     const parser = new PDFParse(new Uint8Array(buffer));
     await parser.load();
-    const text = await parser.getText();
-    return text || "";
+    const result = await parser.getText();
+    return (typeof result === "string" ? result : result?.text) || "";
   } catch {
     return "";
   }
