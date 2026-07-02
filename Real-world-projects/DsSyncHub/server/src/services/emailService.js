@@ -1,16 +1,45 @@
 const nodemailer = require('nodemailer')
 const logger = require('./logger')
 
+const SENDGRID_API = 'https://api.sendgrid.com/v3/mail/send'
 const RESEND_API = 'https://api.resend.com/emails'
 
 const trim = (v) => (typeof v === 'string' ? v.trim() : v)
 
-const getApiKey = () => trim(process.env.EMAIL_PASS)
-
 const getEmailFrom = () => trim(process.env.EMAIL_FROM) || trim(process.env.EMAIL_USER) || ''
 
+const sendViaSendGrid = async ({ from, to, subject, html, text }) => {
+  const apiKey = trim(process.env.SENDGRID_API_KEY)
+  if (!apiKey) throw new Error('SENDGRID_API_KEY not set')
+
+  const body = {
+    personalizations: [{ to: [{ email: to }] }],
+    from: { email: from },
+    subject,
+    content: [
+      { type: 'text/plain', value: text || '' },
+      { type: 'text/html', value: html || '' },
+    ],
+  }
+
+  const res = await fetch(SENDGRID_API, {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${apiKey}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(body),
+    signal: AbortSignal.timeout(15000),
+  })
+
+  if (!res.ok) {
+    const errBody = await res.text().catch(() => '')
+    throw new Error(`SendGrid API ${res.status}: ${errBody}`)
+  }
+}
+
 const sendViaResendApi = async ({ from, to, subject, html, text }) => {
-  const apiKey = getApiKey()
+  const apiKey = trim(process.env.EMAIL_PASS)
   if (!apiKey) throw new Error('EMAIL_PASS not set')
 
   const body = { from, to: [to], subject, html, text }
@@ -67,19 +96,30 @@ const getSmtpConfigs = () => {
 const sendWithFallback = async (mailOptions) => {
   let lastError
 
-  // try Resend HTTP API first (works on all cloud providers, uses port 443)
-  try {
-    logger.info('[email] trying Resend HTTP API')
-    await sendViaResendApi(mailOptions)
-    return
-  } catch (err) {
-    lastError = err
-    logger.warn({ err: err.message }, 'Resend HTTP API failed, falling back to SMTP')
+  if (trim(process.env.SENDGRID_API_KEY)) {
+    try {
+      logger.info('[email] trying SendGrid HTTP API')
+      await sendViaSendGrid(mailOptions)
+      return
+    } catch (err) {
+      lastError = err
+      logger.warn({ err: err.message }, 'SendGrid failed, trying Resend')
+    }
   }
 
-  // fallback to SMTP
+  if (trim(process.env.EMAIL_PASS)) {
+    try {
+      logger.info('[email] trying Resend HTTP API')
+      await sendViaResendApi(mailOptions)
+      return
+    } catch (err) {
+      lastError = err
+      logger.warn({ err: err.message }, 'Resend failed, trying SMTP')
+    }
+  }
+
   const configs = getSmtpConfigs()
-  if (!configs) throw lastError
+  if (!configs) throw lastError || new Error('No email provider configured')
 
   for (const { transporter, port } of configs) {
     try {
