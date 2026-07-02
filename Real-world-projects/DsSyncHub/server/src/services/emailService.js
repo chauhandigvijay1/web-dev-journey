@@ -36,6 +36,8 @@ const sendViaSendGrid = async ({ from, to, subject, html, text }) => {
     const errBody = await res.text().catch(() => '')
     throw new Error(`SendGrid API ${res.status}: ${errBody}`)
   }
+
+  logger.info({ to }, 'Email sent via SendGrid')
 }
 
 const sendViaResendApi = async ({ from, to, subject, html, text }) => {
@@ -58,6 +60,8 @@ const sendViaResendApi = async ({ from, to, subject, html, text }) => {
     const errBody = await res.text().catch(() => '')
     throw new Error(`Resend API ${res.status}: ${errBody}`)
   }
+
+  logger.info({ to }, 'Email sent via Resend')
 }
 
 let smtpConfigs = null
@@ -124,6 +128,7 @@ const sendWithFallback = async (mailOptions) => {
   for (const { transporter, port } of configs) {
     try {
       await transporter.sendMail(mailOptions)
+      logger.info({ to: mailOptions.to, port }, 'Email sent via SMTP')
       return
     } catch (err) {
       lastError = err
