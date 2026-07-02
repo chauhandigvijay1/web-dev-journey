@@ -124,6 +124,12 @@ const createMessage = async (req, res, next) => {
           ),
       )
     }
+    const io = req.app.get('io')
+    if (io) {
+      const room = channel ? `channel:${channel}` : `workspace:${workspace}`
+      io.to(room).emit('message_received', populatedMessage)
+    }
+
     return res.status(201).json({ success: true, message: populatedMessage })
   } catch (error) {
     return next(error)

@@ -9,6 +9,7 @@ import WorkspaceRequiredState from '../../components/common/WorkspaceRequiredSta
 import NoteEditor from '../../components/notes/NoteEditor'
 import { useAppDispatch, useAppSelector } from '../../hooks/redux'
 import { useDebouncedValue } from '../../hooks/useDebouncedValue'
+import { useNoteSocket } from '../../hooks/useNoteSocket'
 import { apiBaseUrl } from '../../services/api'
 import { noteApi } from '../../services/noteApi'
 import { fetchBillingCurrentThunk } from '../../store/billingSlice'
@@ -43,6 +44,7 @@ const NotesPage = () => {
   const [searchParams, setSearchParams] = useSearchParams()
   const fileInputRef = useRef<HTMLInputElement | null>(null)
   const { activeWorkspaceId } = useAppSelector((state) => state.workspace)
+  useNoteSocket()
   const { items, selectedNoteId, search, filter, loading, saving } = useAppSelector((state) => state.note)
   const billingCurrent = useAppSelector((state) => state.billing.current)
   const [aiOpen, setAiOpen] = useState(false)

@@ -20,6 +20,11 @@
 12. [Socket Security: Membership Verification on Every Event](#12-socket-security-membership-verification-on-every-event)
 13. [Balancing Free Tier Generosity With Monetization](#13-balancing-free-tier-generosity-with-monetization)
 14. [CI/CD Pipeline for Monorepo With Mixed Module Systems](#14-cicd-pipeline-for-monorepo-with-mixed-module-systems)
+15. [Socket Singleton Disconnect — Real-Time Drops for All Features](#15-socket-singleton-disconnect--real-time-drops-for-all-features)
+16. [Chat Message Double-Send From Dual REST + Socket Paths](#16-chat-message-double-send-from-dual-rest--socket-paths)
+17. [Invite Acceptance Flow — Missing Frontend and Backend Routes](#17-invite-acceptance-flow--missing-frontend-and-backend-routes)
+18. [Missing Socket Hooks — Task and Note Real-Time Was Dead Code](#18-missing-socket-hooks--task-and-note-real-time-was-dead-code)
+19. [Billing: Razorpay Load Order, Missing Config, and Coupon Validation](#19-billing-razorpay-load-order-missing-config-and-coupon-validation)
 
 ---
 
@@ -261,26 +266,44 @@ This ensures the editor works now and continues working as browsers phase out `e
 ## 8. Email Deliverability From a Free Tier
 
 ### The Problem
-The app sends three types of emails (password reset, email verification, workspace invites). Using a raw SMTP server or `sendmail` would land in spam folders. Paid services like SendGrid and Mailgun require credit cards.
+The app sends three types of emails (password reset, email verification, workspace invites). Using a raw SMTP server or `sendmail` would land in spam folders. Paid services like SendGrid and Mailgun require credit cards. Additionally, Render's free tier blocks SMTP ports (465, 587), and Resend's free tier only allows sending to the owner's own email (no custom domain support).
 
-### Solution
-**Gmail App Passwords** with Nodemailer:
+### Three Attempts to Solve This
 
+**Attempt 1 — Gmail App Passwords (Nodemailer SMTP)**
 ```javascript
 transporter = nodemailer.createTransport({
   service: 'gmail',
   auth: {
     user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASS,  // 16-char app password
+    pass: process.env.EMAIL_PASS,
   },
 })
 ```
+This worked locally but failed on Render because port 587 is blocked.
+
+**Attempt 2 — Resend HTTP API (port 443)**
+Switched to Resend's REST API over HTTPS (`fetch()` to `https://api.resend.com`), which bypasses SMTP port blocking. Emails worked for the owner's address but failed for external recipients because Resend's free tier requires a custom domain to send to unverified addresses.
+
+**Attempt 3 (Final) — SendGrid HTTP API with multi-provider fallback**
+```javascript
+async function sendEmail({ to, subject, html }) {
+  // Primary: SendGrid HTTP API (port 443)
+  const sgRes = await fetch('https://api.sendgrid.com/v3/mail/send', {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${trim(EMAIL_PASS)}` },
+    body: JSON.stringify({ personalizations: [{ to: [{ email: to }] }], from: { email: from }, subject, content: [{ type: 'text/html', value: html }] }),
+  })
+  // Fallback 1: Resend HTTP API
+  // Fallback 2: Nodemailer SMTP (465 → 587)
+}
+```
 
 **Why it works:**
-- Gmail's SMTP servers have excellent deliverability
-- App passwords are free and don't expire unless revoked
-- The app uses HTML templates with inline styles for consistent rendering
-- `EMAIL_FROM` is configurable separately from `EMAIL_USER`
+- SendGrid free tier (100 emails/day) allows sending to any verified recipient
+- HTTP API on port 443 works through Render's network restrictions
+- All env vars are trimmed with a `trim()` helper to handle trailing whitespace issues
+- Three fallback providers ensure delivery even if one service is down
 
 **HTML Template Design:**
 Each email has a styled template with:
@@ -419,8 +442,8 @@ Razorpay integration with plan-based limits:
 ```javascript
 // planLimits.js
 const PLAN_LIMITS = {
-  free: { storageLimitMb: 512, maxMembers: 10, maxWorkspaces: 3, aiRequestsPerDay: 50 },
-  pro: { storageLimitMb: 10240, maxMembers: 100, maxWorkspaces: 50, aiRequestsPerDay: 1000 },
+  free: { storageLimitMb: 512, maxMembers: 5, maxWorkspaces: 1, aiRequestsPerDay: 10 },
+  pro: { storageLimitMb: 10240, maxMembers: 100, maxWorkspaces: 50, aiRequestsPerDay: 300 },
 }
 ```
 
@@ -474,3 +497,272 @@ jobs:
 - Backend tests use Node's built-in `--test` runner (zero dependencies)
 - Frontend build includes `tsc -b` (TypeScript compilation) before `vite build`
 - Secrets are injected via GitHub Secrets, not `.env` files
+
+---
+
+## 15. Socket Singleton Disconnect — Real-Time Drops for All Features
+
+### The Problem
+After visiting the Chat page, ALL real-time events across the app stopped working — task updates, note changes, calendar sync. Even chat itself stopped receiving messages after the first page load. All 4 socket modules went silent.
+
+### Root Cause
+`useChatSocket.ts` had this cleanup function:
+```typescript
+useEffect(() => {
+  // ... setup ...
+  return () => {
+    socket.off('message_received', handler)
+    disconnectSocket()  // ← THIS LINE
+  }
+}, [workspaceId])
+```
+
+The `disconnectSocket()` call from the `socket.ts` singleton service:
+```typescript
+export const disconnectSocket = () => {
+  if (socketRef.current) {
+    socketRef.current.disconnect()
+    socketRef.current = null
+  }
+}
+```
+
+This disconnected the **global singleton** socket. Every other hook (`useTaskSocket`, `useNoteSocket`, `useCalendarSocket`) was using the same socket instance. Once it was disconnected, no feature could receive real-time events.
+
+### Why It Wasn't Caught
+1. **Chat works on first visit**: The effect runs, connects the socket, and messages flow. Only on **unmount** (navigating away) does the disconnect happen.
+2. **Task/Note real-time was never initialized**: `useTaskSocket` and `useNoteSocket` hooks were defined but never called in TasksPage or NotesPage, so nobody noticed they were broken.
+3. **CalendarPage loads last**: Users might visit Dashboard → Chat → Tasks → Notes → Calendar, by which point the socket was long disconnected.
+
+### Solution
+```typescript
+// useChatSocket.ts — fixed
+useEffect(() => {
+  connectSocket(token)
+  // ... setup handlers ...
+  return () => {
+    socket.off('message_received', handler)
+    socket.emit('leave_workspace', workspaceId)  // ← leave room only
+    // NO disconnectSocket() — let other features use the socket
+  }
+}, [workspaceId, token])
+```
+
+### Lesson Learned
+A singleton socket must never be disconnected by a single feature's cleanup. Components should only remove their own event listeners and leave rooms. Socket lifecycle (connect/disconnect) must be managed at the app level, not the component level.
+
+---
+
+## 16. Chat Message Double-Send From Dual REST + Socket Paths
+
+### The Problem
+Every chat message was appearing **twice** in the database and in the UI. Both text messages and file uploads were duplicated.
+
+### Root Cause
+The chat system had **two independent write paths** that both created Messages in the database:
+
+**Path 1 — REST (via Redux thunk):**
+```
+ChatPage.sendMessage → dispatch(sendMessageThunk(payload))
+  → chatApi.sendMessage(payload) → POST /api/chat/messages
+  → chatController.createMessage → Message.create() in DB
+```
+
+**Path 2 — Socket (via direct emit):**
+```
+ChatPage.sendMessage → socket.emit('send_message', payload)
+  → chatSocket.js 'send_message' handler → Message.create() in DB
+```
+
+Both ran on every message send. The Redux thunk handled the API call AND immediately emitted a socket event that also persisted to the DB.
+
+### Solution
+Three changes were made:
+
+1. **REST becomes the single write path**: `chatController.createMessage` now broadcasts `message_received` via `req.app.get('io')` after creating the message in DB
+2. **Socket handler stripped**: The `send_message` handler in `chatSocket.js` no longer creates Messages — it's a no-op relay (or could be removed entirely)
+3. **Frontend emits removed**: Both the text send handler and file upload handler in ChatPage no longer have the redundant `socket.emit('send_message', payload)` line
+
+```javascript
+// server.js — Attach io to Express app
+app.set('io', io)
+
+// chatController.js — REST creates + broadcasts
+const message = await Message.create({ ... })
+req.app.get('io').to(`workspace:${workspaceId}`).emit('message_received', message)
+
+// chatSocket.js — no-op relay (backward compat)
+socket.on('send_message', (data) => {
+  // Message is created by REST controller; this is a no-op
+})
+```
+
+This ensures exactly one DB write per message, with real-time broadcast regardless of whether the REST or socket path was triggered.
+
+---
+
+## 17. Invite Acceptance Flow — Missing Frontend and Backend Routes
+
+### The Problem
+Workspace invite emails contained a link like `https://dssync-hub-client.vercel.app/join-workspace/:token`. Clicking this link showed a blank page (React Router 404) because no route existed for that path. Even if a route existed, there was no backend endpoint to resolve the invite token.
+
+### Root Cause
+The invite system had two parts:
+1. **Invite creation**: Working — `POST /api/workspaces/:id/invite` created an Invite document and sent an email
+2. **Invite acceptance**: Missing entirely — no frontend route, no backend endpoint, no joining logic
+
+### Solution
+Built the complete acceptance flow:
+
+**Backend:** `POST /api/workspaces/join-with-token`
+```javascript
+async joinWorkspaceByToken(req, res) {
+  const invite = await Invite.findOne({ token: req.body.token, used: false, expiresAt: { $gt: new Date() } })
+  if (!invite) return res.status(400).json({ message: 'Invalid or expired invite token' })
+  
+  let membership = await Membership.findOne({ user: req.user._id, workspace: invite.workspace })
+  if (!membership) {
+    membership = await Membership.create({ user: req.user._id, workspace: invite.workspace, role: 'member' })
+  }
+  if (!membership.active) {
+    membership.active = true; await membership.save()
+  }
+  invite.used = true; await invite.save()
+  
+  await ActivityLog.create({ ... })
+  res.json({ message: 'Joined workspace successfully', workspace: invite.workspace })
+}
+```
+
+**Frontend:** `JoinWorkspaceWithTokenPage.tsx`
+```typescript
+const JoinWorkspaceWithTokenPage = () => {
+  const { token } = useParams()
+  const dispatch = useDispatch()
+  const navigate = useNavigate()
+  
+  useEffect(() => {
+    const acceptInvite = async () => {
+      const result = await dispatch(joinWithTokenThunk(token)).unwrap()
+      await dispatch(fetchWorkspacesThunk())  // refresh sidebar
+      localStorage.setItem('dssync-active-workspace', result.workspace._id)
+      navigate(`/dashboard/${result.workspace._id}/chat`)  // hard-navigate
+    }
+    acceptInvite()
+  }, [token])
+}
+```
+
+**Route registration:**
+```typescript
+<Route path="/join-workspace/:token" element={<ProtectedRoute><JoinWorkspaceWithTokenPage /></ProtectedRoute>} />
+```
+
+The key insight was that after accepting an invite, we needed to:
+1. Refresh the workspace list so the new workspace appears in the sidebar
+2. Set the active workspace in localStorage so subsequent module navigations work
+3. Hard-navigate (not just `navigate()`) to force Redux re-initialization with the correct workspace context
+
+---
+
+## 18. Missing Socket Hooks — Task and Note Real-Time Was Dead Code
+
+### The Problem
+Task and note operations (create, update, delete) were NOT updating in real time across connected clients. Users had to manually refresh to see changes made by teammates.
+
+### Root Cause
+The codebase had 4 socket hooks defined:
+- `useChatSocket.ts` — used in ChatPage ✅
+- `useTaskSocket.ts` — **never imported anywhere** ❌
+- `useNoteSocket.ts` — **never imported anywhere** ❌
+- `useCalendarSocket.ts` — used in CalendarPage ✅
+
+Both `useTaskSocket` and `useNoteSocket` were created during the initial socket infrastructure build but were never integrated into their respective pages. The hooks, socket event handlers, and Redux listeners all existed — they just weren't wired together.
+
+### Solution
+Added the missing hook calls:
+
+```typescript
+// TasksPage.tsx
+const TasksPage = () => {
+  useTaskSocket()  // ← was missing
+  // ... rest of component
+}
+
+// NotesPage.tsx
+const NotesPage = () => {
+  useNoteSocket()  // ← was missing
+  // ... rest of component
+}
+```
+
+### Lesson Learned
+When building infrastructure (sockets, shared hooks, services), always verify that the consuming code actually calls the new API before marking the task complete. Dead code is worse than no code — it creates a false sense of security.
+
+---
+
+## 19. Billing: Razorpay Load Order, Missing Config, and Coupon Validation
+
+### The Problem
+The billing system had three distinct issues:
+
+1. **Razorpay load-order failure**: `const razorpay = new Razorpay({ ... })` ran at module load time, before env vars were fully initialized. This caused `RAZORPAY_KEY_ID` and `RAZORPAY_KEY_SECRET` to be `undefined`, and trailing whitespace in `.env` values caused silent auth failures.
+
+2. **No configuration visibility**: Users couldn't tell if billing was properly configured. If Razorpay keys were missing or misconfigured, the "Upgrade" button would silently fail with no feedback.
+
+3. **No coupon/ promo system**: The only way to upgrade was through Razorpay payment. No mechanism existed for granting Pro access via coupon codes (useful for beta testers, sponsors, or internal team members).
+
+### Solutions
+
+**1. Lazy Razorpay initialization with trimming:**
+```javascript
+function getRazorpayClient() {
+  const keyId = (process.env.RAZORPAY_KEY_ID || '').trim()
+  const keySecret = (process.env.RAZORPAY_KEY_SECRET || '').trim()
+  if (!keyId || !keySecret) return null
+  return new Razorpay({ key_id: keyId, key_secret: keySecret })
+}
+```
+
+**2. Billing config endpoint:**
+```javascript
+// GET /api/billing/config
+async billingConfig(req, res) {
+  const keyId = (process.env.RAZORPAY_KEY_ID || '').trim()
+  const keySecret = (process.env.RAZORPAY_KEY_SECRET || '').trim()
+  const ownerCoupon = (process.env.OWNER_COUPON_CODE || '').trim()
+  res.json({
+    razorpayConfigured: !!(keyId && keySecret),
+    hasRazorpayKeyId: !!keyId,
+    hasRazorpayKeySecret: !!keySecret,
+    hasOwnerCoupon: !!ownerCoupon,
+    provider: 'razorpay',
+  })
+}
+```
+
+Frontend uses this to show status badges ("Razorpay configured" / "Razorpay not configured"), disable checkout buttons, and show appropriate messages.
+
+**3. Coupon code system:**
+```javascript
+// POST /api/billing/apply-coupon
+async applyCoupon(req, res) {
+  const { workspaceId, code } = req.body
+  const OWNER_COUPON = (process.env.OWNER_COUPON_CODE || '').trim()
+  
+  if (!OWNER_COUPON || code !== OWNER_COUPON) {
+    return res.status(400).json({ message: 'Invalid coupon code' })
+  }
+  
+  const workspace = await Workspace.findById(workspaceId)
+  workspace.plan = 'pro'
+  await workspace.save()
+  
+  return res.json({ message: 'Coupon applied! Workspace upgraded to Pro.', plan: 'pro' })
+}
+```
+
+### Result
+- Razorpay errors from trailing whitespace and load-order are eliminated
+- Users see clear status indicators for billing configuration
+- Coupon codes enable direct Pro upgrades without payment, useful for testing and promotions

@@ -1,9 +1,12 @@
 import { PanelLeftClose, PanelLeftOpen } from 'lucide-react'
+import { useEffect } from 'react'
 import { useNavigate, Outlet } from 'react-router-dom'
 import AppSidebar from '../components/navigation/AppSidebar'
 import TopNavbar from '../components/navigation/TopNavbar'
 import { useAppDispatch, useAppSelector } from '../hooks/redux'
 import { logoutThunk } from '../store/authSlice'
+import { connectSocket } from '../services/socket'
+import { fetchWorkspacesThunk } from '../store/workspaceSlice'
 import {
   closeMobileSidebar,
   toggleSidebarCollapsed,
@@ -13,6 +16,11 @@ const DashboardLayout = () => {
   const navigate = useNavigate()
   const dispatch = useAppDispatch()
   const { sidebarCollapsed, mobileSidebarOpen } = useAppSelector((state) => state.ui)
+
+  useEffect(() => {
+    dispatch(fetchWorkspacesThunk())
+    connectSocket()
+  }, [dispatch])
 
   const handleLogout = async () => {
     await dispatch(logoutThunk())

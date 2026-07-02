@@ -30,6 +30,8 @@ const io = new Server(server, {
   cors: { origin: getAllowedOrigins(), credentials: true },
 })
 
+app.set('io', io)
+
 registerChatSocket(io)
 registerTaskSocket(io)
 registerNoteSocket(io)

@@ -9,17 +9,18 @@ const Workspace = require('../models/Workspace')
 const { getPlanLimits } = require('../services/planLimits')
 const { getStorageUsageSummary } = require('../services/storageService')
 
-const hasRazorpayConfig = Boolean(process.env.RAZORPAY_KEY_ID && process.env.RAZORPAY_KEY_SECRET)
-const razorpayClient = hasRazorpayConfig
-  ? new Razorpay({
-      key_id: process.env.RAZORPAY_KEY_ID,
-      key_secret: process.env.RAZORPAY_KEY_SECRET,
-    })
-  : null
+const getRazorpayClient = () => {
+  const keyId = (process.env.RAZORPAY_KEY_ID || '').trim()
+  const keySecret = (process.env.RAZORPAY_KEY_SECRET || '').trim()
+  if (!keyId || !keySecret) return null
+  return new Razorpay({ key_id: keyId, key_secret: keySecret })
+}
 const amountByPlan = {
   pro_monthly: 999,
   pro_yearly: 9999,
 }
+
+const ownerCouponCode = (process.env.OWNER_COUPON_CODE || '').trim()
 
 const ensureActiveMember = async (userId, workspaceId) =>
   Membership.findOne({
@@ -130,14 +131,15 @@ const checkoutBilling = async (req, res, next) => {
     const membership = await ensureAdminMember(req.user._id, workspace)
     if (!membership) return res.status(403).json({ success: false, message: 'Insufficient permission.' })
 
-    if (!razorpayClient) {
+    const razorpay = getRazorpayClient()
+    if (!razorpay) {
       return res.status(500).json({
         success: false,
         message: 'Razorpay is not configured.',
       })
     }
 
-    const order = await razorpayClient.orders.create({
+    const order = await razorpay.orders.create({
       amount: amountByPlan[plan] * 100,
       currency: 'INR',
       notes: {
@@ -152,7 +154,7 @@ const checkoutBilling = async (req, res, next) => {
       success: true,
       checkout: {
         provider: 'razorpay',
-        keyId: process.env.RAZORPAY_KEY_ID,
+        keyId: (process.env.RAZORPAY_KEY_ID || '').trim(),
         orderId: order.id,
         amount: order.amount,
         currency: order.currency,
@@ -266,11 +268,64 @@ const resumeBilling = async (req, res, next) => {
   }
 }
 
+const billingConfig = async (_req, res) => {
+  const razorpay = getRazorpayClient()
+  res.json({
+    success: true,
+    razorpayConfigured: Boolean(razorpay),
+    hasRazorpayKeyId: Boolean((process.env.RAZORPAY_KEY_ID || '').trim()),
+    hasRazorpayKeySecret: Boolean((process.env.RAZORPAY_KEY_SECRET || '').trim()),
+    hasOwnerCoupon: Boolean(ownerCouponCode),
+    provider: razorpay ? 'razorpay' : 'none',
+  })
+}
+
+const applyCoupon = async (req, res, next) => {
+  try {
+    const { workspace, code } = req.body
+    if (!workspace || !code) {
+      return res.status(400).json({ success: false, message: 'workspace and coupon code are required.' })
+    }
+    if (code !== ownerCouponCode) {
+      return res.status(400).json({ success: false, message: 'Invalid coupon code.' })
+    }
+    const membership = await ensureAdminMember(req.user._id, workspace)
+    if (!membership) return res.status(403).json({ success: false, message: 'Only workspace admins can apply coupons.' })
+
+    const now = new Date()
+    const subscription = await Subscription.findOneAndUpdate(
+      { workspace },
+      {
+        user: req.user._id,
+        workspace,
+        plan: 'pro_monthly',
+        status: 'active',
+        provider: 'manual',
+        currentPeriodStart: now,
+        currentPeriodEnd: new Date(now.getTime() + 365 * 24 * 60 * 60 * 1000),
+        cancelAtPeriodEnd: false,
+      },
+      { upsert: true, new: true, setDefaultsOnInsert: true },
+    )
+    await Workspace.findByIdAndUpdate(workspace, { plan: 'pro' })
+
+    return res.status(200).json({
+      success: true,
+      message: 'Coupon applied successfully. Workspace upgraded to Pro.',
+      subscription: toSubscription(subscription),
+    })
+  } catch (error) {
+    return next(error)
+  }
+}
+
 module.exports = {
   getCurrentBilling,
   getBillingHistory,
+  billingConfig,
   checkoutBilling,
   verifyBillingPayment,
   cancelBilling,
   resumeBilling,
+  applyCoupon,
 }

@@ -53,6 +53,7 @@ export const inviteWorkspaceMemberThunk = createAsyncThunk(
       role: payload.role,
     })
     dispatch(fetchWorkspaceMembersThunk(payload.workspaceId))
+    dispatch(fetchWorkspacesThunk())
   },
 )
 

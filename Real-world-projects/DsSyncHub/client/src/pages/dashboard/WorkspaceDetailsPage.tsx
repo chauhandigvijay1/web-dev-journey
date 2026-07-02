@@ -48,19 +48,19 @@ const WorkspaceDetailsPage = () => {
     if (id && currentTab === 'members') {
       dispatch(fetchWorkspaceMembersThunk(id))
     }
-  }, [currentTab, dispatch, id])
+  }, [currentTab, id])
 
   useEffect(() => {
     if (id && currentTab === 'activity') {
       dispatch(fetchActivityThunk(id))
     }
-  }, [currentTab, dispatch, id])
+  }, [currentTab, id])
 
   useEffect(() => {
     if (id) {
       dispatch(fetchBillingCurrentThunk(id))
     }
-  }, [dispatch, id])
+  }, [id])
 
   const canManageMembers = useMemo(
     () => ['owner', 'admin'].includes(workspace?.role || ''),

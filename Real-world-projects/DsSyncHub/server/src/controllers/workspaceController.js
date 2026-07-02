@@ -551,19 +551,47 @@ const listMembers = async (req, res, next) => {
       .populate('user', 'fullName username email avatarUrl')
       .sort({ joinedAt: 1 })
 
+    const openInvites = await Invite.find({
+      workspace: req.params.id,
+      usedAt: null,
+      expiresAt: { $gt: new Date() },
+    }).sort({ createdAt: -1 })
+
+    const invitedEmails = new Set(openInvites.map((inv) => inv.email))
+    const existingMemberEmails = new Set(
+      members.map((m) => m.user?.email?.toLowerCase()).filter(Boolean),
+    )
+
+    const missingInviteRecords = openInvites
+      .filter((inv) => !existingMemberEmails.has(inv.email))
+      .map((inv) => ({
+        id: inv._id,
+        userId: null,
+        fullName: `Invited (${inv.email})`,
+        username: '',
+        email: inv.email,
+        avatarUrl: '',
+        role: inv.role,
+        status: 'pending',
+        joinedAt: inv.createdAt,
+      }))
+
     return res.status(200).json({
       success: true,
-      members: members.map((item) => ({
-        id: item._id,
-        userId: item.user?._id,
-        fullName: item.user?.fullName || 'Invited user',
-        username: item.user?.username || '',
-        email: item.user?.email || '',
-        avatarUrl: item.user?.avatarUrl || '',
-        role: item.role,
-        status: item.status,
-        joinedAt: item.joinedAt,
-      })),
+      members: [
+        ...members.map((item) => ({
+          id: item._id,
+          userId: item.user?._id,
+          fullName: item.user?.fullName || 'Invited user',
+          username: item.user?.username || '',
+          email: item.user?.email || '',
+          avatarUrl: item.user?.avatarUrl || '',
+          role: item.role,
+          status: item.status,
+          joinedAt: item.joinedAt,
+        })),
+        ...missingInviteRecords,
+      ],
     })
   } catch (error) {
     return next(error)

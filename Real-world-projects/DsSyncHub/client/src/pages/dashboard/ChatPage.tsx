@@ -122,14 +122,34 @@ const ChatPage = () => {
     [messages, query],
   )
 
-  const currentChannel = channels.find((channel) => channel._id === currentChannelId)
-  const currentDirectUser = members.find((member) => member.userId === directUserId)
+  const currentChannel = useMemo(
+    () => channels.find((channel) => channel._id === currentChannelId),
+    [channels, currentChannelId],
+  )
+  const currentDirectUser = useMemo(
+    () => members.find((member) => member.userId === directUserId),
+    [members, directUserId],
+  )
   const buildAssetUrl = (url: string) => `${apiBaseUrl.replace(/\/api$/, '')}${url}`
   const sharedAttachmentCount = useMemo(
     () => messages.reduce((total, message) => total + message.attachments.length, 0),
     [messages],
   )
   const messageCount = messages.length
+  const otherMembers = useMemo(
+    () => members.filter((member) => member.userId !== user?.id),
+    [members, user?.id],
+  )
+  const mentionQuery = getMentionQuery(messageText, cursorPosition)
+  const mentionSuggestions = useMemo(
+    () =>
+      mentionQuery
+        ? members
+            .filter((member) => getMentionHandle(member).toLowerCase().includes(mentionQuery.toLowerCase()))
+            .slice(0, 6)
+        : [],
+    [mentionQuery, members],
+  )
 
   if (!activeWorkspaceId) {
     return <WorkspaceRequiredState description="Chat channels, direct messages, mentions, and shared files all depend on the active workspace context. Select one first to start a conversation." />
@@ -145,16 +165,8 @@ const ChatPage = () => {
       mentions: extractMentionIds(messageText, members),
     }
     await dispatch(sendMessageThunk(payload))
-    socket.emit('send_message', payload)
     setMessageText('')
   }
-
-  const mentionQuery = getMentionQuery(messageText, cursorPosition)
-  const mentionSuggestions = mentionQuery
-    ? members
-        .filter((member) => getMentionHandle(member).toLowerCase().includes(mentionQuery.toLowerCase()))
-        .slice(0, 6)
-    : []
 
   const typingStart = () => {
     if (!activeWorkspaceId) return
@@ -211,9 +223,7 @@ const ChatPage = () => {
           <h2 className="text-sm font-semibold text-zinc-500">Direct Messages</h2>
         </div>
         <div className="space-y-1">
-          {members
-            .filter((member) => member.userId !== user?.id)
-            .map((member) => (
+          {otherMembers.map((member) => (
               <button
                 className={`flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-sm ${
                   directUserId === member.userId
@@ -439,7 +449,6 @@ const ChatPage = () => {
                       attachments: [uploaded.attachment],
                     }
                     await dispatch(sendMessageThunk(payload))
-                    socket.emit('send_message', payload)
                     setMessageText('')
                     dispatch(pushToast({
                       title: 'File shared in chat',
@@ -485,7 +494,7 @@ const ChatPage = () => {
                 value={messageText}
               />
               <button
-                className="rounded-xl bg-brand-500 px-3 py-2 text-sm font-medium text-white hover:bg-brand-400 shadow-[0_0_15px_rgba(16,185,129,0.3)] transition-all hover:shadow-[0_0_25px_rgba(16,185,129,0.5)] hover:-tranzinc-y-0.5 duration-300 shadow-[0_0_15px_rgba(16,185,129,0.3)] transition-all hover:shadow-[0_0_25px_rgba(16,185,129,0.5)] hover:-tranzinc-y-0.5 duration-300 disabled:cursor-not-allowed disabled:opacity-60"
+                className="rounded-xl bg-brand-500 px-3 py-2 text-sm font-medium text-white hover:bg-brand-400 shadow-[0_0_15px_rgba(16,185,129,0.3)] transition-all hover:shadow-[0_0_25px_rgba(16,185,129,0.5)] hover:-tranzinc-y-0.5 duration-300 disabled:cursor-not-allowed disabled:opacity-60"
                 disabled={!messageText.trim()}
                 onClick={() => {
                   sendMessage()
@@ -636,7 +645,7 @@ const ChatPage = () => {
                 Cancel
               </button>
               <button
-                className="rounded-xl bg-brand-500 px-4 py-2 text-sm font-medium text-white hover:bg-brand-400 shadow-[0_0_15px_rgba(16,185,129,0.3)] transition-all hover:shadow-[0_0_25px_rgba(16,185,129,0.5)] hover:-tranzinc-y-0.5 duration-300 shadow-[0_0_15px_rgba(16,185,129,0.3)] transition-all hover:shadow-[0_0_25px_rgba(16,185,129,0.5)] hover:-tranzinc-y-0.5 duration-300 disabled:opacity-60"
+                className="rounded-xl bg-brand-500 px-4 py-2 text-sm font-medium text-white hover:bg-brand-400 shadow-[0_0_15px_rgba(16,185,129,0.3)] transition-all hover:shadow-[0_0_25px_rgba(16,185,129,0.5)] hover:-tranzinc-y-0.5 duration-300 disabled:opacity-60"
                 disabled={creatingChannel || newChannelName.trim().length < 2}
                 onClick={async () => {
                   const trimmedName = newChannelName.trim()

@@ -1,6 +1,6 @@
 import { useEffect } from 'react'
 import { useAppDispatch, useAppSelector } from './redux'
-import { connectSocket, disconnectSocket } from '../services/socket'
+import { connectSocket } from '../services/socket'
 import {
   addIncomingMessage,
   applyMessageDelete,
@@ -40,7 +40,6 @@ export const useChatSocket = () => {
       socket.off('online_users')
       socket.off('message_updated')
       socket.off('message_deleted')
-      disconnectSocket()
     }
   }, [dispatch])
 
@@ -48,6 +47,9 @@ export const useChatSocket = () => {
     const socket = connectSocket()
     if (!workspaceId) return
     socket.emit('join_workspace', { workspaceId })
+    return () => {
+      socket.emit('leave_workspace', { workspaceId })
+    }
   }, [workspaceId])
 
   useEffect(() => {

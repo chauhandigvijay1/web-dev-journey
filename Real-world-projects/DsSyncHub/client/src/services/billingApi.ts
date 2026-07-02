@@ -1,4 +1,4 @@
-import type { BillingCurrent, BillingHistoryItem, SubscriptionPlan } from '../types/billing'
+import type { BillingConfig, BillingCurrent, BillingHistoryItem, CouponResult, SubscriptionPlan } from '../types/billing'
 import { api } from './api'
 
 export const billingApi = {
@@ -14,7 +14,7 @@ export const billingApi = {
     })
     return response.data
   },
-  checkout: async (workspaceId: string, plan: SubscriptionPlan) => {
+  checkout: async (workspaceId: string, plan: SubscriptionPlan, coupon?: string) => {
     const response = await api.post<{
       success: boolean
       checkout: {
@@ -26,7 +26,7 @@ export const billingApi = {
         workspaceId: string
         plan: SubscriptionPlan
       }
-    }>('/billing/checkout', { workspace: workspaceId, plan })
+    }>('/billing/checkout', { workspace: workspaceId, plan, ...(coupon ? { coupon } : {}) })
     return response.data
   },
   verifyPayment: async (payload: {
@@ -45,12 +45,20 @@ export const billingApi = {
     })
     return response.data
   },
+  applyCoupon: async (workspaceId: string, code: string) => {
+    const response = await api.post<CouponResult>('/billing/apply-coupon', { workspace: workspaceId, code })
+    return response.data
+  },
   cancel: async (workspaceId: string) => {
     const response = await api.patch('/billing/cancel', { workspace: workspaceId })
     return response.data
   },
   resume: async (workspaceId: string) => {
     const response = await api.patch('/billing/resume', { workspace: workspaceId })
+    return response.data
+  },
+  config: async () => {
+    const response = await api.get<BillingConfig>('/billing/config')
     return response.data
   },
 }

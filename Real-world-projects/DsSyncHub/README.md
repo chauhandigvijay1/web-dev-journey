@@ -125,9 +125,14 @@ Every resource (tasks, notes, messages, files, calendar events) is scoped to a w
 
 ### Billing & Monetization
 
-- Razorpay payment gateway integration (test mode ready)
-- Free / Pro Monthly (₹999) / Pro Yearly (₹9999) tiers
+- Razorpay payment gateway integration (test mode ready) with lazy initialization
+- Free / Pro Monthly (₹999) / Pro Yearly (₹9999) tiers with 9-row feature comparison table
 - Plan-based storage limits, member caps, and AI usage quotas
+- Coupon code system — enter a code to upgrade directly to Pro (independent of Razorpay)
+- Razorpay configuration endpoint (`/billing/config`) with UI status badges
+- Role-aware billing UI — non-admin/owner users see warnings and disabled checkout
+- Cancel/Resume subscription management with context-aware buttons
+- Usage display: members used, AI calls used, storage used (all vs. plan limits)
 - Invoice tracking with downloadable URLs
 - Subscription state management with cancel/resume
 
@@ -445,6 +450,17 @@ Detailed write-up at [docs/CHALLENGES.md](docs/CHALLENGES.md).
 | Concurrent note editing | Socket.io broadcast + queryCommandSupported guard for links |
 | Testing without MongoDB | mongodb-memory-server for isolated, fast integration tests |
 | Email deliverability | Bull queue with 3 retries (exponential backoff), falls back to direct send |
+| Email port blocking (Render) | SendGrid HTTP API (port 443) as primary, Resend + SMTP (465→587) as fallbacks |
+| Socket singleton disconnect | Removed `disconnectSocket()` from component cleanup — all features share one global socket |
+| Chat message double-send | REST controller now broadcasts via `app.get('io')`; socket handler stripped to no-op relay |
+| Message broadcast architecture | Attached `io` to Express app via `app.set('io', io)` so REST controllers emit socket events |
+| AI preamble text | System prompt updated to explicitly ban labels like "Here is an improved version:" |
+| Razorpay load-order issue | Lazy `getRazorpayClient()` initialization with env var trimming |
+| Billing config visibility | `GET /billing/config` endpoint + UI status badges for Razorpay/coupon availability |
+| Coupon code validation | `POST /billing/apply-coupon` endpoint, direct Pro upgrade independent of Razorpay |
+| Invite sender UI not updating | `listMembers` merges open Invite records as pending; thunk dispatches workspace refresh |
+| Workspace context loss after invite | `JoinWorkspaceWithTokenPage` sets localStorage + dispatches `fetchWorkspacesThunk()` then hard-navigates |
+| Missing socket hooks | `useTaskSocket` and `useNoteSocket` existed but were never called in their pages — now integrated |
 | API versioning | All routes mounted under `/api` and `/api/v1` via mountRoutes() |
 
 ---

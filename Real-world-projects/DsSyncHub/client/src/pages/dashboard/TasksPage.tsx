@@ -9,6 +9,7 @@ import AddTaskModal from '../../components/tasks/AddTaskModal'
 import TaskDetailDrawer from '../../components/tasks/TaskDetailDrawer'
 import { useAppDispatch, useAppSelector } from '../../hooks/redux'
 import { useDebouncedValue } from '../../hooks/useDebouncedValue'
+import { useTaskSocket } from '../../hooks/useTaskSocket'
 import {
   clearTaskFilters,
   createTaskThunk,
@@ -41,6 +42,7 @@ const TasksPage = () => {
   const dispatch = useAppDispatch()
   const [searchParams, setSearchParams] = useSearchParams()
   const { activeWorkspaceId, items: workspaces, members } = useAppSelector((state) => state.workspace)
+  useTaskSocket()
   const { items: tasks, selectedTaskId, filters, loading } = useAppSelector((state) => state.task)
   const [addTaskOpen, setAddTaskOpen] = useState(false)
   const [aiOpen, setAiOpen] = useState(false)

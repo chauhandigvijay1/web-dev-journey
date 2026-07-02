@@ -1,13 +1,25 @@
 import { CheckCircle, XCircle } from 'lucide-react'
-import { useEffect, useState } from 'react'
-import { Link, useParams } from 'react-router-dom'
+import { useCallback, useEffect, useState } from 'react'
+import { useParams } from 'react-router-dom'
+import { useAppDispatch } from '../hooks/redux'
 import { workspaceApi } from '../services/workspaceApi'
+import { fetchWorkspacesThunk } from '../store/workspaceSlice'
 
 const JoinWorkspaceWithTokenPage = () => {
+  const dispatch = useAppDispatch()
   const { token } = useParams<{ token: string }>()
   const [status, setStatus] = useState<'loading' | 'success' | 'error'>('loading')
   const [message, setMessage] = useState('')
   const [workspaceId, setWorkspaceId] = useState('')
+  const [navigating, setNavigating] = useState(false)
+
+  const goToWorkspace = useCallback(async () => {
+    if (!workspaceId) return
+    setNavigating(true)
+    await dispatch(fetchWorkspacesThunk())
+    window.localStorage.setItem('dssync-active-workspace', workspaceId)
+    window.location.href = `/workspaces/${workspaceId}`
+  }, [dispatch, workspaceId])
 
   useEffect(() => {
     if (!token) {
@@ -28,6 +40,12 @@ const JoinWorkspaceWithTokenPage = () => {
       })
   }, [token])
 
+  useEffect(() => {
+    if (status === 'success' && workspaceId) {
+      goToWorkspace()
+    }
+  }, [status, workspaceId, goToWorkspace])
+
   return (
     <main className="grid min-h-screen place-items-center bg-zinc-950 p-4">
       <div className="w-full max-w-md rounded-2xl border border-white/10 glass-card p-8 text-center dark:border-zinc-800 dark:bg-zinc-900">
@@ -42,12 +60,7 @@ const JoinWorkspaceWithTokenPage = () => {
             <CheckCircle className="mx-auto mb-4 text-green-500" size={48} />
             <h1 className="mb-2 text-xl font-semibold text-white">Welcome!</h1>
             <p className="mb-6 text-zinc-400">{message}</p>
-            <Link
-              className="inline-block rounded-xl bg-brand-500 px-6 py-3 text-sm font-medium text-white"
-              to={`/workspaces/${workspaceId}`}
-            >
-              Go to Workspace
-            </Link>
+            {navigating && <p className="text-sm text-zinc-400">Loading workspace...</p>}
           </div>
         )}
         {status === 'error' && (
@@ -55,12 +68,13 @@ const JoinWorkspaceWithTokenPage = () => {
             <XCircle className="mx-auto mb-4 text-red-500" size={48} />
             <h1 className="mb-2 text-xl font-semibold text-white">Invite Error</h1>
             <p className="mb-6 text-zinc-400">{message}</p>
-            <Link
+            <button
               className="inline-block rounded-xl bg-brand-500 px-6 py-3 text-sm font-medium text-white"
-              to="/dashboard"
+              onClick={() => window.location.href = '/dashboard'}
+              type="button"
             >
               Go to Dashboard
-            </Link>
+            </button>
           </div>
         )}
       </div>

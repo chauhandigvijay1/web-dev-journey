@@ -101,32 +101,9 @@ const registerChatSocket = (io) => {
 
     socket.on('send_message', async (payload) => {
       try {
-        const { workspace, channel = null, recipient = null, content, messageType = 'text', attachments = [] } = payload || {}
-        if (!workspace || !content || !String(content).trim()) return
-        const membership = await Membership.findOne({
-          user: socket.user._id,
-          workspace,
-          status: 'active',
-        })
-        if (!membership || !['owner', 'admin', 'member'].includes(membership.role)) return
-
-        const message = await Message.create({
-          workspace,
-          channel,
-          recipient,
-          sender: socket.user._id,
-          content: String(content).trim(),
-          messageType,
-          attachments,
-          seenBy: [socket.user._id],
-        })
-        const populated = await Message.findById(message._id).populate('sender', 'fullName email avatarUrl')
-
-        if (channel) {
-          io.to(`channel:${channel}`).emit('message_received', populated)
-        } else {
-          io.to(`workspace:${workspace}`).emit('message_received', populated)
-        }
+        const { workspace, channel = null } = payload || {}
+        if (!workspace || !channel) return
+        socket.to(`channel:${channel}`).emit('message_received', payload)
       } catch (err) { console.error('Socket error in send_message:', err) }
     })
 

@@ -23,11 +23,11 @@ const callGroq = async (prompt, fallback) => {
         model: DEFAULT_MODEL,
         temperature: 0.4,
         messages: [
-          {
-            role: 'system',
-            content:
-              'You are a concise productivity assistant for collaborative work software. Return practical output.',
-          },
+      {
+        role: 'system',
+        content:
+          'You are a concise productivity assistant for collaborative work software. Return ONLY the requested output with NO preamble, NO labels like "Here is an improved version:", NO explanations, NO conversational filler — just the raw result.',
+      },
           { role: 'user', content: cleanedPrompt },
         ],
       },
@@ -54,7 +54,7 @@ const summarizeText = (text) =>
 
 const improveWriting = (text) =>
   callGroq(
-    `Improve this writing for clarity and professionalism while preserving intent:\n\n${sanitizePrompt(text)}`,
+    `Improve this writing for clarity and professionalism while preserving intent. Return ONLY the improved text with NO prefix, NO labels, NO introduction:\n\n${sanitizePrompt(text)}`,
     'Improved version unavailable right now. Please retry.',
   )
 

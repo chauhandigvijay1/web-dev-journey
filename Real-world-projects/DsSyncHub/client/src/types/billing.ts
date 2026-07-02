@@ -34,3 +34,18 @@ export type BillingHistoryItem = {
   invoiceUrl: string
   billedAt: string
 }
+
+export type CouponResult = {
+  success: boolean
+  message: string
+  subscription?: BillingCurrent['subscription']
+}
+
+export type BillingConfig = {
+  success: boolean
+  razorpayConfigured: boolean
+  hasRazorpayKeyId: boolean
+  hasRazorpayKeySecret: boolean
+  hasOwnerCoupon: boolean
+  provider: 'razorpay' | 'none'
+}
