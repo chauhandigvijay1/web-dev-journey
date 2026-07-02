@@ -1,82 +1,99 @@
 const nodemailer = require('nodemailer')
 const logger = require('./logger')
 
-let transportConfigs = null
+const RESEND_API = 'https://api.resend.com/emails'
 
 const trim = (v) => (typeof v === 'string' ? v.trim() : v)
 
-const buildConfigs = () => {
+const getApiKey = () => trim(process.env.EMAIL_PASS)
+
+const getEmailFrom = () => trim(process.env.EMAIL_FROM) || trim(process.env.EMAIL_USER) || ''
+
+const sendViaResendApi = async ({ from, to, subject, html, text }) => {
+  const apiKey = getApiKey()
+  if (!apiKey) throw new Error('EMAIL_PASS not set')
+
+  const body = { from, to: [to], subject, html, text }
+
+  const res = await fetch(RESEND_API, {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${apiKey}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(body),
+    signal: AbortSignal.timeout(15000),
+  })
+
+  if (!res.ok) {
+    const errBody = await res.text().catch(() => '')
+    throw new Error(`Resend API ${res.status}: ${errBody}`)
+  }
+}
+
+let smtpConfigs = null
+
+const buildSmtpConfigs = () => {
   const user = trim(process.env.EMAIL_USER)
   const pass = trim(process.env.EMAIL_PASS)
 
-  if (!user || !pass) {
-    logger.error('[email] EMAIL_USER or EMAIL_PASS not set')
-    return null
-  }
+  if (!user || !pass) return null
 
   const host = trim(process.env.EMAIL_HOST)
   const port = parseInt(trim(process.env.EMAIL_PORT) || '', 10)
+  if (!host) return null
+
   const ports = port ? [port] : [587]
   if (port && port !== 587 && !ports.includes(587)) ports.push(587)
 
-  if (host) {
-    return ports.map((p) => {
-      logger.info(`[email] adding SMTP config: ${host}:${p}`)
-      return {
-        transporter: nodemailer.createTransport({
-          host,
-          port: p,
-          secure: p === 465,
-          auth: { user, pass },
-          connectionTimeout: 10000,
-          socketTimeout: 10000,
-        }),
-        port: p,
-      }
-    })
-  }
-
-  logger.info('[email] using Gmail SMTP (fallback)')
-  return [
-    {
-      transporter: nodemailer.createTransport({
-        service: 'gmail',
-        auth: { user, pass },
-      }),
-      port: 'gmail',
-    },
-  ]
+  return ports.map((p) => ({
+    transporter: nodemailer.createTransport({
+      host,
+      port: p,
+      secure: p === 465,
+      auth: { user, pass },
+      connectionTimeout: 10000,
+      socketTimeout: 10000,
+    }),
+    port: p,
+  }))
 }
 
-const getConfigs = () => {
-  if (!transportConfigs) transportConfigs = buildConfigs()
-  return transportConfigs
-}
-
-const resetTransporter = () => {
-  transportConfigs = null
+const getSmtpConfigs = () => {
+  if (!smtpConfigs) smtpConfigs = buildSmtpConfigs()
+  return smtpConfigs
 }
 
 const sendWithFallback = async (mailOptions) => {
-  const configs = getConfigs()
-  if (!configs) throw new Error('Email service is not configured. Set EMAIL_USER and EMAIL_PASS.')
-
   let lastError
+
+  // try Resend HTTP API first (works on all cloud providers, uses port 443)
+  try {
+    logger.info('[email] trying Resend HTTP API')
+    await sendViaResendApi(mailOptions)
+    return
+  } catch (err) {
+    lastError = err
+    logger.warn({ err: err.message }, 'Resend HTTP API failed, falling back to SMTP')
+  }
+
+  // fallback to SMTP
+  const configs = getSmtpConfigs()
+  if (!configs) throw lastError
+
   for (const { transporter, port } of configs) {
     try {
       await transporter.sendMail(mailOptions)
       return
     } catch (err) {
       lastError = err
-      logger.warn({ err: err.message, port }, 'Email send failed, trying next config')
+      logger.warn({ err: err.message, port }, 'SMTP failed, trying next config')
     }
   }
 
-  resetTransporter()
+  smtpConfigs = null
   throw lastError
 }
-
-const getEmailFrom = () => trim(process.env.EMAIL_FROM) || trim(process.env.EMAIL_USER) || ''
 
 const sendPasswordResetEmail = async ({ toEmail, resetUrl }) => {
   await sendWithFallback({
