@@ -32,6 +32,7 @@ const SettingsPage = lazy(() => import('../pages/dashboard/SettingsPage'))
 const AdminPage = lazy(() => import('../pages/AdminPage'))
 const TermsPage = lazy(() => import('../pages/TermsPage'))
 const PrivacyPage = lazy(() => import('../pages/PrivacyPage'))
+const JoinWorkspaceWithTokenPage = lazy(() => import('../pages/JoinWorkspaceWithTokenPage'))
 
 const AppRoutes = () => {
   return (
@@ -102,6 +103,14 @@ const AppRoutes = () => {
           <Route path="/admin" element={<AdminPage />} />
         </Route>
 
+        <Route
+          path="/join-workspace/:token"
+          element={
+            <ProtectedRoute>
+              <JoinWorkspaceWithTokenPage />
+            </ProtectedRoute>
+          }
+        />
         <Route path="/home" element={<Navigate to="/" replace />} />
         <Route path="*" element={<NotFoundPage />} />
       </Routes>

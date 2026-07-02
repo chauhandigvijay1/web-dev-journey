@@ -372,6 +372,74 @@ const joinWorkspaceByCode = async (req, res, next) => {
   }
 }
 
+const joinWorkspaceByToken = async (req, res, next) => {
+  try {
+    const { token } = req.body
+    if (!token) {
+      return res.status(400).json({ success: false, message: 'Invite token is required.' })
+    }
+
+    const invite = await Invite.findOne({ token, usedAt: null }).populate('workspace')
+    if (!invite) {
+      return res.status(404).json({ success: false, message: 'Invite not found or already used.' })
+    }
+
+    if (invite.expiresAt < new Date()) {
+      return res.status(410).json({ success: false, message: 'Invite has expired.' })
+    }
+
+    const workspace = invite.workspace
+    if (workspace.isArchived) {
+      return res.status(410).json({ success: false, message: 'Workspace is no longer active.' })
+    }
+
+    const user = await User.findById(req.user._id)
+    if (!user) {
+      return res.status(401).json({ success: false, message: 'User not found.' })
+    }
+
+    const existingMembership = await Membership.findOne({
+      user: user._id,
+      workspace: workspace._id,
+      status: 'active',
+    })
+
+    if (existingMembership) {
+      return res.status(200).json({
+        success: true,
+        message: 'You are already a member of this workspace.',
+        workspace: toWorkspaceCard(workspace, existingMembership),
+      })
+    }
+
+    const membership = await Membership.findOneAndUpdate(
+      { user: user._id, workspace: workspace._id },
+      { status: 'active', role: invite.role, joinedAt: new Date() },
+      { upsert: true, new: true, setDefaultsOnInsert: true },
+    )
+
+    invite.usedAt = new Date()
+    await invite.save()
+
+    await createActivityLog({
+      workspace: workspace._id,
+      actor: user._id,
+      action: 'member_joined',
+      entityType: 'member',
+      entityId: membership._id,
+      summary: `${user.fullName} joined the workspace via invite.`,
+    })
+
+    return res.status(200).json({
+      success: true,
+      message: 'You have joined the workspace.',
+      workspace: toWorkspaceCard(workspace, membership),
+    })
+  } catch (error) {
+    return next(error)
+  }
+}
+
 const inviteMember = async (req, res, next) => {
   try {
     const { email, role = 'member' } = req.body
@@ -571,6 +639,7 @@ module.exports = {
   archiveWorkspace,
   joinWorkspaceByCode,
   joinWorkspace,
+  joinWorkspaceByToken,
   inviteMember,
   listMembers,
   updateMemberRole,

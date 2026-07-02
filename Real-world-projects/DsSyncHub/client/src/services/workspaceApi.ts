@@ -16,6 +16,10 @@ type MembersResponse = {
   members: WorkspaceMember[]
 }
 
+type JoinResponse = WorkspaceDetailsResponse & {
+  message: string
+}
+
 export const workspaceApi = {
   list: async () => {
     const response = await api.get<WorkspaceResponse>('/workspaces')
@@ -26,7 +30,7 @@ export const workspaceApi = {
     return response.data
   },
   join: async (inviteCode: string) => {
-    const response = await api.post<WorkspaceDetailsResponse>('/workspaces/join', {
+    const response = await api.post<JoinResponse>('/workspaces/join', {
       inviteCode,
     })
     return response.data
@@ -49,6 +53,10 @@ export const workspaceApi = {
   },
   removeMember: async (workspaceId: string, memberId: string) => {
     const response = await api.delete(`/workspaces/${workspaceId}/members/${memberId}`)
+    return response.data
+  },
+  joinWithToken: async (token: string) => {
+    const response = await api.post<JoinResponse>('/workspaces/join-with-token', { token })
     return response.data
   },
 }

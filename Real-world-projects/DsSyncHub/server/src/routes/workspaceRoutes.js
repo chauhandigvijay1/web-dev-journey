@@ -6,6 +6,7 @@ const {
   inviteMember,
   joinWorkspaceByCode,
   joinWorkspace,
+  joinWorkspaceByToken,
   listMembers,
   listWorkspaces,
   removeMember,
@@ -21,6 +22,7 @@ router.use(authMiddleware)
 router.get('/', listWorkspaces)
 router.post('/', createWorkspace)
 router.post('/join', joinWorkspaceByCode)
+router.post('/join-with-token', joinWorkspaceByToken)
 router.get('/:id', getWorkspaceDetails)
 router.patch('/:id', updateWorkspace)
 router.delete('/:id', archiveWorkspace)
