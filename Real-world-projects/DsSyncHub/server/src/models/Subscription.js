@@ -51,6 +51,14 @@ const subscriptionSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
+    couponCode: {
+      type: String,
+      default: null,
+    },
+    couponType: {
+      type: String,
+      default: null,
+    },
   },
   { timestamps: true },
 )

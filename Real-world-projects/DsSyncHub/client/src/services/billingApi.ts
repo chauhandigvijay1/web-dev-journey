@@ -1,4 +1,4 @@
-import type { BillingConfig, BillingCurrent, BillingHistoryItem, CouponResult, SubscriptionPlan } from '../types/billing'
+import type { BillingConfig, BillingCurrent, BillingHistoryItem, CouponInfo, CouponResult, SubscriptionPlan } from '../types/billing'
 import { api } from './api'
 
 export const billingApi = {
@@ -25,6 +25,7 @@ export const billingApi = {
         currency: string
         workspaceId: string
         plan: SubscriptionPlan
+        appliedCoupon?: { code: string; type: string; value: number; durationMonths: number } | null
       }
     }>('/billing/checkout', { workspace: workspaceId, plan, ...(coupon ? { coupon } : {}) })
     return response.data
@@ -35,6 +36,7 @@ export const billingApi = {
     razorpayOrderId: string
     razorpayPaymentId: string
     razorpaySignature: string
+    couponCode?: string
   }) => {
     const response = await api.post('/billing/verify-payment', {
       workspace: payload.workspaceId,
@@ -42,11 +44,12 @@ export const billingApi = {
       razorpayOrderId: payload.razorpayOrderId,
       razorpayPaymentId: payload.razorpayPaymentId,
       razorpaySignature: payload.razorpaySignature,
+      couponCode: payload.couponCode,
     })
     return response.data
   },
-  applyCoupon: async (workspaceId: string, code: string) => {
-    const response = await api.post<CouponResult>('/billing/apply-coupon', { workspace: workspaceId, code })
+  applyCoupon: async (workspaceId: string, code: string, plan?: SubscriptionPlan) => {
+    const response = await api.post<CouponResult>('/billing/apply-coupon', { workspace: workspaceId, code, ...(plan ? { plan } : {}) })
     return response.data
   },
   cancel: async (workspaceId: string) => {
@@ -59,6 +62,14 @@ export const billingApi = {
   },
   config: async () => {
     const response = await api.get<BillingConfig>('/billing/config')
+    return response.data
+  },
+  listCoupons: async () => {
+    const response = await api.get<{ success: boolean; coupons: CouponInfo[] }>('/billing/coupons')
+    return response.data
+  },
+  seedCoupons: async () => {
+    const response = await api.post<{ success: boolean; message: string; coupons: string[] }>('/billing/seed-coupons')
     return response.data
   },
 }

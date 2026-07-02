@@ -1,4 +1,5 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
+import { AlertTriangle, CheckCircle, Clock, Copy, CreditCard, Gift, Ticket, XCircle } from 'lucide-react'
 import StorageUsageBar from '../../components/common/StorageUsageBar'
 import WorkspaceRequiredState from '../../components/common/WorkspaceRequiredState'
 import { useAppDispatch, useAppSelector } from '../../hooks/redux'
@@ -27,7 +28,6 @@ const loadRazorpayScript = async () =>
       resolve(true)
       return
     }
-
     const script = document.createElement('script')
     script.src = 'https://checkout.razorpay.com/v1/checkout.js'
     script.onload = () => resolve(true)
@@ -37,7 +37,7 @@ const loadRazorpayScript = async () =>
 
 const appName = import.meta.env.VITE_APP_NAME || 'DsSync Hub'
 
-const PLAN_FEATURES: { key: SubscriptionPlan; title: string; price: string; features: { label: string; free: boolean | string; pro: boolean | string }[] }[] = [
+const PLAN_FEATURES: { key: SubscriptionPlan; title: string; price: string; yearlyEquivalent?: string; features: { label: string; free: boolean | string; pro: boolean | string }[] }[] = [
   {
     key: 'free',
     title: 'Free',
@@ -74,6 +74,7 @@ const PLAN_FEATURES: { key: SubscriptionPlan; title: string; price: string; feat
     key: 'pro_yearly',
     title: 'Pro Yearly',
     price: '₹9,999/yr',
+    yearlyEquivalent: '≈ ₹833/mo',
     features: [
       { label: 'Workspaces', free: '1', pro: 'Unlimited' },
       { label: 'Members per workspace', free: '3', pro: 'Unlimited' },
@@ -94,15 +95,19 @@ const BillingPage = () => {
   const { current, history, loading } = useAppSelector((state) => state.billing)
   const [checkoutPlan, setCheckoutPlan] = useState<SubscriptionPlan | null>(null)
   const [couponCode, setCouponCode] = useState('')
-  const [couponApplied, setCouponApplied] = useState(false)
   const [applyingCoupon, setApplyingCoupon] = useState(false)
+  const [applyResult, setApplyResult] = useState<{ success: boolean; message: string; requiresCheckout?: boolean; discountedPlan?: SubscriptionPlan } | null>(null)
   const [billingConfig, setBillingConfig] = useState<BillingConfig | null>(null)
+  const [showCouponGuide, setShowCouponGuide] = useState(false)
 
   const activeWorkspace = workspaces.find((w) => w.id === activeWorkspaceId)
   const userRole = activeWorkspace?.role
   const canManageBilling = userRole === 'owner' || userRole === 'admin'
-  const isOnProPlan = current && current.subscription.plan !== 'free'
+  const isOnFreePlan = Boolean(current && current.subscription.plan === 'free')
+  const isOnProPlan = Boolean(current && current.subscription.plan !== 'free')
   const isCancelled = current?.subscription.status === 'cancelled'
+  const isExpired = current?.subscription.status === 'expired'
+  const hasActiveCoupon = Boolean(current?.activeCoupon?.code)
 
   useEffect(() => {
     if (!activeWorkspaceId) return
@@ -111,28 +116,47 @@ const BillingPage = () => {
     billingApi.config().then(setBillingConfig).catch(() => {})
   }, [dispatch, activeWorkspaceId])
 
-  if (!activeWorkspaceId) {
-    return <WorkspaceRequiredState description="Billing and storage usage are tracked per workspace plan, so select a workspace before reviewing subscription details." />
-  }
+  const availableCoupons = useMemo(() => {
+    if (!billingConfig?.coupons) return []
+    return billingConfig.coupons.filter((c) => c.type !== 'owner' || billingConfig.hasOwnerCoupon)
+  }, [billingConfig])
+
+  const handleCopyCode = useCallback(async (code: string) => {
+    try {
+      await navigator.clipboard.writeText(code)
+      dispatch(pushToast({ title: 'Copied', description: `Coupon code "${code}" copied to clipboard.`, tone: 'success' }))
+    } catch {
+      dispatch(pushToast({ title: 'Failed to copy', description: 'Could not copy to clipboard.', tone: 'error' }))
+    }
+  }, [dispatch])
 
   const handleApplyCoupon = async () => {
     if (!couponCode.trim() || !activeWorkspaceId) return
     setApplyingCoupon(true)
+    setApplyResult(null)
     try {
       const result = await billingApi.applyCoupon(activeWorkspaceId, couponCode.trim())
+      setApplyResult({ success: result.success, message: result.message, requiresCheckout: result.requiresCheckout, discountedPlan: result.discountedPlan })
       if (result.success) {
-        setCouponApplied(true)
-        dispatch(pushToast({ title: 'Coupon applied', description: result.message, tone: 'success' }))
-        dispatch(fetchBillingCurrentThunk(activeWorkspaceId))
+        if (!result.requiresCheckout) {
+          dispatch(pushToast({ title: 'Coupon applied', description: result.message, tone: 'success' }))
+          dispatch(fetchBillingCurrentThunk(activeWorkspaceId))
+        } else {
+          dispatch(pushToast({ title: 'Coupon matched', description: 'Proceed with checkout to apply the discount.', tone: 'info' }))
+        }
+      } else {
+        dispatch(pushToast({ title: 'Coupon failed', description: result.message, tone: 'error' }))
       }
     } catch (error) {
-      dispatch(pushToast({ title: 'Coupon failed', description: getApiErrorMessage(error, 'Invalid coupon code.'), tone: 'error' }))
+      const msg = getApiErrorMessage(error, 'Invalid coupon code.')
+      setApplyResult({ success: false, message: msg })
+      dispatch(pushToast({ title: 'Coupon failed', description: msg, tone: 'error' }))
     } finally {
       setApplyingCoupon(false)
     }
   }
 
-  const handleCheckout = async (plan: SubscriptionPlan) => {
+  const handleCheckout = async (plan: SubscriptionPlan, couponOverride?: string) => {
     if (!activeWorkspaceId || plan === 'free') return
     setCheckoutPlan(plan)
     try {
@@ -141,7 +165,8 @@ const BillingPage = () => {
         throw new Error('Razorpay checkout failed to load.')
       }
 
-      const checkoutResponse = await billingApi.checkout(activeWorkspaceId, plan, couponApplied ? couponCode.trim() : undefined)
+      const activeCoupon = couponOverride || (applyResult?.requiresCheckout ? couponCode.trim() : undefined)
+      const checkoutResponse = await billingApi.checkout(activeWorkspaceId, plan, activeCoupon)
       const checkout = checkoutResponse.checkout
 
       const razorpay = new window.Razorpay({
@@ -158,43 +183,58 @@ const BillingPage = () => {
             razorpayOrderId: paymentResponse.razorpay_order_id,
             razorpayPaymentId: paymentResponse.razorpay_payment_id,
             razorpaySignature: paymentResponse.razorpay_signature,
+            couponCode: activeCoupon,
           })
+          setApplyResult(null)
           await dispatch(fetchBillingCurrentThunk(activeWorkspaceId))
           await dispatch(fetchBillingHistoryThunk(activeWorkspaceId))
-          dispatch(
-            pushToast({
-              title: 'Subscription updated',
-              description: 'Payment completed and your plan is now active.',
-              tone: 'success',
-            }),
-          )
+          dispatch(pushToast({ title: 'Subscription updated', description: 'Payment completed and your plan is now active.', tone: 'success' }))
         },
       })
       razorpay.open()
     } catch (error) {
-      dispatch(
-        pushToast({
-          title: 'Checkout failed',
-          description: getApiErrorMessage(error, 'Unable to start checkout right now.'),
-          tone: 'error',
-        }),
-      )
+      dispatch(pushToast({ title: 'Checkout failed', description: getApiErrorMessage(error, 'Unable to start checkout right now.'), tone: 'error' }))
     } finally {
       setCheckoutPlan(null)
     }
+  }
+
+  const handleCancel = async () => {
+    if (!activeWorkspaceId) return
+    try {
+      await dispatch(cancelBillingThunk(activeWorkspaceId)).unwrap()
+      dispatch(pushToast({ title: 'Plan cancelled', description: 'Your subscription has been cancelled. Pro features will remain active until the end of the billing period.', tone: 'success' }))
+    } catch (error) {
+      dispatch(pushToast({ title: 'Cancel failed', description: getApiErrorMessage(error, 'Unable to cancel subscription.'), tone: 'error' }))
+    }
+  }
+
+  const handleResume = async () => {
+    if (!activeWorkspaceId) return
+    try {
+      await dispatch(resumeBillingThunk(activeWorkspaceId)).unwrap()
+      dispatch(pushToast({ title: 'Plan resumed', description: 'Your subscription has been reactivated.', tone: 'success' }))
+    } catch (error) {
+      dispatch(pushToast({ title: 'Resume failed', description: getApiErrorMessage(error, 'Unable to resume subscription.'), tone: 'error' }))
+    }
+  }
+
+  if (!activeWorkspaceId) {
+    return <WorkspaceRequiredState description="Billing and storage usage are tracked per workspace plan, so select a workspace before reviewing subscription details." />
   }
 
   return (
     <section className="space-y-4 pb-5">
       {!canManageBilling && (
         <div className="rounded-2xl border border-amber-500/30 bg-amber-500/10 p-4 text-sm text-amber-300">
+          <AlertTriangle className="mr-2 inline-block size-4" />
           Only workspace admins and owners can manage billing and apply coupons.
           Contact your workspace owner to upgrade the plan.
         </div>
       )}
 
       <article className="rounded-2xl border border-white/10 glass-panel p-5">
-        <h1 className="text-2xl font-semibold">Billing</h1>
+        <h1 className="text-2xl font-semibold">Billing & Subscription</h1>
         {loading || !current ? (
           <p className="mt-2 text-sm text-zinc-500">Loading billing details...</p>
         ) : (
@@ -204,32 +244,42 @@ const BillingPage = () => {
               <p className="text-lg font-semibold capitalize">{current.subscription.plan.replace('_', ' ')}</p>
               <p className="text-xs text-zinc-500">
                 Status:{' '}
-                <span className={`${current.subscription.status === 'active' ? 'text-emerald-400' : current.subscription.status === 'cancelled' ? 'text-rose-400' : 'text-zinc-400'}`}>
+                <span className={`${current.subscription.status === 'active' ? 'text-emerald-400' : current.subscription.status === 'cancelled' ? 'text-rose-400' : current.subscription.status === 'expired' ? 'text-zinc-500' : 'text-amber-400'}`}>
                   {current.subscription.status}
                 </span>
               </p>
-              <p className="text-xs text-zinc-500">
-                {isOnProPlan
-                  ? `Renews: ${new Date(current.subscription.currentPeriodEnd).toLocaleDateString()}`
-                  : 'No renewal needed'}
-              </p>
+              {isOnProPlan && (
+                <p className="text-xs text-zinc-500">
+                  {isCancelled ? 'Ends' : 'Renews'}: {new Date(current.subscription.currentPeriodEnd).toLocaleDateString()}
+                </p>
+              )}
+              {hasActiveCoupon && (
+                <p className="mt-1 text-xs text-emerald-400">
+                  <Gift className="mr-1 inline-block size-3" />
+                  Coupon: {current.activeCoupon!.code}
+                  {current.activeCoupon!.benefitExpiresAt && (
+                    <span className="text-zinc-500"> (until {new Date(current.activeCoupon!.benefitExpiresAt).toLocaleDateString()})</span>
+                  )}
+                </p>
+              )}
               {canManageBilling && (
                 <div className="mt-3 flex flex-wrap gap-2">
-                  {isOnProPlan && !isCancelled && (
-                    <button className="rounded-xl border border-white/10 px-3 py-2 text-xs dark:border-zinc-700 disabled:opacity-60" disabled={loading} onClick={() => activeWorkspaceId && dispatch(cancelBillingThunk(activeWorkspaceId))} type="button">Cancel Plan</button>
+                  {isOnProPlan && !isCancelled && !isExpired && (
+                    <button className="rounded-xl border border-rose-500/30 px-3 py-2 text-xs text-rose-400 hover:bg-rose-500/10 disabled:opacity-60" disabled={loading} onClick={handleCancel} type="button">
+                      <XCircle className="mr-1 inline-block size-3" />
+                      Cancel Plan
+                    </button>
                   )}
-                  {isCancelled && (
-                    <button className="rounded-xl border border-white/10 px-3 py-2 text-xs dark:border-zinc-700 disabled:opacity-60" disabled={loading} onClick={() => activeWorkspaceId && dispatch(resumeBillingThunk(activeWorkspaceId))} type="button">Resume Plan</button>
-                  )}
-                  {!isOnProPlan && billingConfig?.razorpayConfigured && (
-                    <button className="rounded-xl bg-brand-500 px-3 py-2 text-xs text-white disabled:opacity-60" disabled={checkoutPlan !== null} onClick={() => handleCheckout('pro_monthly')} type="button">Upgrade to Pro</button>
-                  )}
-                  {!isOnProPlan && !billingConfig?.razorpayConfigured && (
-                    <span className="rounded-xl border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-xs text-amber-300">Razorpay not configured</span>
+                  {(isCancelled || isExpired) && (
+                    <button className="rounded-xl border border-emerald-500/30 px-3 py-2 text-xs text-emerald-400 hover:bg-emerald-500/10 disabled:opacity-60" disabled={loading} onClick={handleResume} type="button">
+                      <CheckCircle className="mr-1 inline-block size-3" />
+                      Resume Plan
+                    </button>
                   )}
                 </div>
               )}
             </div>
+
             <div className="rounded-xl border border-white/10 p-3 dark:border-zinc-700">
               <p className="text-sm text-zinc-500">Usage</p>
               <p className="text-sm">
@@ -246,30 +296,98 @@ const BillingPage = () => {
                 Storage: {current.usage.storageUsedMb.toFixed(1)}MB
                 <span className="text-xs text-zinc-500"> / {current.usage.storageLimitMb}MB</span>
               </p>
+              {!isOnFreePlan && (
+                <p className="mt-2 text-xs text-zinc-500">
+                  <Clock className="mr-1 inline-block size-3" />
+                  Period: {new Date(current.subscription.currentPeriodStart).toLocaleDateString()} &ndash; {new Date(current.subscription.currentPeriodEnd).toLocaleDateString()}
+                </p>
+              )}
             </div>
+
             {canManageBilling && (
-              <div className="rounded-xl border border-amber-500/30 p-3 dark:border-zinc-700">
-                <p className="text-sm text-zinc-500">Coupon code</p>
+              <div className="rounded-xl border border-white/10 p-3 dark:border-zinc-700">
+                <p className="text-sm text-zinc-500">
+                  <Ticket className="mr-1 inline-block size-3" />
+                  Apply coupon
+                </p>
                 <div className="mt-2 flex gap-2">
                   <input
                     className="flex-1 rounded-lg border border-white/10 bg-transparent px-3 py-2 text-xs outline-none focus:border-brand-500 dark:border-zinc-700"
                     placeholder="Enter coupon code"
                     value={couponCode}
-                    onChange={(e) => { setCouponCode(e.target.value); setCouponApplied(false) }}
+                    onChange={(e) => { setCouponCode(e.target.value); setApplyResult(null) }}
                     disabled={applyingCoupon}
                   />
                   <button
                     className="rounded-lg bg-brand-500 px-3 py-2 text-xs text-white disabled:opacity-60"
-                    disabled={applyingCoupon || !couponCode.trim() || couponApplied}
+                    disabled={applyingCoupon || !couponCode.trim()}
                     onClick={handleApplyCoupon}
                     type="button"
                   >
-                    {applyingCoupon ? 'Applying...' : couponApplied ? 'Applied' : 'Apply'}
+                    {applyingCoupon ? 'Applying...' : 'Apply'}
                   </button>
                 </div>
-                {couponApplied && <p className="mt-1 text-xs text-emerald-400">Coupon applied successfully!</p>}
+                {applyResult && (
+                  <p className={`mt-1 text-xs ${applyResult.success ? 'text-emerald-400' : 'text-rose-400'}`}>
+                    {applyResult.message}
+                  </p>
+                )}
+                {applyResult?.requiresCheckout && applyResult.discountedPlan && (
+                  <button
+                    className="mt-2 w-full rounded-lg bg-brand-500 px-3 py-2 text-xs text-white disabled:opacity-60"
+                    disabled={checkoutPlan !== null}
+                    onClick={() => handleCheckout(applyResult.discountedPlan!, couponCode.trim())}
+                    type="button"
+                  >
+                    <CreditCard className="mr-1 inline-block size-3" />
+                    Proceed to checkout (discounted)
+                  </button>
+                )}
+                <button
+                  className="mt-2 text-xs text-brand-500 hover:underline"
+                  onClick={() => setShowCouponGuide(!showCouponGuide)}
+                  type="button"
+                >
+                  {showCouponGuide ? 'Hide available coupons' : 'Show available coupons'}
+                </button>
               </div>
             )}
+          </div>
+        )}
+
+        {showCouponGuide && availableCoupons.length > 0 && (
+          <div className="mt-4 rounded-xl border border-brand-500/20 bg-brand-500/5 p-4">
+            <p className="mb-2 text-sm font-semibold text-brand-400">Available coupon codes</p>
+            <div className="grid gap-2 sm:grid-cols-2">
+              {availableCoupons.map((coupon) => (
+                <div className="rounded-lg border border-white/10 p-3 dark:border-zinc-700" key={coupon.code}>
+                  <div className="flex items-center justify-between">
+                    <code className="rounded bg-zinc-800 px-2 py-0.5 text-sm font-mono text-brand-300">{coupon.code}</code>
+                    <button
+                      className="text-zinc-500 hover:text-zinc-300"
+                      onClick={() => handleCopyCode(coupon.code)}
+                      title="Copy code"
+                      type="button"
+                    >
+                      <Copy className="size-3.5" />
+                    </button>
+                  </div>
+                  <p className="mt-1 text-xs text-zinc-400">{coupon.description}</p>
+                  <p className="mt-0.5 text-xs text-zinc-500">
+                    Valid for: {coupon.applicablePlans.map((p) => p.replace('_', ' ')).join(', ')}
+                  </p>
+                  {coupon.type === 'percentage' && (
+                    <p className="text-xs text-emerald-400">{coupon.value}% off &bull; {coupon.durationMonths} month(s)</p>
+                  )}
+                  {coupon.type === 'free_trial' && (
+                    <p className="text-xs text-amber-400">{coupon.durationMonths} month(s) free trial</p>
+                  )}
+                  {coupon.type === 'owner' && (
+                    <p className="text-xs text-purple-400">Owner coupon &bull; 1 year free</p>
+                  )}
+                </div>
+              ))}
+            </div>
           </div>
         )}
       </article>
@@ -295,6 +413,9 @@ const BillingPage = () => {
                   <th key={plan.key} className="p-3 text-center font-semibold">
                     {plan.title}
                     <p className="text-xs font-normal text-zinc-500">{plan.price}</p>
+                    {plan.yearlyEquivalent && (
+                      <p className="text-xs text-emerald-400">{plan.yearlyEquivalent}</p>
+                    )}
                   </th>
                 ))}
               </tr>
@@ -322,24 +443,45 @@ const BillingPage = () => {
               ))}
               <tr>
                 <td className="p-3" />
-                {PLAN_FEATURES.map((plan) => (
-                  <td key={plan.key} className="p-3 text-center">
-                    <button
-                      className="rounded-lg border border-white/10 px-4 py-2 text-xs dark:border-zinc-700 disabled:opacity-60"
-                      disabled={checkoutPlan === plan.key || (!canManageBilling && plan.key !== 'free') || (plan.key !== 'free' && !billingConfig?.razorpayConfigured)}
-                      onClick={() => plan.key !== 'free' && handleCheckout(plan.key as 'pro_monthly' | 'pro_yearly')}
-                      type="button"
-                    >
-                      {current?.subscription.plan === plan.key
-                        ? 'Current Plan'
-                        : plan.key === 'free'
-                          ? 'Free'
-                          : !billingConfig?.razorpayConfigured
-                            ? 'Payment not configured'
-                            : 'Choose Plan'}
-                    </button>
-                  </td>
-                ))}
+                {PLAN_FEATURES.map((plan) => {
+                  const isCurrentPlan = current?.subscription.plan === plan.key || (plan.key === 'free' && isOnFreePlan)
+                  const isDisabled = !canManageBilling && plan.key !== 'free'
+                  const needsPayment = plan.key !== 'free' && !billingConfig?.razorpayConfigured
+                  const isOwnerCouponActive = hasActiveCoupon && current?.activeCoupon?.type === 'owner'
+
+                  let buttonLabel = 'Choose Plan'
+                  if (isCurrentPlan && !isCancelled && !isExpired) {
+                    buttonLabel = 'Current Plan'
+                  } else if (isCurrentPlan && (isCancelled || isExpired)) {
+                    buttonLabel = 'Resume Plan'
+                  } else if (plan.key === 'free') {
+                    buttonLabel = 'Free'
+                  } else if (needsPayment) {
+                    buttonLabel = 'Payment not configured'
+                  } else if (isOwnerCouponActive) {
+                    buttonLabel = 'Unavailable'
+                  }
+
+                  return (
+                    <td key={plan.key} className="p-3 text-center">
+                      <button
+                        className="rounded-lg border border-white/10 px-4 py-2 text-xs dark:border-zinc-700 disabled:opacity-60"
+                        disabled={isDisabled || checkoutPlan !== null || (plan.key !== 'free' && needsPayment) || (isCurrentPlan && !isCancelled && !isExpired) || (isOwnerCouponActive && plan.key !== 'free')}
+                        onClick={() => {
+                          if (plan.key === 'free') return
+                          if (isCurrentPlan && (isCancelled || isExpired)) {
+                            handleResume()
+                            return
+                          }
+                          handleCheckout(plan.key as 'pro_monthly' | 'pro_yearly')
+                        }}
+                        type="button"
+                      >
+                        {buttonLabel}
+                      </button>
+                    </td>
+                  )
+                })}
               </tr>
             </tbody>
           </table>

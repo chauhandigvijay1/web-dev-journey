@@ -7,7 +7,9 @@ const {
   checkoutBilling,
   getBillingHistory,
   getCurrentBilling,
+  listCoupons,
   resumeBilling,
+  seedCouponsEndpoint,
   verifyBillingPayment,
 } = require('../controllers/billingController')
 
@@ -17,9 +19,11 @@ router.use(authMiddleware)
 router.get('/current', getCurrentBilling)
 router.get('/history', getBillingHistory)
 router.get('/config', billingConfig)
+router.get('/coupons', listCoupons)
 router.post('/checkout', checkoutBilling)
 router.post('/verify-payment', verifyBillingPayment)
 router.post('/apply-coupon', applyCoupon)
+router.post('/seed-coupons', seedCouponsEndpoint)
 router.patch('/cancel', cancelBilling)
 router.patch('/resume', resumeBilling)
 
