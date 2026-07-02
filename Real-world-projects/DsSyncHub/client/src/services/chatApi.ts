@@ -1,5 +1,5 @@
 import { api } from './api'
-import type { ChannelItem, ChatMessage } from '../types/chat'
+import type { ChannelItem, ChatMessage, MessageReaction } from '../types/chat'
 import type { FileAttachment } from '../types/file'
 
 export const chatApi = {
@@ -59,6 +59,13 @@ export const chatApi = {
   deleteMessage: async (messageId: string) => {
     const response = await api.delete<{ success: boolean; messageId: string }>(
       `/chat/message/${messageId}`,
+    )
+    return response.data
+  },
+  addReaction: async (messageId: string, emoji: string) => {
+    const response = await api.post<{ success: boolean; message: ChatMessage }>(
+      `/chat/message/${messageId}/reaction`,
+      { emoji },
     )
     return response.data
   },

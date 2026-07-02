@@ -147,6 +147,12 @@ const registerChatSocket = (io) => {
     socket.on('mark_seen', async ({ messageIds = [], workspaceId }) => {
       try {
         if (!workspaceId || !Array.isArray(messageIds) || !messageIds.length) return
+        const membership = await Membership.findOne({
+          user: socket.user._id,
+          workspace: workspaceId,
+          status: 'active',
+        })
+        if (!membership) return
         await Message.updateMany(
           { _id: { $in: messageIds }, workspace: workspaceId },
           { $addToSet: { seenBy: socket.user._id } },
@@ -197,6 +203,40 @@ const registerChatSocket = (io) => {
           messageId: message._id.toString(),
         })
       } catch (err) { console.error('Socket error in delete_message:', err) }
+    })
+
+    socket.on('add_reaction', async ({ messageId, emoji }) => {
+      try {
+        if (!messageId || !emoji) return
+        const message = await Message.findById(messageId)
+        if (!message || message.deletedAt) return
+        const membership = await Membership.findOne({
+          user: socket.user._id,
+          workspace: message.workspace,
+          status: 'active',
+        })
+        if (!membership) return
+
+        const existingReaction = message.reactions.find((r) => r.emoji === emoji)
+        if (existingReaction) {
+          const userIndex = existingReaction.users.indexOf(socket.user._id)
+          if (userIndex > -1) {
+            existingReaction.users.splice(userIndex, 1)
+            if (existingReaction.users.length === 0) {
+              message.reactions.pull({ _id: existingReaction._id })
+            }
+          } else {
+            existingReaction.users.push(socket.user._id)
+          }
+        } else {
+          message.reactions.push({ emoji, users: [socket.user._id] })
+        }
+        await message.save()
+        const populated = await Message.findById(message._id).populate('sender', 'fullName email avatarUrl').populate({ path: 'replyTo', select: 'content sender', populate: { path: 'sender', select: 'fullName' } })
+        io.to(`workspace:${message.workspace}`).emit('message_reaction', {
+          message: populated,
+        })
+      } catch (err) { console.error('Socket error in add_reaction:', err) }
     })
 
     socket.on('disconnect', () => {

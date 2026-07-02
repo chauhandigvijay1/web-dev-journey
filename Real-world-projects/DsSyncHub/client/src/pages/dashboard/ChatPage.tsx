@@ -1,19 +1,25 @@
 import {
   Copy,
+  Download,
+  FileIcon,
+  Image,
   Paperclip,
   Pencil,
   Phone,
   Plus,
+  Reply,
   Search,
   Send,
   Smile,
   Trash2,
   Users,
+  X,
 } from 'lucide-react'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import AIAssistantDrawer from '../../components/ai/AIAssistantDrawer'
 import Avatar from '../../components/common/Avatar'
+import EmojiPicker from '../../components/common/EmojiPicker'
 import EmptyState from '../../components/common/EmptyState'
 import MentionText from '../../components/common/MentionText'
 import PlanUpgradeModal from '../../components/common/PlanUpgradeModal'
@@ -23,6 +29,7 @@ import { useAppDispatch, useAppSelector } from '../../hooks/redux'
 import { apiBaseUrl } from '../../services/api'
 import { connectSocket } from '../../services/socket'
 import {
+  addReactionThunk,
   createChannelThunk,
   deleteMessageThunk,
   editMessageThunk,
@@ -36,8 +43,254 @@ import {
 import { uploadFileThunk } from '../../store/fileSlice'
 import { pushToast } from '../../store/toastSlice'
 import { fetchWorkspaceMembersThunk } from '../../store/workspaceSlice'
+import type { ChatMessage } from '../../types/chat'
 import { getApiErrorCode, getApiErrorMessage } from '../../utils/errors'
 import { applyMentionSelection, extractMentionIds, getMentionHandle, getMentionQuery } from '../../utils/mentions'
+
+const ALLOWED_FILE_TYPES = [
+  'image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/svg+xml',
+  'application/pdf',
+  'text/plain', 'text/csv',
+  'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+  'application/vnd.ms-excel', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+  'application/zip', 'application/x-rar-compressed',
+  'video/mp4', 'video/webm',
+  'audio/mpeg', 'audio/ogg', 'audio/wav',
+]
+const MAX_FILE_SIZE = 50 * 1024 * 1024
+
+const COMMON_REACTIONS = ['👍', '❤️', '😂', '😮', '😢', '🔥']
+
+const buildAssetUrl = (url: string) => `${apiBaseUrl.replace(/\/api$/, '')}${url}`
+
+const getFileIcon = (mimeType: string) => {
+  if (mimeType.startsWith('image/')) return Image
+  if (mimeType.startsWith('video/')) return FileIcon
+  if (mimeType.startsWith('audio/')) return FileIcon
+  if (mimeType === 'application/pdf') return FileIcon
+  return Paperclip
+}
+
+const formatFileSize = (bytes: number) => {
+  if (bytes < 1024) return `${bytes} B`
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`
+}
+
+const MessageBubble = ({
+  message,
+  members,
+  userId,
+  grouped,
+  editingMessageId,
+  editingText,
+  setEditingMessageId,
+  setEditingText,
+  socket,
+  dispatch,
+  onReply,
+}: {
+  message: ChatMessage
+  members: Array<{ userId: string; fullName: string; avatarUrl: string; email: string }>
+  userId?: string
+  grouped: boolean
+  editingMessageId: string | null
+  editingText: string
+  setEditingMessageId: (id: string | null) => void
+  setEditingText: (text: string) => void
+  socket: any
+  dispatch: any
+  onReply: (message: ChatMessage) => void
+}) => {
+  const isOwner = message.sender._id === userId
+
+  const handleReaction = (emoji: string) => {
+    dispatch(addReactionThunk({ messageId: message._id, emoji }))
+    socket.emit('add_reaction', { messageId: message._id, emoji })
+  }
+
+  const userReacted = (emoji: string) =>
+    message.reactions?.some((r) => r.emoji === emoji && r.users.includes(userId || ''))
+
+  return (
+    <div className={`group flex gap-3 ${grouped ? 'mt-0.5' : 'mt-3'}`}>
+      {!grouped ? (
+        <Avatar className="mt-1" name={message.sender.fullName} size="sm" src={message.sender.avatarUrl} />
+      ) : (
+        <div className="w-8 shrink-0" />
+      )}
+      <div className="min-w-0 flex-1">
+        {!grouped && (
+          <p className="mb-0.5 text-sm font-semibold text-white drop-shadow-md">
+            {message.sender.fullName}{' '}
+            <span className="text-xs font-normal text-zinc-500">
+              {new Date(message.createdAt).toLocaleTimeString()}
+            </span>
+          </p>
+        )}
+        {message.replyTo && (
+          <div className="mb-1 flex items-center gap-1.5 border-l-2 border-brand-500/50 pl-2 text-xs text-zinc-400">
+            <Reply size={10} />
+            <span className="truncate max-w-[200px]">
+              Replying to <strong>{message.replyTo.sender?.fullName || 'someone'}</strong>: {message.replyTo.content}
+            </span>
+          </div>
+        )}
+        {editingMessageId === message._id ? (
+          <div className="flex gap-2">
+            <input
+              className="flex-1 rounded-lg border border-white/10 px-2 py-1 text-sm dark:border-zinc-700 bg-black/20"
+              onChange={(event) => setEditingText(event.target.value)}
+              value={editingText}
+            />
+            <button
+              className="rounded-lg bg-zinc-900 px-2 py-1 text-xs text-white dark:glass-card"
+              onClick={() => {
+                dispatch(editMessageThunk({ messageId: message._id, content: editingText }))
+                socket.emit('edit_message', { messageId: message._id, content: editingText })
+                setEditingMessageId(null)
+                setEditingText('')
+              }}
+              type="button"
+            >
+              Save
+            </button>
+          </div>
+        ) : (
+          <div className="rounded-xl glass-card/10 px-3 py-2 text-sm dark:bg-zinc-800">
+            <MentionText members={members as any} text={message.content} />
+            {message.editedAt && (
+              <span className="ml-2 text-[11px] text-zinc-500">(edited)</span>
+            )}
+            {message.attachments.length > 0 && (
+              <div className="mt-2 flex flex-col gap-2">
+                {message.attachments.map((attachment) => {
+                  const isImage = attachment.mimeType?.startsWith('image/')
+                  const FileTypeIcon = getFileIcon(attachment.mimeType || '')
+                  const url = buildAssetUrl(attachment.url)
+
+                  return (
+                    <div className="overflow-hidden rounded-xl border border-white/10 dark:border-zinc-700" key={attachment.fileId || attachment.url}>
+                      {isImage ? (
+                        <a href={url} rel="noreferrer" target="_blank">
+                          <img
+                            alt={attachment.name}
+                            className="max-h-64 w-full object-cover"
+                            src={url}
+                            onError={(e) => {
+                              (e.target as HTMLImageElement).style.display = 'none'
+                            }}
+                          />
+                        </a>
+                      ) : null}
+                      <div className="flex items-center gap-2 px-3 py-2 text-xs">
+                        <FileTypeIcon size={14} className="shrink-0 text-zinc-400" />
+                        <span className="min-w-0 flex-1 truncate">{attachment.name}</span>
+                        <span className="shrink-0 text-zinc-500">{formatFileSize(attachment.size)}</span>
+                        <a
+                          className="flex items-center gap-1 rounded-md border border-white/10 px-2 py-1 text-zinc-400 hover:text-white dark:border-zinc-700"
+                          download={attachment.name}
+                          href={url}
+                          rel="noreferrer"
+                          target="_blank"
+                        >
+                          <Download size={12} />
+                        </a>
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            )}
+          </div>
+        )}
+        <div className="mt-1 flex items-center gap-1">
+          {message.reactions && message.reactions.length > 0 && (
+            <div className="flex flex-wrap gap-1">
+              {message.reactions.map((reaction) => (
+                <button
+                  className={`flex items-center gap-1 rounded-full border px-2 py-0.5 text-xs transition ${
+                    reaction.users.includes(userId || '')
+                      ? 'border-brand-500/50 bg-brand-500/10 text-brand-400'
+                      : 'border-white/10 text-zinc-400 hover:border-zinc-500 dark:border-zinc-700'
+                  }`}
+                  key={reaction._id}
+                  onClick={() => handleReaction(reaction.emoji)}
+                  type="button"
+                >
+                  {reaction.emoji}
+                  <span>{reaction.users.length}</span>
+                </button>
+              ))}
+            </div>
+          )}
+          {editingMessageId !== message._id && (
+            <div className="flex gap-0.5 opacity-0 transition group-hover:opacity-100">
+              <button
+                className="rounded-md border border-transparent p-1 text-xs text-zinc-500 hover:border-white/10 hover:text-white"
+                onClick={() => onReply(message)}
+                title="Reply"
+                type="button"
+              >
+                <Reply size={12} />
+              </button>
+              {COMMON_REACTIONS.map((emoji) => (
+                <button
+                  className={`rounded-md border border-transparent p-0.5 text-xs hover:border-white/10 ${
+                    userReacted(emoji) ? 'opacity-100' : 'opacity-0 group-hover:opacity-60'
+                  }`}
+                  key={emoji}
+                  onClick={() => handleReaction(emoji)}
+                  type="button"
+                >
+                  {emoji}
+                </button>
+              ))}
+              {isOwner && (
+                <>
+                  <button
+                    className="rounded-md border border-transparent p-1 text-xs text-zinc-500 hover:border-white/10 hover:text-white"
+                    onClick={() => {
+                      setEditingMessageId(message._id)
+                      setEditingText(message.content)
+                    }}
+                    type="button"
+                  >
+                    <Pencil size={12} />
+                  </button>
+                  <button
+                    className="rounded-md border border-transparent p-1 text-xs text-zinc-500 hover:border-white/10 hover:text-white"
+                    onClick={async () => {
+                      await navigator.clipboard.writeText(message.content)
+                      dispatch(pushToast({
+                        title: 'Message copied',
+                        description: 'The selected chat message is now on your clipboard.',
+                        tone: 'success',
+                      }))
+                    }}
+                    type="button"
+                  >
+                    <Copy size={12} />
+                  </button>
+                  <button
+                    className="rounded-md border border-transparent p-1 text-xs text-rose-500 hover:border-rose-900/40"
+                    onClick={() => {
+                      dispatch(deleteMessageThunk(message._id))
+                      socket.emit('delete_message', { messageId: message._id })
+                    }}
+                    type="button"
+                  >
+                    <Trash2 size={12} />
+                  </button>
+                </>
+              )}
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  )
+}
 
 const ChatPage = () => {
   const dispatch = useAppDispatch()
@@ -61,6 +314,9 @@ const ChatPage = () => {
   const [editingText, setEditingText] = useState('')
   const [cursorPosition, setCursorPosition] = useState(0)
   const [upgradeOpen, setUpgradeOpen] = useState(false)
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false)
+  const [showPeoplePicker, setShowPeoplePicker] = useState(false)
+  const [replyToMessage, setReplyToMessage] = useState<ChatMessage | null>(null)
   const listRef = useRef<HTMLDivElement | null>(null)
   const composerRef = useRef<HTMLTextAreaElement | null>(null)
   const fileInputRef = useRef<HTMLInputElement | null>(null)
@@ -130,7 +386,6 @@ const ChatPage = () => {
     () => members.find((member) => member.userId === directUserId),
     [members, directUserId],
   )
-  const buildAssetUrl = (url: string) => `${apiBaseUrl.replace(/\/api$/, '')}${url}`
   const sharedAttachmentCount = useMemo(
     () => messages.reduce((total, message) => total + message.attachments.length, 0),
     [messages],
@@ -157,15 +412,19 @@ const ChatPage = () => {
 
   const sendMessage = async () => {
     if (!activeWorkspaceId || !messageText.trim()) return
-    const payload = {
+    const payload: any = {
       workspace: activeWorkspaceId,
       channel: currentChannelId,
       recipient: directUserId,
       content: messageText.trim(),
       mentions: extractMentionIds(messageText, members),
     }
+    if (replyToMessage) {
+      payload.replyTo = replyToMessage._id
+    }
     await dispatch(sendMessageThunk(payload))
     setMessageText('')
+    setReplyToMessage(null)
   }
 
   const typingStart = () => {
@@ -248,7 +507,7 @@ const ChatPage = () => {
         <main className="flex min-w-0 flex-1 flex-col rounded-2xl border border-white/10 glass-card shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
           <header className="flex items-center justify-between border-b border-white/10 px-4 py-3 dark:border-zinc-800">
             <div>
-              <h1 className="text-lg font-semibold text-white font-semibold drop-shadow-md">
+              <h1 className="text-lg font-semibold text-white drop-shadow-md">
                 {directUserId
                   ? currentDirectUser?.fullName || 'Direct message'
                   : currentChannel
@@ -303,106 +562,25 @@ const ChatPage = () => {
                 />
               </div>
             ) : (
-              <div className="space-y-3">
+              <div className="space-y-1">
                 {filteredMessages.map((message, index) => {
                   const previous = filteredMessages[index - 1]
                   const grouped = previous && previous.sender._id === message.sender._id
                   return (
-                    <div className="group flex gap-3" key={message._id}>
-                      {!grouped ? (
-                        <Avatar className="mt-1" name={message.sender.fullName} size="sm" src={message.sender.avatarUrl} />
-                      ) : (
-                        <div className="w-8" />
-                      )}
-                      <div className="min-w-0 flex-1">
-                        {!grouped && (
-                          <p className="mb-0.5 text-sm font-semibold text-white font-semibold drop-shadow-md">
-                            {message.sender.fullName}{' '}
-                            <span className="text-xs font-normal text-zinc-500">
-                              {new Date(message.createdAt).toLocaleTimeString()}
-                            </span>
-                          </p>
-                        )}
-                        {editingMessageId === message._id ? (
-                          <div className="flex gap-2">
-                            <input
-                              className="flex-1 rounded-lg border border-white/10 px-2 py-1 text-sm dark:border-zinc-700 bg-black/20"
-                              onChange={(event) => setEditingText(event.target.value)}
-                              value={editingText}
-                            />
-                            <button
-                              className="rounded-lg bg-zinc-900 px-2 py-1 text-xs text-white dark:glass-card dark:text-white"
-                              onClick={() => {
-                                dispatch(editMessageThunk({ messageId: message._id, content: editingText }))
-                                socket.emit('edit_message', {
-                                  messageId: message._id,
-                                  content: editingText,
-                                })
-                                setEditingMessageId(null)
-                                setEditingText('')
-                              }}
-                              type="button"
-                            >
-                              Save
-                            </button>
-                          </div>
-                        ) : (
-                          <div className="rounded-xl glass-card/10 px-3 py-2 text-sm dark:bg-zinc-800">
-                            <MentionText members={members} text={message.content} />
-                            {message.attachments.length > 0 && (
-                              <div className="mt-3 flex flex-wrap gap-2">
-                                {message.attachments.map((attachment) => (
-                                  <a className="rounded-full glass-card px-3 py-1 text-xs text-zinc-700 dark:bg-zinc-900 dark:text-zinc-200" href={buildAssetUrl(attachment.url)} key={attachment.fileId || attachment.url} rel="noreferrer" target="_blank">
-                                    {attachment.name}
-                                  </a>
-                                ))}
-                              </div>
-                            )}
-                            {message.editedAt && (
-                              <span className="ml-2 text-[11px] text-zinc-500">(edited)</span>
-                            )}
-                          </div>
-                        )}
-                        {message.sender._id === user?.id && editingMessageId !== message._id && (
-                          <div className="mt-1 flex gap-1 opacity-0 transition group-hover:opacity-100">
-                            <button
-                              className="rounded-md border border-white/10 p-1 text-xs dark:border-zinc-700"
-                              onClick={() => {
-                                setEditingMessageId(message._id)
-                                setEditingText(message.content)
-                              }}
-                              type="button"
-                            >
-                              <Pencil size={12} />
-                            </button>
-                            <button
-                              className="rounded-md border border-white/10 p-1 text-xs dark:border-zinc-700"
-                              onClick={async () => {
-                                await navigator.clipboard.writeText(message.content)
-                                dispatch(pushToast({
-                                  title: 'Message copied',
-                                  description: 'The selected chat message is now on your clipboard.',
-                                  tone: 'success',
-                                }))
-                              }}
-                              type="button"
-                            >
-                              <Copy size={12} />
-                            </button>
-                            <button
-                              className="rounded-md border border-rose-200 p-1 text-xs text-rose-600 dark:border-rose-900/40"
-                              onClick={() => {
-                                dispatch(deleteMessageThunk(message._id))
-                                socket.emit('delete_message', { messageId: message._id })
-                              }}
-                              type="button"
-                            >
-                              <Trash2 size={12} />
-                            </button>
-                          </div>
-                        )}
-                      </div>
-                    </div>
+                    <MessageBubble
+                      dispatch={dispatch}
+                      editingMessageId={editingMessageId}
+                      editingText={editingText}
+                      grouped={grouped}
+                      key={message._id}
+                      members={members}
+                      message={message}
+                      onReply={setReplyToMessage}
+                      setEditingMessageId={setEditingMessageId}
+                      setEditingText={setEditingText}
+                      socket={socket}
+                      userId={user?.id}
+                    />
                   )
                 })}
               </div>
@@ -418,21 +596,84 @@ const ChatPage = () => {
           )}
 
           <div className="sticky bottom-0 border-t border-white/10 p-3 dark:border-zinc-800">
-            <div className="flex items-end gap-2 rounded-2xl border border-white/10 p-2 dark:border-zinc-700">
-              <button className="rounded-lg p-1.5 hover:glass-card/10 dark:hover:bg-zinc-800" type="button">
-                <Smile size={16} />
-              </button>
+            {replyToMessage && (
+              <div className="mb-2 flex items-center gap-2 rounded-xl border border-brand-500/30 bg-brand-500/5 px-3 py-2 text-xs">
+                <Reply size={12} className="shrink-0 text-brand-400" />
+                <span className="min-w-0 flex-1 truncate text-zinc-300">
+                  Replying to <strong>{replyToMessage.sender.fullName}</strong>: {replyToMessage.content}
+                </span>
+                <button
+                  className="shrink-0 rounded-md p-1 text-zinc-500 hover:text-white"
+                  onClick={() => setReplyToMessage(null)}
+                  type="button"
+                >
+                  <X size={14} />
+                </button>
+              </div>
+            )}
+            <div className="relative flex items-end gap-2 rounded-2xl border border-white/10 p-2 dark:border-zinc-700">
+              <div className="relative">
+                <button className="rounded-lg p-1.5 hover:glass-card/10 dark:hover:bg-zinc-800" onClick={() => { setShowEmojiPicker(!showEmojiPicker); setShowPeoplePicker(false) }} type="button">
+                  <Smile size={16} />
+                </button>
+                {showEmojiPicker && (
+                  <EmojiPicker
+                    onClose={() => setShowEmojiPicker(false)}
+                    onSelect={(emoji) => {
+                      const newText = messageText.slice(0, cursorPosition) + emoji + messageText.slice(cursorPosition)
+                      setMessageText(newText)
+                      setCursorPosition(cursorPosition + emoji.length)
+                      composerRef.current?.focus()
+                    }}
+                  />
+                )}
+              </div>
               <button className="rounded-lg p-1.5 hover:glass-card/10 dark:hover:bg-zinc-800" onClick={() => fileInputRef.current?.click()} type="button">
                 <Paperclip size={16} />
               </button>
-              <button className="rounded-lg p-1.5 hover:glass-card/10 dark:hover:bg-zinc-800" type="button">
-                <Users size={16} />
-              </button>
+              <div className="relative">
+                <button className="rounded-lg p-1.5 hover:glass-card/10 dark:hover:bg-zinc-800" onClick={() => { setShowPeoplePicker(!showPeoplePicker); setShowEmojiPicker(false) }} type="button">
+                  <Users size={16} />
+                </button>
+                {showPeoplePicker && (
+                  <div className="absolute bottom-full left-0 mb-2 w-52 rounded-2xl border border-white/10 bg-zinc-900 shadow-xl dark:border-zinc-700">
+                    <div className="max-h-48 overflow-y-auto p-2">
+                      {otherMembers.map((member) => (
+                        <button
+                          className="flex w-full items-center gap-2 rounded-xl px-3 py-2 text-left text-xs hover:bg-zinc-800"
+                          key={member.userId}
+                          onClick={() => {
+                            dispatch(setDirectUserId(member.userId))
+                            setShowPeoplePicker(false)
+                          }}
+                          type="button"
+                        >
+                          <Avatar name={member.fullName} size="sm" src={member.avatarUrl} />
+                          <span className="truncate">{member.fullName}</span>
+                        </button>
+                      ))}
+                      {otherMembers.length === 0 && (
+                        <p className="p-2 text-xs text-zinc-500">No other members</p>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
               <input
+                accept={ALLOWED_FILE_TYPES.join(',')}
                 className="hidden"
                 onChange={async (event) => {
                   const file = event.target.files?.[0]
                   if (!file || !activeWorkspaceId) return
+                  if (file.size > MAX_FILE_SIZE) {
+                    dispatch(pushToast({
+                      title: 'File too large',
+                      description: `Maximum file size is 50 MB. "${file.name}" is ${formatFileSize(file.size)}.`,
+                      tone: 'error',
+                    }))
+                    event.target.value = ''
+                    return
+                  }
                   try {
                     const uploaded = await dispatch(
                       uploadFileThunk({
@@ -441,15 +682,19 @@ const ChatPage = () => {
                         source: 'chat',
                       }),
                     ).unwrap()
-                    const payload = {
+                    const payload: any = {
                       workspace: activeWorkspaceId,
                       channel: currentChannelId,
                       recipient: directUserId,
                       content: messageText.trim() || uploaded.attachment.name,
                       attachments: [uploaded.attachment],
                     }
+                    if (replyToMessage) {
+                      payload.replyTo = replyToMessage._id
+                    }
                     await dispatch(sendMessageThunk(payload))
                     setMessageText('')
+                    setReplyToMessage(null)
                     dispatch(pushToast({
                       title: 'File shared in chat',
                       description: `${uploaded.attachment.name} was added to the conversation.`,
@@ -494,7 +739,7 @@ const ChatPage = () => {
                 value={messageText}
               />
               <button
-                className="rounded-xl bg-brand-500 px-3 py-2 text-sm font-medium text-white hover:bg-brand-400 shadow-[0_0_15px_rgba(16,185,129,0.3)] transition-all hover:shadow-[0_0_25px_rgba(16,185,129,0.5)] hover:-tranzinc-y-0.5 duration-300 disabled:cursor-not-allowed disabled:opacity-60"
+                className="rounded-xl bg-brand-500 px-3 py-2 text-sm font-medium text-white hover:bg-brand-400 shadow-[0_0_15px_rgba(16,185,129,0.3)] transition-all hover:shadow-[0_0_25px_rgba(16,185,129,0.5)] hover:-translate-y-0.5 duration-300 disabled:cursor-not-allowed disabled:opacity-60"
                 disabled={!messageText.trim()}
                 onClick={() => {
                   sendMessage()
@@ -645,7 +890,7 @@ const ChatPage = () => {
                 Cancel
               </button>
               <button
-                className="rounded-xl bg-brand-500 px-4 py-2 text-sm font-medium text-white hover:bg-brand-400 shadow-[0_0_15px_rgba(16,185,129,0.3)] transition-all hover:shadow-[0_0_25px_rgba(16,185,129,0.5)] hover:-tranzinc-y-0.5 duration-300 disabled:opacity-60"
+                className="rounded-xl bg-brand-500 px-4 py-2 text-sm font-medium text-white hover:bg-brand-400 shadow-[0_0_15px_rgba(16,185,129,0.3)] transition-all hover:shadow-[0_0_25px_rgba(16,185,129,0.5)] hover:-translate-y-0.5 duration-300 disabled:opacity-60"
                 disabled={creatingChannel || newChannelName.trim().length < 2}
                 onClick={async () => {
                   const trimmedName = newChannelName.trim()

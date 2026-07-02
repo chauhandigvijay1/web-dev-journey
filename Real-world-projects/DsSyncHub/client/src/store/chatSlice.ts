@@ -1,6 +1,6 @@
 import { createAsyncThunk, createSlice, type PayloadAction } from '@reduxjs/toolkit'
 import { chatApi } from '../services/chatApi'
-import type { ChannelItem, ChatMessage, TypingUser } from '../types/chat'
+import type { ChannelItem, ChatMessage, MessageReaction, TypingUser } from '../types/chat'
 import type { FileAttachment } from '../types/file'
 
 type ChatState = {
@@ -82,6 +82,14 @@ export const deleteMessageThunk = createAsyncThunk('chat/deleteMessage', async (
   return response.messageId
 })
 
+export const addReactionThunk = createAsyncThunk(
+  'chat/addReaction',
+  async (payload: { messageId: string; emoji: string }) => {
+    const response = await chatApi.addReaction(payload.messageId, payload.emoji)
+    return response.message
+  },
+)
+
 const chatSlice = createSlice({
   name: 'chat',
   initialState,
@@ -129,6 +137,10 @@ const chatSlice = createSlice({
     applyMessageDelete: (state, action: PayloadAction<{ messageId: string }>) => {
       state.messages = state.messages.filter((message) => message._id !== action.payload.messageId)
     },
+    applyMessageReaction: (state, action: PayloadAction<ChatMessage>) => {
+      const index = state.messages.findIndex((m) => m._id === action.payload._id)
+      if (index !== -1) state.messages[index] = action.payload
+    },
   },
   extraReducers: (builder) => {
     builder
@@ -167,6 +179,10 @@ const chatSlice = createSlice({
       .addCase(deleteMessageThunk.fulfilled, (state, action) => {
         state.messages = state.messages.filter((message) => message._id !== action.payload)
       })
+      .addCase(addReactionThunk.fulfilled, (state, action) => {
+        const index = state.messages.findIndex((m) => m._id === action.payload._id)
+        if (index !== -1) state.messages[index] = action.payload
+      })
   },
 })
 
@@ -180,6 +196,7 @@ export const {
   setOnlineUsers,
   applyMessageUpdate,
   applyMessageDelete,
+  applyMessageReaction,
 } = chatSlice.actions
 
 export default chatSlice.reducer

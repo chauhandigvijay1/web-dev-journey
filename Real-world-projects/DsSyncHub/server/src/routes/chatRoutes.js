@@ -6,6 +6,7 @@ const {
   editMessage,
   listDirectMessages,
   listMessages,
+  addReaction,
 } = require('../controllers/chatController')
 
 const router = express.Router()
@@ -17,5 +18,6 @@ router.get('/direct/:userId', listDirectMessages)
 router.post('/message', createMessage)
 router.patch('/message/:id', editMessage)
 router.delete('/message/:id', deleteMessage)
+router.post('/message/:id/reaction', addReaction)
 
 module.exports = router

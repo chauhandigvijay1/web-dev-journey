@@ -24,7 +24,7 @@ const listMessages = async (req, res, next) => {
 
     const query = { workspace, deletedAt: null }
     if (channel) query.channel = channel
-    const messages = await Message.find(query).populate('sender', 'fullName email avatarUrl').sort({ createdAt: 1 }).limit(200)
+    const messages = await Message.find(query).populate('sender', 'fullName email avatarUrl').populate({ path: 'replyTo', select: 'content sender', populate: { path: 'sender', select: 'fullName' } }).sort({ createdAt: 1 }).limit(200)
     return res.status(200).json({ success: true, messages })
   } catch (error) {
     return next(error)
@@ -49,6 +49,7 @@ const listDirectMessages = async (req, res, next) => {
       ],
     })
       .populate('sender', 'fullName email avatarUrl')
+      .populate({ path: 'replyTo', select: 'content sender', populate: { path: 'sender', select: 'fullName' } })
       .sort({ createdAt: 1 })
       .limit(200)
 
@@ -83,7 +84,7 @@ const createMessage = async (req, res, next) => {
       seenBy: [req.user._id],
     })
 
-    const populatedMessage = await Message.findById(message._id).populate('sender', 'fullName email avatarUrl')
+    const populatedMessage = await Message.findById(message._id).populate('sender', 'fullName email avatarUrl').populate({ path: 'replyTo', select: 'content sender', populate: { path: 'sender', select: 'fullName' } })
     await createActivityLog({
       workspace,
       actor: req.user._id,
@@ -153,7 +154,7 @@ const editMessage = async (req, res, next) => {
     message.content = sanitizeMessage(content)
     message.editedAt = new Date()
     await message.save()
-    const populatedMessage = await Message.findById(message._id).populate('sender', 'fullName email avatarUrl')
+    const populatedMessage = await Message.findById(message._id).populate('sender', 'fullName email avatarUrl').populate({ path: 'replyTo', select: 'content sender', populate: { path: 'sender', select: 'fullName' } })
     return res.status(200).json({ success: true, message: populatedMessage })
   } catch (error) {
     return next(error)
@@ -181,10 +182,44 @@ const deleteMessage = async (req, res, next) => {
   }
 }
 
+const addReaction = async (req, res, next) => {
+  try {
+    const { emoji } = req.body
+    if (!emoji) return res.status(400).json({ success: false, message: 'emoji is required.' })
+
+    const message = await Message.findById(req.params.id)
+    if (!message || message.deletedAt) return res.status(404).json({ success: false, message: 'Message not found.' })
+    const membership = await getMembership(req.user._id, message.workspace)
+    if (!membership) return res.status(403).json({ success: false, message: 'Not a workspace member.' })
+
+    const existingReaction = message.reactions.find((r) => r.emoji === emoji)
+    if (existingReaction) {
+      const userIndex = existingReaction.users.indexOf(req.user._id)
+      if (userIndex > -1) {
+        existingReaction.users.splice(userIndex, 1)
+        if (existingReaction.users.length === 0) {
+          message.reactions.pull({ _id: existingReaction._id })
+        }
+      } else {
+        existingReaction.users.push(req.user._id)
+      }
+    } else {
+      message.reactions.push({ emoji, users: [req.user._id] })
+    }
+
+    await message.save()
+    const populated = await Message.findById(message._id).populate('sender', 'fullName email avatarUrl').populate({ path: 'replyTo', select: 'content sender', populate: { path: 'sender', select: 'fullName' } })
+    return res.status(200).json({ success: true, message: populated })
+  } catch (error) {
+    return next(error)
+  }
+}
+
 module.exports = {
   listMessages,
   listDirectMessages,
   createMessage,
   editMessage,
   deleteMessage,
+  addReaction,
 }

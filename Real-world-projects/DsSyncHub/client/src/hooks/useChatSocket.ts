@@ -4,6 +4,7 @@ import { connectSocket } from '../services/socket'
 import {
   addIncomingMessage,
   applyMessageDelete,
+  applyMessageReaction,
   applyMessageUpdate,
   clearTypingUser,
   setConnectionState,
@@ -30,6 +31,7 @@ export const useChatSocket = () => {
     socket.on('online_users', (payload) => dispatch(setOnlineUsers(payload.users || [])))
     socket.on('message_updated', (payload) => dispatch(applyMessageUpdate(payload)))
     socket.on('message_deleted', (payload) => dispatch(applyMessageDelete(payload)))
+    socket.on('message_reaction', (payload) => dispatch(applyMessageReaction(payload.message)))
 
     return () => {
       socket.off('connect')
@@ -40,6 +42,7 @@ export const useChatSocket = () => {
       socket.off('online_users')
       socket.off('message_updated')
       socket.off('message_deleted')
+      socket.off('message_reaction')
     }
   }, [dispatch])
 

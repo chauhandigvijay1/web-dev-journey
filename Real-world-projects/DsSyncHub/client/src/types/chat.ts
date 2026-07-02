@@ -11,6 +11,12 @@ export type ChannelItem = {
   createdAt: string
 }
 
+export type MessageReaction = {
+  _id: string
+  emoji: string
+  users: string[]
+}
+
 export type ChatMessage = {
   _id: string
   workspace: string
@@ -23,6 +29,12 @@ export type ChatMessage = {
   editedAt: string | null
   deletedAt: string | null
   seenBy: string[]
+  replyTo: {
+    _id: string
+    content: string
+    sender: { _id: string; fullName: string }
+  } | null
+  reactions: MessageReaction[]
   sender: {
     _id: string
     fullName: string
