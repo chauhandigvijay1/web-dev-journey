@@ -6,7 +6,8 @@ import { useForm, useWatch } from 'react-hook-form'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { z } from 'zod'
 import { useAppDispatch, useAppSelector } from '../hooks/redux'
-import { googleLoginThunk, registerThunk } from '../store/authSlice'
+import { googleRegisterThunk, registerThunk } from '../store/authSlice'
+import { pushToast } from '../store/toastSlice'
 import { getApiErrorMessage } from '../utils/errors'
 
 const signupSchema = z
@@ -223,7 +224,8 @@ const SignupPage = () => {
                   }
                   setApiError('')
                   try {
-                    await dispatch(googleLoginThunk({ idToken })).unwrap()
+                    await dispatch(googleRegisterThunk({ idToken })).unwrap()
+                    dispatch(pushToast({ type: 'success', title: 'Account created', message: 'Account created successfully' }))
                     navigate(nextPath, { replace: true })
                   } catch (error: unknown) {
                     setApiError(getApiErrorMessage(error, 'Google sign up failed.'))

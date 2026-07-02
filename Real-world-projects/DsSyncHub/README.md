@@ -103,7 +103,7 @@ Built with a **MERN + TypeScript** stack and hardened for production with **Redi
 - Email verification flow with dedicated VerifyEmailPage
 - Input sanitization stripping `<>{}$` to prevent XSS across all inputs
 - Helmet security headers + CORS whitelist + httpOnly cookies (sameSite none in prod)
-- Rate limiting: global (500/15min) + login (8/15min) — distributed via Redis when configured
+- Rate limiting: global (500/15min) + auth (10/15min) + login (8/15min) + forgot/reset/verify (5/hour) + file uploads (10/min) + messages (20/10s) — distributed via Redis when configured
 - No stack traces in production error handler
 - Uncaught exception/rejection handlers for graceful shutdown
 
@@ -129,6 +129,7 @@ Every resource (tasks, notes, messages, files, calendar events) is scoped to a w
 - Free / Pro Monthly (₹999) / Pro Yearly (₹9999) tiers with 9-row feature comparison table
 - Plan-based storage limits, member caps, and AI usage quotas
 - Coupon code system — enter a code to upgrade directly to Pro (independent of Razorpay)
+- Configurable currency via `BILLING_CURRENCY` env var (default INR)
 - Razorpay configuration endpoint (`/billing/config`) with UI status badges
 - Role-aware billing UI — non-admin/owner users see warnings and disabled checkout
 - Cancel/Resume subscription management with context-aware buttons
@@ -225,7 +226,7 @@ Full architecture deep-dive at [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
 | **Nodemailer** | SMTP email delivery with HTML templates (reset, verify, invite) |
 | **Razorpay** | Payment gateway with HMAC SHA-256 signature verification |
 | **Google Auth Library** | OAuth 2.0 token verification (Google Identity Services) |
-| **Multer** | Multipart file uploads (memory storage, 25MB limit, 29 MIME types) |
+| **Multer** | Multipart file uploads (memory storage, 50MB limit, 29 MIME types) |
 | **Pino** | Structured JSON logging with redaction, serializers, and pino-http |
 | **Bull** | Redis-backed job queue for async email dispatch with retry |
 | **adm-zip** | In-memory ZIP generation for data export |
@@ -379,6 +380,8 @@ graph LR
 | `RAZORPAY_KEY_ID/SECRET` | Copy from `.env` | — |
 | `GROQ_API_KEY` | Copy from `.env` | — |
 | `SENTRY_DSN` | Created from Sentry account | — |
+| `BILLING_CURRENCY` | `INR` (or any ISO 4217 currency) | — |
+| `OWNER_COUPON_CODE` | Secret code for owner coupon | — |
 | `CLOUDINARY_CLOUD_NAME/API_KEY/API_SECRET` | Created from Cloudinary account | — |
 | `REDIS_URL` | From Upstash free tier | — |
 | `LOG_LEVEL` | `info` | — |

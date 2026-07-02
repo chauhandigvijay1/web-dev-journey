@@ -62,6 +62,7 @@ export type CouponInfo = {
 
 export type BillingConfig = {
   success: boolean
+  currency: string
   razorpayConfigured: boolean
   hasRazorpayKeyId: boolean
   hasRazorpayKeySecret: boolean

@@ -32,6 +32,10 @@ export const userApi = {
     )
     return response.data
   },
+  deleteMyAccount: async () => {
+    const response = await api.delete<{ success: boolean; message: string }>('/users/me')
+    return response.data
+  },
   logoutAll: async () => {
     const response = await api.post<{ success: boolean; message: string }>('/users/logout-all')
     return response.data

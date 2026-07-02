@@ -31,7 +31,7 @@ const TopNavbar = () => {
 
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
-      if (event.ctrlKey && event.key.toLowerCase() === 'k') {
+      if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'k') {
         event.preventDefault()
         dispatch(openSearchModal())
       }
@@ -129,6 +129,13 @@ const TopNavbar = () => {
           >
             <UserPlus className="mr-1 inline" size={16} />
             Invite Member
+          </button>
+          <button
+            className="rounded-xl border border-white/10 p-2 hover:glass-card/10 md:hidden dark:border-zinc-700 dark:hover:bg-zinc-800"
+            onClick={() => dispatch(openSearchModal())}
+            type="button"
+          >
+            <Search size={18} />
           </button>
           <div ref={notificationsRef}>
             <button

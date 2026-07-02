@@ -182,6 +182,31 @@ const deleteMessage = async (req, res, next) => {
   }
 }
 
+const searchMessages = async (req, res, next) => {
+  try {
+    const { workspace, query: searchQuery } = req.query
+    if (!workspace || !searchQuery || String(searchQuery).trim().length < 2) {
+      return res.status(400).json({ success: false, message: 'workspace and query (min 2 chars) are required.' })
+    }
+    const membership = await getMembership(req.user._id, workspace)
+    if (!membership) return res.status(403).json({ success: false, message: 'Not a workspace member.' })
+
+    const escaped = String(searchQuery).trim().replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+    const messages = await Message.find({
+      workspace,
+      deletedAt: null,
+      content: { $regex: escaped, $options: 'i' },
+    })
+      .populate('sender', 'fullName email avatarUrl')
+      .populate({ path: 'replyTo', select: 'content sender', populate: { path: 'sender', select: 'fullName' } })
+      .sort({ createdAt: -1 })
+      .limit(50)
+    return res.status(200).json({ success: true, messages })
+  } catch (error) {
+    return next(error)
+  }
+}
+
 const addReaction = async (req, res, next) => {
   try {
     const { emoji } = req.body
@@ -222,4 +247,5 @@ module.exports = {
   editMessage,
   deleteMessage,
   addReaction,
+  searchMessages,
 }

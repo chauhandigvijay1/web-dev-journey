@@ -11,6 +11,7 @@ import {
 } from '../../store/billingSlice'
 import { pushToast } from '../../store/toastSlice'
 import type { BillingConfig, SubscriptionPlan } from '../../types/billing'
+import { CURRENCY_SYMBOLS } from '../../utils/currency'
 import { getApiErrorMessage } from '../../utils/errors'
 import { billingApi } from '../../services/billingApi'
 
@@ -37,58 +38,6 @@ const loadRazorpayScript = async () =>
 
 const appName = import.meta.env.VITE_APP_NAME || 'DsSync Hub'
 
-const PLAN_FEATURES: { key: SubscriptionPlan; title: string; price: string; yearlyEquivalent?: string; features: { label: string; free: boolean | string; pro: boolean | string }[] }[] = [
-  {
-    key: 'free',
-    title: 'Free',
-    price: '₹0',
-    features: [
-      { label: 'Workspaces', free: '1', pro: 'Unlimited' },
-      { label: 'Members per workspace', free: '3', pro: 'Unlimited' },
-      { label: 'Storage', free: '512 MB', pro: '25 GB' },
-      { label: 'AI queries / day', free: '10', pro: '500' },
-      { label: 'File upload max size', free: '5 MB', pro: '100 MB' },
-      { label: 'Channels', free: 'Basic', pro: 'Advanced' },
-      { label: 'Priority support', free: '—', pro: 'Email & Priority' },
-      { label: 'Custom branding', free: '—', pro: '✓' },
-      { label: 'API access', free: '—', pro: '✓' },
-    ],
-  },
-  {
-    key: 'pro_monthly',
-    title: 'Pro Monthly',
-    price: '₹999/mo',
-    features: [
-      { label: 'Workspaces', free: '1', pro: 'Unlimited' },
-      { label: 'Members per workspace', free: '3', pro: 'Unlimited' },
-      { label: 'Storage', free: '512 MB', pro: '10 GB' },
-      { label: 'AI queries / day', free: '10', pro: '300' },
-      { label: 'File upload max size', free: '5 MB', pro: '50 MB' },
-      { label: 'Channels', free: 'Basic', pro: 'Advanced' },
-      { label: 'Priority support', free: '—', pro: 'Email' },
-      { label: 'Custom branding', free: '—', pro: '✓' },
-      { label: 'API access', free: '—', pro: '✓' },
-    ],
-  },
-  {
-    key: 'pro_yearly',
-    title: 'Pro Yearly',
-    price: '₹9,999/yr',
-    yearlyEquivalent: '≈ ₹833/mo',
-    features: [
-      { label: 'Workspaces', free: '1', pro: 'Unlimited' },
-      { label: 'Members per workspace', free: '3', pro: 'Unlimited' },
-      { label: 'Storage', free: '512 MB', pro: '25 GB' },
-      { label: 'AI queries / day', free: '10', pro: '500' },
-      { label: 'File upload max size', free: '5 MB', pro: '100 MB' },
-      { label: 'Channels', free: 'Basic', pro: 'Advanced' },
-      { label: 'Priority support', free: '—', pro: 'Priority' },
-      { label: 'Custom branding', free: '—', pro: '✓' },
-      { label: 'API access', free: '—', pro: '✓' },
-    ],
-  },
-]
-
 const BillingPage = () => {
   const dispatch = useAppDispatch()
   const { activeWorkspaceId, items: workspaces } = useAppSelector((state) => state.workspace)
@@ -99,6 +48,63 @@ const BillingPage = () => {
   const [applyResult, setApplyResult] = useState<{ success: boolean; message: string; requiresCheckout?: boolean; discountedPlan?: SubscriptionPlan } | null>(null)
   const [billingConfig, setBillingConfig] = useState<BillingConfig | null>(null)
   const [showCouponGuide, setShowCouponGuide] = useState(false)
+
+  const currency = billingConfig?.currency || 'INR'
+
+  const PLAN_FEATURES = useMemo(() => {
+    const fmt = (amount: number, suffix: string) => formatPrice(amount, currency, suffix)
+    return [
+      {
+        key: 'free' as SubscriptionPlan,
+        title: 'Free',
+        price: fmt(0, ''),
+        features: [
+          { label: 'Workspaces', free: '1', pro: 'Unlimited' },
+          { label: 'Members per workspace', free: '3', pro: 'Unlimited' },
+          { label: 'Storage', free: '512 MB', pro: '25 GB' },
+          { label: 'AI queries / day', free: '10', pro: '500' },
+          { label: 'File upload max size', free: '5 MB', pro: '100 MB' },
+          { label: 'Channels', free: 'Basic', pro: 'Advanced' },
+          { label: 'Priority support', free: '—', pro: 'Email & Priority' },
+          { label: 'Custom branding', free: '—', pro: '✓' },
+          { label: 'API access', free: '—', pro: '✓' },
+        ],
+      },
+      {
+        key: 'pro_monthly' as SubscriptionPlan,
+        title: 'Pro Monthly',
+        price: fmt(999, '/mo'),
+        features: [
+          { label: 'Workspaces', free: '1', pro: 'Unlimited' },
+          { label: 'Members per workspace', free: '3', pro: 'Unlimited' },
+          { label: 'Storage', free: '512 MB', pro: '10 GB' },
+          { label: 'AI queries / day', free: '10', pro: '300' },
+          { label: 'File upload max size', free: '5 MB', pro: '50 MB' },
+          { label: 'Channels', free: 'Basic', pro: 'Advanced' },
+          { label: 'Priority support', free: '—', pro: 'Email' },
+          { label: 'Custom branding', free: '—', pro: '✓' },
+          { label: 'API access', free: '—', pro: '✓' },
+        ],
+      },
+      {
+        key: 'pro_yearly' as SubscriptionPlan,
+        title: 'Pro Yearly',
+        price: fmt(9999, '/yr'),
+        yearlyEquivalent: `≈ ${fmt(833, '/mo')}`,
+        features: [
+          { label: 'Workspaces', free: '1', pro: 'Unlimited' },
+          { label: 'Members per workspace', free: '3', pro: 'Unlimited' },
+          { label: 'Storage', free: '512 MB', pro: '25 GB' },
+          { label: 'AI queries / day', free: '10', pro: '500' },
+          { label: 'File upload max size', free: '5 MB', pro: '100 MB' },
+          { label: 'Channels', free: 'Basic', pro: 'Advanced' },
+          { label: 'Priority support', free: '—', pro: 'Priority' },
+          { label: 'Custom branding', free: '—', pro: '✓' },
+          { label: 'API access', free: '—', pro: '✓' },
+        ],
+      },
+    ]
+  }, [currency])
 
   const activeWorkspace = workspaces.find((w) => w.id === activeWorkspaceId)
   const userRole = activeWorkspace?.role
@@ -497,9 +503,17 @@ const BillingPage = () => {
             history.map((item) => (
               <div className="flex items-center justify-between rounded-xl border border-white/10 px-3 py-2 text-sm dark:border-zinc-700" key={item.id}>
                 <span>{new Date(item.billedAt).toLocaleDateString()}</span>
-                <span>{item.currency} {item.amount}</span>
+                <span>{formatPrice(item.amount, item.currency)}</span>
                 <span className="capitalize">{item.status}</span>
-                <button className="text-xs text-brand-500" type="button">Download</button>
+                <a
+                  className="text-xs text-brand-500 hover:underline"
+                  download
+                  href={item.invoiceUrl || '#'}
+                  rel="noreferrer"
+                  target="_blank"
+                >
+                  {item.invoiceUrl ? 'Download' : 'N/A'}
+                </a>
               </div>
             ))
           )}

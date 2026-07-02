@@ -69,6 +69,12 @@ const createEvent = async (req, res, next) => {
       color: color || '#8b5cf6',
     })
 
+    const io = req.app.get('io')
+    if (io) {
+      const populatedEvent = await CalendarEvent.findById(event._id).populate('createdBy', 'fullName email avatarUrl')
+      io.to(`workspace:${workspace}`).emit('calendar:created', { event: toEvent(populatedEvent) })
+    }
+
     return res.status(201).json({ success: true, event: toEvent(event) })
   } catch (error) {
     return next(error)
@@ -94,6 +100,13 @@ const updateEvent = async (req, res, next) => {
     if (typeof color === 'string') event.color = color
 
     await event.save()
+
+    const io = req.app.get('io')
+    if (io) {
+      const populatedEvent = await CalendarEvent.findById(event._id).populate('createdBy', 'fullName email avatarUrl')
+      io.to(`workspace:${event.workspace}`).emit('calendar:updated', { event: toEvent(populatedEvent) })
+    }
+
     return res.status(200).json({ success: true, event: toEvent(event) })
   } catch (error) {
     return next(error)
@@ -110,7 +123,14 @@ const deleteEvent = async (req, res, next) => {
       return res.status(403).json({ success: false, message: 'Insufficient permission.' })
     }
 
+    const workspaceId = event.workspace
     await event.deleteOne()
+
+    const io = req.app.get('io')
+    if (io) {
+      io.to(`workspace:${workspaceId}`).emit('calendar:deleted', { eventId: event._id })
+    }
+
     return res.status(200).json({ success: true, message: 'Event deleted.' })
   } catch (error) {
     return next(error)

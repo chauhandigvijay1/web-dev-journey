@@ -1,12 +1,13 @@
-import { Camera, Mail, Phone, ShieldCheck, UploadCloud } from 'lucide-react'
+import { Camera, Mail, Phone, ShieldCheck, Trash2, UploadCloud } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import Avatar from '../../components/common/Avatar'
+import ConfirmModal from '../../components/common/ConfirmModal'
 import PlanUpgradeModal from '../../components/common/PlanUpgradeModal'
 import { useAppDispatch, useAppSelector } from '../../hooks/redux'
 import { authApi } from '../../services/authApi'
 import { userApi } from '../../services/userApi'
-import { logoutThunk, setCredentials } from '../../store/authSlice'
+import { deleteMyAccountThunk, logoutThunk, setCredentials } from '../../store/authSlice'
 import { pushToast } from '../../store/toastSlice'
 import type { AuthUser } from '../../types/auth'
 import { getApiErrorCode, getApiErrorMessage } from '../../utils/errors'
@@ -65,6 +66,8 @@ const SettingsPage = () => {
   const [uploadingAvatar, setUploadingAvatar] = useState(false)
   const [upgradeOpen, setUpgradeOpen] = useState(false)
   const [verifyingEmail, setVerifyingEmail] = useState(false)
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false)
+  const [deletingAccount, setDeletingAccount] = useState(false)
   const [draftForm, setDraftForm] = useState<SettingsForm | null>(null)
   const form = draftForm ?? baseForm
 
@@ -279,6 +282,16 @@ const SettingsPage = () => {
         tone: 'success',
       }))
     })
+  }
+
+  const handleDeleteAccount = async () => {
+    setDeletingAccount(true)
+    try {
+      await dispatch(deleteMyAccountThunk())
+    } catch {
+      setDeletingAccount(false)
+      setDeleteConfirmOpen(false)
+    }
   }
 
   const handleAvatarUpload = async (file: File | null) => {
@@ -575,6 +588,40 @@ const SettingsPage = () => {
         onClose={() => setUpgradeOpen(false)}
         open={upgradeOpen}
         title="Storage limit reached"
+      />
+
+      <div className="rounded-[30px] border border-rose-500/20 glass-panel p-5">
+        <div className="flex items-center gap-3">
+          <div className="flex size-10 items-center justify-center rounded-full bg-rose-500/10">
+            <Trash2 className="size-5 text-rose-400" />
+          </div>
+          <div>
+            <p className="text-sm font-semibold text-white font-semibold drop-shadow-md">Danger zone</p>
+            <p className="mt-1 text-sm text-zinc-400">
+              Deleting your account is permanent and cannot be undone.
+            </p>
+          </div>
+        </div>
+        <button
+          className="mt-4 rounded-2xl border border-rose-500/30 bg-rose-600/10 px-4 py-2.5 text-sm font-medium text-rose-400 hover:bg-rose-600/20 disabled:opacity-60"
+          disabled={deletingAccount}
+          onClick={() => setDeleteConfirmOpen(true)}
+          type="button"
+        >
+          {deletingAccount ? 'Deleting...' : 'Delete account'}
+        </button>
+      </div>
+
+      <ConfirmModal
+        cancelLabel="Keep account"
+        confirmLabel="Yes, delete my account"
+        description="This action permanently removes your profile, membership data, and all associated content. You will not be able to recover any data."
+        disabled={deletingAccount}
+        onCancel={() => setDeleteConfirmOpen(false)}
+        onConfirm={handleDeleteAccount}
+        open={deleteConfirmOpen}
+        title="Delete your account?"
+        variant="danger"
       />
     </section>
   )

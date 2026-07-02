@@ -28,7 +28,7 @@ const allowedMimeTypes = new Set([
   'video/mp4',
 ])
 
-const maxUploadBytes = 25 * 1024 * 1024
+const maxUploadBytes = 50 * 1024 * 1024
 const allowedExtensions = new Set([
   '.jpg',
   '.jpeg',
@@ -75,7 +75,7 @@ const validateIncomingFile = (file) => {
   if (!file) return 'A file is required.'
   if (!allowedMimeTypes.has(file.mimetype)) return 'This file type is not supported.'
   if (!allowedExtensions.has(getFileExtension(file.originalname))) return 'This file extension is not supported.'
-  if (!file.size || file.size > maxUploadBytes) return 'Files must be 25MB or smaller.'
+  if (!file.size || file.size > maxUploadBytes) return 'Files must be 50MB or smaller.'
   return null
 }
 

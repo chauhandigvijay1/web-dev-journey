@@ -1,7 +1,9 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { useAppSelector } from '../hooks/redux'
+import ConfirmModal from '../components/common/ConfirmModal'
+import { useAppDispatch, useAppSelector } from '../hooks/redux'
 import { api } from '../services/api'
+import { pushToast } from '../store/toastSlice'
 
 interface User {
   _id: string
@@ -32,6 +34,7 @@ interface Stats {
 
 const AdminPage = () => {
   const navigate = useNavigate()
+  const dispatch = useAppDispatch()
   const user = useAppSelector((state) => state.auth.user)
   const [tab, setTab] = useState<'stats' | 'users' | 'workspaces'>('stats')
   const [stats, setStats] = useState<Stats | null>(null)
@@ -40,8 +43,10 @@ const AdminPage = () => {
   const [search, setSearch] = useState('')
   const [userPage, setUserPage] = useState(1)
   const [userTotal, setUserTotal] = useState(0)
-  const [, setWorkspacePage] = useState(1)
-  const [, setWorkspaceTotal] = useState(0)
+  const [workspacePage, setWorkspacePage] = useState(1)
+  const [workspaceTotal, setWorkspaceTotal] = useState(0)
+  const [deleteTarget, setDeleteTarget] = useState<string | null>(null)
+  const [loading, setLoading] = useState(false)
 
   useEffect(() => {
     if (!user || user.role !== 'admin') {
@@ -57,58 +62,73 @@ const AdminPage = () => {
     try {
       const { data } = await api.get('/admin/stats')
       if (data.success) setStats(data.stats)
-    } catch { /* ignore */ }
+    } catch {
+      dispatch(pushToast({ title: 'Failed to load stats', description: 'Could not fetch admin statistics.', tone: 'error' }))
+    }
   }
 
   const fetchUsers = async (page = 1) => {
     try {
       const { data } = await api.get('/admin/users', { params: { page, limit: 20, search } })
       if (data.success) { setUsers(data.users); setUserTotal(data.total); setUserPage(data.page) }
-    } catch { /* ignore */ }
+    } catch {
+      dispatch(pushToast({ title: 'Failed to load users', description: 'Could not fetch user list.', tone: 'error' }))
+    }
   }
 
   const fetchWorkspaces = async (page = 1) => {
     try {
       const { data } = await api.get('/admin/workspaces', { params: { page, limit: 20, search } })
       if (data.success) { setWorkspaces(data.workspaces); setWorkspaceTotal(data.total); setWorkspacePage(data.page) }
-    } catch { /* ignore */ }
+    } catch {
+      dispatch(pushToast({ title: 'Failed to load workspaces', description: 'Could not fetch workspace list.', tone: 'error' }))
+    }
   }
 
   const updateRole = async (userId: string, role: string) => {
     try {
+      setLoading(true)
       await api.patch(`/admin/users/${userId}/role`, { role })
+      dispatch(pushToast({ title: 'Role updated', description: `User role changed to ${role}.`, tone: 'success' }))
       fetchUsers(userPage)
-    } catch { /* ignore */ }
+    } catch {
+      dispatch(pushToast({ title: 'Failed to update role', description: 'Could not change user role.', tone: 'error' }))
+    } finally {
+      setLoading(false)
+    }
   }
 
   const deleteUser = async (userId: string) => {
-    if (!confirm('Delete this user and all their memberships?')) return
     try {
+      setLoading(true)
       await api.delete(`/admin/users/${userId}`)
+      dispatch(pushToast({ title: 'User deleted', description: 'User and their memberships removed.', tone: 'success' }))
       fetchUsers(userPage)
-    } catch { /* ignore */ }
+    } catch {
+      dispatch(pushToast({ title: 'Failed to delete user', description: 'Could not remove user.', tone: 'error' }))
+    } finally {
+      setLoading(false)
+      setDeleteTarget(null)
+    }
   }
 
   if (!user || user.role !== 'admin') return null
 
   return (
-    <div style={{ maxWidth: 1200, margin: '0 auto', padding: 24, fontFamily: 'system-ui, sans-serif' }}>
-      <h1 style={{ fontSize: 28, fontWeight: 700, marginBottom: 24 }}>Admin Panel</h1>
+    <section className="mx-auto max-w-6xl p-6">
+      <h1 className="mb-6 text-2xl font-bold">Admin Panel</h1>
 
-      <div style={{ display: 'flex', gap: 8, marginBottom: 24 }}>
+      <div className="mb-6 flex gap-2">
         {(['stats', 'users', 'workspaces'] as const).map((t) => (
           <button
+            className={`rounded-lg border px-5 py-2 text-sm font-medium transition ${
+              tab === t
+                ? 'border-brand-500 bg-brand-500 text-white'
+                : 'border-white/10 text-zinc-300 hover:bg-zinc-800 dark:border-zinc-700'
+            }`}
             key={t}
             onClick={() => setTab(t)}
-            style={{
-              padding: '8px 20px',
-              border: '1px solid #d1d5db',
-              borderRadius: 8,
-              background: tab === t ? '#4f46e5' : '#fff',
-              color: tab === t ? '#fff' : '#374151',
-              cursor: 'pointer',
-              fontWeight: 500,
-            }}
+            type="button"
           >
             {t.charAt(0).toUpperCase() + t.slice(1)}
           </button>
@@ -116,16 +136,16 @@ const AdminPage = () => {
       </div>
 
       {tab === 'stats' && stats && (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 16 }}>
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {[
-            { label: 'Total Users', value: stats.userCount, color: '#4f46e5' },
-            { label: 'Active Workspaces', value: stats.workspaceCount, color: '#059669' },
-            { label: 'Pending Invites', value: stats.inviteCount, color: '#d97706' },
-            { label: 'Pro Workspaces', value: stats.proCount, color: '#dc2626' },
+            { label: 'Total Users', value: stats.userCount, color: 'text-indigo-500' },
+            { label: 'Active Workspaces', value: stats.workspaceCount, color: 'text-emerald-500' },
+            { label: 'Pending Invites', value: stats.inviteCount, color: 'text-amber-500' },
+            { label: 'Pro Workspaces', value: stats.proCount, color: 'text-rose-500' },
           ].map((card) => (
-            <div key={card.label} style={{ padding: 24, background: '#f9fafb', borderRadius: 12, border: '1px solid #e5e7eb' }}>
-              <div style={{ fontSize: 14, color: '#6b7280', marginBottom: 8 }}>{card.label}</div>
-              <div style={{ fontSize: 36, fontWeight: 700, color: card.color }}>{card.value}</div>
+            <div className="rounded-2xl border border-white/10 bg-zinc-900 p-6" key={card.label}>
+              <p className="mb-2 text-sm text-zinc-400">{card.label}</p>
+              <p className={`text-4xl font-bold ${card.color}`}>{card.value}</p>
             </div>
           ))}
         </div>
@@ -133,47 +153,60 @@ const AdminPage = () => {
 
       {tab === 'users' && (
         <div>
-          <div style={{ display: 'flex', gap: 12, marginBottom: 16 }}>
+          <div className="mb-4 flex gap-3">
             <input
-              placeholder="Search users..."
-              value={search}
+              className="flex-1 rounded-xl border border-white/10 bg-black/20 px-3 py-2 text-sm outline-none dark:border-zinc-700"
               onChange={(e) => setSearch(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && fetchUsers()}
-              style={{ flex: 1, padding: '8px 12px', border: '1px solid #d1d5db', borderRadius: 8 }}
+              placeholder="Search users..."
+              value={search}
             />
-            <button onClick={() => fetchUsers()} style={{ padding: '8px 16px', background: '#4f46e5', color: '#fff', border: 'none', borderRadius: 8, cursor: 'pointer' }}>Search</button>
+            <button
+              className="rounded-xl bg-brand-500 px-4 py-2 text-sm font-medium text-white"
+              onClick={() => { setUserPage(1); fetchUsers(1) }}
+              type="button"
+            >
+              Search
+            </button>
           </div>
-          <div style={{ overflowX: 'auto' }}>
-            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 14 }}>
+          <div className="overflow-x-auto rounded-2xl border border-white/10 dark:border-zinc-700">
+            <table className="w-full text-sm">
               <thead>
-                <tr style={{ background: '#f3f4f6', textAlign: 'left' }}>
-                  <th style={{ padding: '10px 12px', borderBottom: '2px solid #e5e7eb' }}>Name</th>
-                  <th style={{ padding: '10px 12px', borderBottom: '2px solid #e5e7eb' }}>Email</th>
-                  <th style={{ padding: '10px 12px', borderBottom: '2px solid #e5e7eb' }}>Username</th>
-                  <th style={{ padding: '10px 12px', borderBottom: '2px solid #e5e7eb' }}>Role</th>
-                  <th style={{ padding: '10px 12px', borderBottom: '2px solid #e5e7eb' }}>Provider</th>
-                  <th style={{ padding: '10px 12px', borderBottom: '2px solid #e5e7eb' }}>Actions</th>
+                <tr className="border-b border-white/10 bg-zinc-800/50 text-left dark:border-zinc-700">
+                  <th className="px-3 py-3 font-medium text-zinc-400">Name</th>
+                  <th className="px-3 py-3 font-medium text-zinc-400">Email</th>
+                  <th className="px-3 py-3 font-medium text-zinc-400">Username</th>
+                  <th className="px-3 py-3 font-medium text-zinc-400">Role</th>
+                  <th className="px-3 py-3 font-medium text-zinc-400">Provider</th>
+                  <th className="px-3 py-3 font-medium text-zinc-400">Actions</th>
                 </tr>
               </thead>
               <tbody>
                 {users.map((u) => (
-                  <tr key={u._id} style={{ borderBottom: '1px solid #e5e7eb' }}>
-                    <td style={{ padding: '10px 12px' }}>{u.fullName}</td>
-                    <td style={{ padding: '10px 12px' }}>{u.email}</td>
-                    <td style={{ padding: '10px 12px' }}>{u.username}</td>
-                    <td style={{ padding: '10px 12px' }}>
+                  <tr className="border-b border-white/5 hover:bg-zinc-800/30 dark:border-zinc-800" key={u._id}>
+                    <td className="px-3 py-3">{u.fullName}</td>
+                    <td className="px-3 py-3 text-zinc-400">{u.email}</td>
+                    <td className="px-3 py-3 text-zinc-400">{u.username}</td>
+                    <td className="px-3 py-3">
                       <select
-                        value={u.role}
+                        className="rounded-lg border border-white/10 bg-black/20 px-2 py-1 text-xs dark:border-zinc-700"
                         onChange={(e) => updateRole(u._id, e.target.value)}
-                        style={{ padding: '4px 8px', border: '1px solid #d1d5db', borderRadius: 4 }}
+                        value={u.role}
                       >
                         <option value="user">user</option>
                         <option value="admin">admin</option>
                       </select>
                     </td>
-                    <td style={{ padding: '10px 12px' }}>{u.provider}</td>
-                    <td style={{ padding: '10px 12px' }}>
-                      <button onClick={() => deleteUser(u._id)} style={{ padding: '4px 12px', background: '#dc2626', color: '#fff', border: 'none', borderRadius: 4, cursor: 'pointer', fontSize: 12 }}>Delete</button>
+                    <td className="px-3 py-3 text-xs text-zinc-500">{u.provider}</td>
+                    <td className="px-3 py-3">
+                      <button
+                        className="rounded-lg bg-rose-600 px-3 py-1 text-xs text-white hover:bg-rose-700 disabled:opacity-60"
+                        disabled={loading}
+                        onClick={() => setDeleteTarget(u._id)}
+                        type="button"
+                      >
+                        Delete
+                      </button>
                     </td>
                   </tr>
                 ))}
@@ -181,10 +214,24 @@ const AdminPage = () => {
             </table>
           </div>
           {userTotal > 20 && (
-            <div style={{ marginTop: 16, display: 'flex', gap: 8, justifyContent: 'center' }}>
-              {userPage > 1 && <button onClick={() => fetchUsers(userPage - 1)} style={{ padding: '6px 14px', border: '1px solid #d1d5db', borderRadius: 6, cursor: 'pointer' }}>Previous</button>}
-              <span style={{ padding: '6px 14px' }}>Page {userPage} of {Math.ceil(userTotal / 20)}</span>
-              {userPage < Math.ceil(userTotal / 20) && <button onClick={() => fetchUsers(userPage + 1)} style={{ padding: '6px 14px', border: '1px solid #d1d5db', borderRadius: 6, cursor: 'pointer' }}>Next</button>}
+            <div className="mt-4 flex items-center justify-center gap-3">
+              <button
+                className="rounded-lg border border-white/10 px-3 py-1.5 text-sm disabled:opacity-40 dark:border-zinc-700"
+                disabled={userPage <= 1}
+                onClick={() => fetchUsers(userPage - 1)}
+                type="button"
+              >
+                Previous
+              </button>
+              <span className="text-sm text-zinc-400">Page {userPage} of {Math.ceil(userTotal / 20)}</span>
+              <button
+                className="rounded-lg border border-white/10 px-3 py-1.5 text-sm disabled:opacity-40 dark:border-zinc-700"
+                disabled={userPage >= Math.ceil(userTotal / 20)}
+                onClick={() => fetchUsers(userPage + 1)}
+                type="button"
+              >
+                Next
+              </button>
             </div>
           )}
         </div>
@@ -192,37 +239,72 @@ const AdminPage = () => {
 
       {tab === 'workspaces' && (
         <div>
-          <div style={{ overflowX: 'auto' }}>
-            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 14 }}>
+          <div className="overflow-x-auto rounded-2xl border border-white/10 dark:border-zinc-700">
+            <table className="w-full text-sm">
               <thead>
-                <tr style={{ background: '#f3f4f6', textAlign: 'left' }}>
-                  <th style={{ padding: '10px 12px', borderBottom: '2px solid #e5e7eb' }}>Name</th>
-                  <th style={{ padding: '10px 12px', borderBottom: '2px solid #e5e7eb' }}>Slug</th>
-                  <th style={{ padding: '10px 12px', borderBottom: '2px solid #e5e7eb' }}>Plan</th>
-                  <th style={{ padding: '10px 12px', borderBottom: '2px solid #e5e7eb' }}>Owner</th>
-                  <th style={{ padding: '10px 12px', borderBottom: '2px solid #e5e7eb' }}>Members</th>
-                  <th style={{ padding: '10px 12px', borderBottom: '2px solid #e5e7eb' }}>Created</th>
+                <tr className="border-b border-white/10 bg-zinc-800/50 text-left dark:border-zinc-700">
+                  <th className="px-3 py-3 font-medium text-zinc-400">Name</th>
+                  <th className="px-3 py-3 font-medium text-zinc-400">Slug</th>
+                  <th className="px-3 py-3 font-medium text-zinc-400">Plan</th>
+                  <th className="px-3 py-3 font-medium text-zinc-400">Owner</th>
+                  <th className="px-3 py-3 font-medium text-zinc-400">Members</th>
+                  <th className="px-3 py-3 font-medium text-zinc-400">Created</th>
                 </tr>
               </thead>
               <tbody>
                 {workspaces.map((w) => (
-                  <tr key={w._id} style={{ borderBottom: '1px solid #e5e7eb' }}>
-                    <td style={{ padding: '10px 12px', fontWeight: 500 }}>{w.name}</td>
-                    <td style={{ padding: '10px 12px' }}>{w.slug}</td>
-                    <td style={{ padding: '10px 12px' }}>
-                      <span style={{ padding: '2px 8px', borderRadius: 4, fontSize: 12, fontWeight: 600, background: w.plan === 'pro' ? '#fef3c7' : '#f3f4f6', color: w.plan === 'pro' ? '#92400e' : '#6b7280' }}>{w.plan}</span>
+                  <tr className="border-b border-white/5 hover:bg-zinc-800/30 dark:border-zinc-800" key={w._id}>
+                    <td className="px-3 py-3 font-medium">{w.name}</td>
+                    <td className="px-3 py-3 text-zinc-400">{w.slug}</td>
+                    <td className="px-3 py-3">
+                      <span className={`rounded-md px-2 py-0.5 text-xs font-semibold ${w.plan === 'pro' ? 'bg-amber-500/10 text-amber-400' : 'bg-zinc-800 text-zinc-400'}`}>
+                        {w.plan}
+                      </span>
                     </td>
-                    <td style={{ padding: '10px 12px' }}>{w.owner?.fullName || 'Unknown'}</td>
-                    <td style={{ padding: '10px 12px' }}>{w.membersCount}</td>
-                    <td style={{ padding: '10px 12px' }}>{new Date(w.createdAt).toLocaleDateString()}</td>
+                    <td className="px-3 py-3 text-zinc-400">{w.owner?.fullName || 'Unknown'}</td>
+                    <td className="px-3 py-3 text-zinc-400">{w.membersCount}</td>
+                    <td className="px-3 py-3 text-zinc-400">{new Date(w.createdAt).toLocaleDateString()}</td>
                   </tr>
                 ))}
               </tbody>
             </table>
           </div>
+          {workspaceTotal > 20 && (
+            <div className="mt-4 flex items-center justify-center gap-3">
+              <button
+                className="rounded-lg border border-white/10 px-3 py-1.5 text-sm disabled:opacity-40 dark:border-zinc-700"
+                disabled={workspacePage <= 1}
+                onClick={() => { setWorkspacePage(workspacePage - 1); fetchWorkspaces(workspacePage - 1) }}
+                type="button"
+              >
+                Previous
+              </button>
+              <span className="text-sm text-zinc-400">Page {workspacePage} of {Math.ceil(workspaceTotal / 20)}</span>
+              <button
+                className="rounded-lg border border-white/10 px-3 py-1.5 text-sm disabled:opacity-40 dark:border-zinc-700"
+                disabled={workspacePage >= Math.ceil(workspaceTotal / 20)}
+                onClick={() => { setWorkspacePage(workspacePage + 1); fetchWorkspaces(workspacePage + 1) }}
+                type="button"
+              >
+                Next
+              </button>
+            </div>
+          )}
         </div>
       )}
-    </div>
+
+      {deleteTarget && (
+        <ConfirmModal
+          confirmLabel="Delete"
+          danger
+          message="This will permanently delete the user and all their memberships. This action cannot be undone."
+          onCancel={() => setDeleteTarget(null)}
+          onConfirm={() => deleteUser(deleteTarget)}
+          open
+          title="Delete user"
+        />
+      )}
+    </section>
   )
 }
 

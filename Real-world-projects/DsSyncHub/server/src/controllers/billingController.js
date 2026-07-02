@@ -235,7 +235,7 @@ const checkoutBilling = async (req, res, next) => {
 
     const order = await razorpay.orders.create({
       amount: finalAmount * 100,
-      currency: 'INR',
+      currency: process.env.BILLING_CURRENCY || 'INR',
       notes: {
         workspaceId: String(workspace),
         plan,
@@ -354,7 +354,7 @@ const verifyBillingPayment = async (req, res, next) => {
       workspace,
       subscription: subscription._id,
       amount: amountByPlan[plan],
-      currency: 'INR',
+      currency: process.env.BILLING_CURRENCY || 'INR',
       status: 'paid',
       invoiceUrl: `/api/billing/invoice/${invoiceId}`,
     })
@@ -444,8 +444,11 @@ const billingConfig = async (_req, res) => {
     const razorpay = getRazorpayClient()
     const coupons = await Coupon.find({ isActive: true }).select('code type value durationMonths description applicablePlans').lean()
 
+    const currency = process.env.BILLING_CURRENCY || 'INR'
+
     res.json({
       success: true,
+      currency,
       razorpayConfigured: Boolean(razorpay),
       hasRazorpayKeyId: Boolean((process.env.RAZORPAY_KEY_ID || '').trim()),
       hasRazorpayKeySecret: Boolean((process.env.RAZORPAY_KEY_SECRET || '').trim()),
@@ -463,6 +466,7 @@ const billingConfig = async (_req, res) => {
   } catch {
     res.json({
       success: true,
+      currency: process.env.BILLING_CURRENCY || 'INR',
       razorpayConfigured: false,
       hasRazorpayKeyId: Boolean((process.env.RAZORPAY_KEY_ID || '').trim()),
       hasRazorpayKeySecret: Boolean((process.env.RAZORPAY_KEY_SECRET || '').trim()),

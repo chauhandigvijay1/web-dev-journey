@@ -1,5 +1,9 @@
+const crypto = require('crypto')
 const bcrypt = require('bcryptjs')
 const User = require('../models/User')
+const { sendVerificationEmail } = require('../services/emailService')
+const Membership = require('../models/Membership')
+const Message = require('../models/Message')
 const { getAuthCookieOptions } = require('../utils/cookies')
 const { isValidEmail, isValidPhone, isValidUsername, isStrongPassword } = require('../utils/validators')
 const { storeFile, validateIncomingFile } = require('../services/storageService')
@@ -58,7 +62,15 @@ const updateAccount = async (req, res, next) => {
       if (!isValidEmail(email)) {
         return res.status(400).json({ success: false, message: 'Please provide a valid email address.' })
       }
-      user.email = email.trim().toLowerCase()
+      const normalizedEmail = email.trim().toLowerCase()
+      if (normalizedEmail !== user.email) {
+        user.email = normalizedEmail
+        user.emailVerified = false
+        const token = crypto.randomBytes(24).toString('hex')
+        user.emailVerificationToken = crypto.createHash('sha256').update(token).digest('hex')
+        user.emailVerificationExpiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000)
+        user._emailChanged = { token, newEmail: normalizedEmail }
+      }
     }
     if (typeof phone === 'string') {
       const nextPhone = phone.trim()
@@ -75,6 +87,12 @@ const updateAccount = async (req, res, next) => {
       user.backupEmail = nextBackupEmail
     }
     await user.save()
+    if (user._emailChanged) {
+      const { token, newEmail } = user._emailChanged
+      const clientUrl = (process.env.CLIENT_URL || 'http://localhost:5173').replace(/\/$/, '')
+      const verifyUrl = `${clientUrl}/verify-email/${token}`
+      sendVerificationEmail({ toEmail: newEmail, verifyUrl }).catch(() => {})
+    }
     return res.status(200).json({ success: true, user: toPublicUser(user) })
   } catch (error) {
     if (error?.code === 11000) {
@@ -150,6 +168,21 @@ const logoutAllSessions = async (_req, res) => {
   return res.status(200).json({ success: true, message: 'Signed out from all active sessions.' })
 }
 
+const deleteOwnAccount = async (req, res, next) => {
+  try {
+    const userId = req.user._id
+    await Promise.all([
+      User.findByIdAndDelete(userId),
+      Membership.deleteMany({ user: userId }),
+      Message.updateMany({ sender: userId }, { deletedAt: new Date() }),
+    ])
+    res.clearCookie('accessToken', { ...getAuthCookieOptions(), maxAge: undefined })
+    return res.status(200).json({ success: true, message: 'Account deleted.' })
+  } catch (error) {
+    return next(error)
+  }
+}
+
 const uploadAvatar = async (req, res, next) => {
   try {
     if (!req.file) {
@@ -187,5 +220,6 @@ module.exports = {
   changePassword,
   updateAppearance,
   logoutAllSessions,
+  deleteOwnAccount,
   uploadAvatar,
 }

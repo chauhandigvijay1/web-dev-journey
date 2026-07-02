@@ -38,7 +38,7 @@ const SharedNotePage = () => {
           <span className="text-2xl">{note.icon || 'N'}</span>
           <h1 className="text-2xl font-semibold">{note.title}</h1>
         </div>
-        <div className="max-w-none leading-7 text-zinc-200" dangerouslySetInnerHTML={{ __html: note.content || '<p>No content</p>' }} />
+        <div className="max-w-none whitespace-pre-wrap leading-7 text-zinc-200">{note.content || 'No content'}</div>
       </article>
     </main>
   )

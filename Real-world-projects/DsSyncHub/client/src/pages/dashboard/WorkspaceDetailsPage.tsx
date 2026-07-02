@@ -37,6 +37,9 @@ const WorkspaceDetailsPage = () => {
   const [upgradeOpen, setUpgradeOpen] = useState(false)
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false)
   const [deleting, setDeleting] = useState(false)
+  const [editingName, setEditingName] = useState('')
+  const [editingDescription, setEditingDescription] = useState('')
+  const [saving, setSaving] = useState(false)
   const { members } = useAppSelector((state) => state.workspace)
   const billingCurrent = useAppSelector((state) => state.billing.current)
   const activity = useAppSelector((state) => state.activity.items)
@@ -126,6 +129,27 @@ const WorkspaceDetailsPage = () => {
       throw error
     }
   }, [id, dispatch])
+
+  useEffect(() => {
+    if (workspace) {
+      setEditingName(workspace.name)
+      setEditingDescription(workspace.description)
+    }
+  }, [workspace])
+
+  const handleSaveSettings = async () => {
+    if (!id || !workspace) return
+    setSaving(true)
+    try {
+      const response = await workspaceApi.update(id, { name: editingName, description: editingDescription })
+      setWorkspace(response.workspace)
+      dispatch(pushToast({ title: 'Settings saved', description: 'Workspace settings have been updated.', tone: 'success' }))
+    } catch (error) {
+      dispatch(pushToast({ title: 'Save failed', description: getApiErrorMessage(error, 'Could not update workspace settings.'), tone: 'error' }))
+    } finally {
+      setSaving(false)
+    }
+  }
 
   return (
     <section className="animate-fadeIn space-y-4">
@@ -309,6 +333,30 @@ const WorkspaceDetailsPage = () => {
       {currentTab === 'settings' && (
         <article className="animate-slideUp rounded-2xl border border-white/10 glass-panel p-5 transition-all duration-300 hover:shadow-lg">
           <div className="space-y-4">
+            <div className="rounded-xl border border-white/10 p-4 transition-all duration-200 hover:bg-white/5 dark:border-zinc-700">
+              <p className="text-xs font-semibold uppercase tracking-[0.24em] text-zinc-400">Workspace Name</p>
+              <input
+                className="mt-2 w-full rounded-lg border border-white/10 bg-transparent px-3 py-2 text-sm text-white outline-none transition-all duration-200 focus:border-brand-500 focus:ring-1 focus:ring-brand-500 dark:border-zinc-700"
+                onChange={(e) => setEditingName(e.target.value)}
+                type="text"
+                value={editingName}
+              />
+              <p className="mt-3 text-xs font-semibold uppercase tracking-[0.24em] text-zinc-400">Description</p>
+              <textarea
+                className="mt-2 w-full rounded-lg border border-white/10 bg-transparent px-3 py-2 text-sm text-white outline-none transition-all duration-200 focus:border-brand-500 focus:ring-1 focus:ring-brand-500 dark:border-zinc-700"
+                onChange={(e) => setEditingDescription(e.target.value)}
+                rows={3}
+                value={editingDescription}
+              />
+              <button
+                className="mt-3 inline-flex items-center gap-1 rounded-xl bg-brand-500 px-4 py-2 text-sm font-medium text-white shadow-[0_0_15px_rgba(16,185,129,0.3)] transition-all duration-300 hover:shadow-[0_0_25px_rgba(16,185,129,0.5)] hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed"
+                disabled={saving}
+                onClick={handleSaveSettings}
+                type="button"
+              >
+                {saving ? 'Saving...' : 'Save'}
+              </button>
+            </div>
             <div className="grid gap-3 md:grid-cols-2">
               <div className="rounded-xl border border-white/10 p-4 transition-all duration-200 hover:bg-white/5 dark:border-zinc-700">
                 <p className="text-xs font-semibold uppercase tracking-[0.24em] text-zinc-400">Invite Code</p>
@@ -343,6 +391,17 @@ const WorkspaceDetailsPage = () => {
                 }}
               />
             )}
+            <div className="rounded-xl border border-white/10 p-4 transition-all duration-200 hover:bg-white/5 dark:border-zinc-700">
+              <p className="text-xs font-semibold uppercase tracking-[0.24em] text-zinc-400">Data</p>
+              <p className="mt-1 text-sm text-zinc-400">Export all workspace data including tasks, notes, messages, calendar events, and files as a ZIP archive.</p>
+              <button
+                className="mt-3 inline-flex items-center gap-1 rounded-xl border border-white/10 px-3 py-2 text-sm transition-all duration-200 hover:bg-white/5 dark:border-zinc-700"
+                onClick={() => workspaceApi.exportWorkspace(id)}
+                type="button"
+              >
+                Export Workspace Data
+              </button>
+            </div>
             {isOwner && (
               <div className="rounded-xl border border-rose-500/20 bg-rose-500/5 p-4 transition-all duration-200">
                 <div className="flex items-center gap-2">

@@ -3,6 +3,7 @@ const multer = require('multer')
 const { authMiddleware } = require('../middleware/authMiddleware')
 const {
   changePassword,
+  deleteOwnAccount,
   getProfile,
   logoutAllSessions,
   updateAccount,
@@ -27,6 +28,7 @@ router.patch('/account', updateAccount)
 router.patch('/security/password', changePassword)
 router.patch('/appearance', updateAppearance)
 router.post('/logout-all', logoutAllSessions)
+router.delete('/me', deleteOwnAccount)
 router.post('/avatar', upload.single('file'), uploadAvatar)
 
 module.exports = router

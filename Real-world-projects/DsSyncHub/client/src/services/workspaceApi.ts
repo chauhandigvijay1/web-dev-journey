@@ -67,4 +67,21 @@ export const workspaceApi = {
     const response = await api.delete(`/workspaces/${workspaceId}/destroy`)
     return response.data
   },
+  update: async (workspaceId: string, payload: { name?: string; description?: string }) => {
+    const response = await api.patch<WorkspaceDetailsResponse>(`/workspaces/${workspaceId}`, payload)
+    return response.data
+  },
+  exportWorkspace: async (workspaceId: string) => {
+    const response = await api.get(`/export/workspace/${workspaceId}`, { responseType: 'blob' })
+    const url = URL.createObjectURL(new Blob([response.data]))
+    const link = document.createElement('a')
+    link.href = url
+    const disposition = response.headers['content-disposition'] || ''
+    const match = disposition.match(/filename="?(.+?)"?$/)
+    link.download = match ? match[1] : `workspace-export-${Date.now()}.zip`
+    document.body.appendChild(link)
+    link.click()
+    link.remove()
+    URL.revokeObjectURL(url)
+  },
 }

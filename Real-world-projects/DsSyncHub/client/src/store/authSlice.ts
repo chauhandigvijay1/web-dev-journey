@@ -1,5 +1,6 @@
 import { createAsyncThunk, createSlice, type PayloadAction } from '@reduxjs/toolkit'
 import { authApi } from '../services/authApi'
+import { userApi } from '../services/userApi'
 import type { AuthUser } from '../types/auth'
 
 type AuthState = {
@@ -55,6 +56,22 @@ export const googleLoginThunk = createAsyncThunk(
     return response.user
   },
 )
+
+export const googleRegisterThunk = createAsyncThunk(
+  'auth/googleRegister',
+  async (payload: { idToken: string }) => {
+    const response = await authApi.googleLogin(payload)
+    return response.user
+  },
+)
+
+export const deleteMyAccountThunk = createAsyncThunk('auth/deleteMyAccount', async (_, { dispatch }) => {
+  const response = await userApi.deleteMyAccount()
+  localStorage.removeItem('accessToken')
+  dispatch(clearCredentials())
+  window.location.href = '/login'
+  return response
+})
 
 const authSlice = createSlice({
   name: 'auth',
@@ -138,6 +155,19 @@ const authSlice = createSlice({
         state.isAuthenticated = true
       })
       .addCase(googleLoginThunk.rejected, (state) => {
+        state.loading = false
+        state.initialized = true
+      })
+      .addCase(googleRegisterThunk.pending, (state) => {
+        state.loading = true
+      })
+      .addCase(googleRegisterThunk.fulfilled, (state, action) => {
+        state.loading = false
+        state.initialized = true
+        state.user = action.payload
+        state.isAuthenticated = true
+      })
+      .addCase(googleRegisterThunk.rejected, (state) => {
         state.loading = false
         state.initialized = true
       })
