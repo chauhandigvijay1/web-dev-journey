@@ -1,13 +1,11 @@
 const nodemailer = require('nodemailer')
 const logger = require('./logger')
 
-let transporter
+let transportConfigs = null
 
 const trim = (v) => (typeof v === 'string' ? v.trim() : v)
 
-const getTransporter = () => {
-  if (transporter) return transporter
-
+const buildConfigs = () => {
   const user = trim(process.env.EMAIL_USER)
   const pass = trim(process.env.EMAIL_PASS)
 
@@ -18,40 +16,71 @@ const getTransporter = () => {
 
   const host = trim(process.env.EMAIL_HOST)
   const port = parseInt(trim(process.env.EMAIL_PORT) || '', 10)
+  const ports = port ? [port] : [587]
+  if (port && port !== 587 && !ports.includes(587)) ports.push(587)
 
   if (host) {
-    logger.info(`[email] using SMTP: ${host}:${port || 587}`)
-    transporter = nodemailer.createTransport({
-      host,
-      port: port || 587,
-      secure: port === 465,
-      auth: { user, pass },
-      connectionTimeout: 10000,
-      socketTimeout: 10000,
-    })
-  } else {
-    logger.info('[email] using Gmail SMTP (fallback)')
-    transporter = nodemailer.createTransport({
-      service: 'gmail',
-      auth: { user, pass },
+    return ports.map((p) => {
+      logger.info(`[email] adding SMTP config: ${host}:${p}`)
+      return {
+        transporter: nodemailer.createTransport({
+          host,
+          port: p,
+          secure: p === 465,
+          auth: { user, pass },
+          connectionTimeout: 10000,
+          socketTimeout: 10000,
+        }),
+        port: p,
+      }
     })
   }
 
-  return transporter
+  logger.info('[email] using Gmail SMTP (fallback)')
+  return [
+    {
+      transporter: nodemailer.createTransport({
+        service: 'gmail',
+        auth: { user, pass },
+      }),
+      port: 'gmail',
+    },
+  ]
+}
+
+const getConfigs = () => {
+  if (!transportConfigs) transportConfigs = buildConfigs()
+  return transportConfigs
+}
+
+const resetTransporter = () => {
+  transportConfigs = null
+}
+
+const sendWithFallback = async (mailOptions) => {
+  const configs = getConfigs()
+  if (!configs) throw new Error('Email service is not configured. Set EMAIL_USER and EMAIL_PASS.')
+
+  let lastError
+  for (const { transporter, port } of configs) {
+    try {
+      await transporter.sendMail(mailOptions)
+      return
+    } catch (err) {
+      lastError = err
+      logger.warn({ err: err.message, port }, 'Email send failed, trying next config')
+    }
+  }
+
+  resetTransporter()
+  throw lastError
 }
 
 const getEmailFrom = () => trim(process.env.EMAIL_FROM) || trim(process.env.EMAIL_USER) || ''
 
 const sendPasswordResetEmail = async ({ toEmail, resetUrl }) => {
-  const emailFrom = getEmailFrom()
-  const mailer = getTransporter()
-
-  if (!mailer) {
-    throw new Error('Email service is not configured. Set EMAIL_USER and EMAIL_PASS.')
-  }
-
-  await mailer.sendMail({
-    from: emailFrom,
+  await sendWithFallback({
+    from: getEmailFrom(),
     to: toEmail,
     subject: 'Reset your DsSync Hub password',
     html: `
@@ -72,15 +101,8 @@ const sendPasswordResetEmail = async ({ toEmail, resetUrl }) => {
 }
 
 const sendVerificationEmail = async ({ toEmail, verifyUrl }) => {
-  const emailFrom = getEmailFrom()
-  const mailer = getTransporter()
-
-  if (!mailer) {
-    throw new Error('Email service is not configured. Set EMAIL_USER and EMAIL_PASS.')
-  }
-
-  await mailer.sendMail({
-    from: emailFrom,
+  await sendWithFallback({
+    from: getEmailFrom(),
     to: toEmail,
     subject: 'Verify your DsSync Hub email',
     html: `
@@ -101,15 +123,8 @@ const sendVerificationEmail = async ({ toEmail, verifyUrl }) => {
 }
 
 const sendInviteEmail = async ({ toEmail, inviteUrl, inviterName, workspaceName }) => {
-  const emailFrom = getEmailFrom()
-  const mailer = getTransporter()
-
-  if (!mailer) {
-    throw new Error('Email service is not configured. Set EMAIL_USER and EMAIL_PASS.')
-  }
-
-  await mailer.sendMail({
-    from: emailFrom,
+  await sendWithFallback({
+    from: getEmailFrom(),
     to: toEmail,
     subject: `${inviterName} invited you to ${workspaceName}`,
     html: `
