@@ -100,21 +100,22 @@ const ResetPasswordPage = () => {
       </div>
 
         <div className="flex flex-col justify-center">
-        <h2 className="text-2xl font-semibold tracking-tight text-white font-semibold drop-shadow-md">Reset your password</h2>
+        <h2 className="text-2xl font-semibold tracking-tight text-white drop-shadow-md">Reset your password</h2>
         <p className="mt-2 text-sm text-zinc-300">
           Enter a fresh password for your account and sign back in securely.
         </p>
 
         <form className="mt-6 space-y-4" onSubmit={handleSubmit(onSubmit)}>
           <div>
-            <label className="mb-1 block text-sm font-medium text-zinc-200">New password</label>
+            <label className="mb-1 block text-sm font-medium text-zinc-200" htmlFor="reset-password">New password</label>
             <div className="flex items-center gap-2 rounded-2xl border border-white/10 px-4 py-3 dark:border-zinc-700 bg-black/20">
               <input
                 className="w-full bg-transparent text-sm outline-none"
+                id="reset-password"
                 type={showPassword ? 'text' : 'password'}
                 {...register('password')}
               />
-              <button className="text-zinc-500" onClick={() => setShowPassword((prev) => !prev)} type="button">
+              <button aria-label={showPassword ? 'Hide password' : 'Show password'} className="text-zinc-500" onClick={() => setShowPassword((prev) => !prev)} type="button">
                 {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
               </button>
             </div>
@@ -125,14 +126,15 @@ const ResetPasswordPage = () => {
           </div>
 
           <div>
-            <label className="mb-1 block text-sm font-medium text-zinc-200">Confirm password</label>
+            <label className="mb-1 block text-sm font-medium text-zinc-200" htmlFor="reset-confirm-password">Confirm password</label>
             <div className="flex items-center gap-2 rounded-2xl border border-white/10 px-4 py-3 dark:border-zinc-700 bg-black/20">
               <input
                 className="w-full bg-transparent text-sm outline-none"
+                id="reset-confirm-password"
                 type={showConfirmPassword ? 'text' : 'password'}
                 {...register('confirmPassword')}
               />
-              <button className="text-zinc-500" onClick={() => setShowConfirmPassword((prev) => !prev)} type="button">
+              <button aria-label={showConfirmPassword ? 'Hide confirm password' : 'Show confirm password'} className="text-zinc-500" onClick={() => setShowConfirmPassword((prev) => !prev)} type="button">
                 {showConfirmPassword ? <EyeOff size={18} /> : <Eye size={18} />}
               </button>
             </div>

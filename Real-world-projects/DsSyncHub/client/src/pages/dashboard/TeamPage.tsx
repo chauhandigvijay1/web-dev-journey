@@ -55,8 +55,10 @@ const TeamPage = () => {
         <div className="flex flex-wrap gap-2">
           <div className="flex items-center gap-2 rounded-xl border border-white/10 px-3 py-2 dark:border-zinc-700">
             <Search size={15} className="text-zinc-400" />
+            <label className="sr-only" htmlFor="team-search">Search members</label>
             <input
               className="bg-transparent text-sm outline-none"
+              id="team-search"
               onChange={(event) => {
                 setQuery(event.target.value)
                 setCurrentPage(1)
@@ -65,8 +67,10 @@ const TeamPage = () => {
               value={query}
             />
           </div>
+          <label className="sr-only" htmlFor="team-role-filter">Role filter</label>
           <select
             className="rounded-xl border border-white/10 px-3 py-2 text-sm capitalize dark:border-zinc-700 bg-black/20"
+            id="team-role-filter"
             onChange={(event) => {
               setRoleFilter(event.target.value)
               setCurrentPage(1)
@@ -86,11 +90,11 @@ const TeamPage = () => {
         {paginatedMembers.map((member) => (
           <article className="rounded-[28px] border border-white/10 glass-panel p-5" key={member.id}>
             <div className="flex items-start justify-between gap-3">
-              <div className="flex items-center gap-3">
+              <div className="flex min-w-0 items-center gap-3">
                 <Avatar className="rounded-2xl" name={member.fullName} size="lg" src={member.avatarUrl} />
-                <div>
-                  <p className="text-sm font-semibold text-zinc-900 dark:text-white drop-shadow-md">{member.fullName}</p>
-                  <p className="text-xs text-zinc-500">@{member.username}</p>
+                <div className="min-w-0">
+                  <p className="truncate text-sm font-semibold text-zinc-900 dark:text-white drop-shadow-md">{member.fullName}</p>
+                  <p className="truncate text-xs text-zinc-500">@{member.username}</p>
                 </div>
               </div>
               <span className={`rounded-full px-2.5 py-1 text-[11px] font-medium capitalize ${member.status === 'active' ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-200' : 'bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-200'}`}>
@@ -98,7 +102,7 @@ const TeamPage = () => {
               </span>
             </div>
             <div className="mt-4 space-y-2 text-sm text-zinc-300">
-              <p>{member.email}</p>
+              <p className="break-words">{member.email}</p>
               <p>Joined {new Date(member.joinedAt).toLocaleDateString()}</p>
               <div className="inline-flex items-center rounded-full glass-card/10 px-3 py-1 text-xs font-medium capitalize text-zinc-300 dark:bg-zinc-800 dark:text-zinc-300">
                 <ShieldCheck className="mr-1 inline" size={12} />

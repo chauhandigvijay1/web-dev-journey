@@ -53,11 +53,11 @@ const NotificationsDropdown = ({ open, onClose }: NotificationsDropdownProps) =>
             }}
             type="button"
           >
-            <p className="text-sm font-medium text-zinc-200 dark:text-zinc-100">
+            <p className="truncate text-sm font-medium text-zinc-200 dark:text-zinc-100">
               <Icon className="mr-1 inline" size={13} />
               {item.title} {!item.isRead && <span className="ml-1 inline-block h-1.5 w-1.5 rounded-full bg-brand-500" />}
             </p>
-            <p className="text-xs text-zinc-400">{item.message}</p>
+            <p className="truncate text-xs text-zinc-400">{item.message}</p>
             <p className="text-[11px] text-zinc-400">{new Date(item.createdAt).toLocaleString()}</p>
           </button>
           )})}

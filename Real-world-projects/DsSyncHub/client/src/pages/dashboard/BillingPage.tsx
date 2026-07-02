@@ -11,7 +11,7 @@ import {
 } from '../../store/billingSlice'
 import { pushToast } from '../../store/toastSlice'
 import type { BillingConfig, SubscriptionPlan } from '../../types/billing'
-import { CURRENCY_SYMBOLS } from '../../utils/currency'
+import { formatPrice } from '../../utils/currency'
 import { getApiErrorMessage } from '../../utils/errors'
 import { billingApi } from '../../services/billingApi'
 
@@ -317,8 +317,10 @@ const BillingPage = () => {
                   Apply coupon
                 </p>
                 <div className="mt-2 flex gap-2">
+                  <label className="sr-only" htmlFor="billing-coupon-code">Coupon code</label>
                   <input
                     className="flex-1 rounded-lg border border-white/10 bg-transparent px-3 py-2 text-xs outline-none focus:border-brand-500 dark:border-zinc-700"
+                    id="billing-coupon-code"
                     placeholder="Enter coupon code"
                     value={couponCode}
                     onChange={(e) => { setCouponCode(e.target.value); setApplyResult(null) }}
@@ -370,6 +372,7 @@ const BillingPage = () => {
                   <div className="flex items-center justify-between">
                     <code className="rounded bg-zinc-800 px-2 py-0.5 text-sm font-mono text-brand-300">{coupon.code}</code>
                     <button
+                      aria-label={`Copy coupon code ${coupon.code}`}
                       className="text-zinc-500 hover:text-zinc-300"
                       onClick={() => handleCopyCode(coupon.code)}
                       title="Copy code"

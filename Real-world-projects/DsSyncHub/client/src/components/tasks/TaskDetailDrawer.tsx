@@ -81,8 +81,10 @@ const TaskDetailDrawer = ({ task, open, onClose }: TaskDetailDrawerProps) => {
         </div>
 
         <div className="space-y-3">
+          <label className="sr-only" htmlFor="task-detail-title">Task title</label>
           <input
             className="w-full rounded-xl border border-white/10 px-3 py-2 text-sm dark:border-zinc-700 bg-black/20"
+            id="task-detail-title"
             onBlur={async () => {
               const trimmedTitle = titleValue.trim()
 
@@ -104,8 +106,10 @@ const TaskDetailDrawer = ({ task, open, onClose }: TaskDetailDrawerProps) => {
             onChange={(event) => setTitleValue(event.target.value)}
             value={titleValue}
           />
+          <label className="sr-only" htmlFor="task-detail-description">Task description</label>
           <textarea
             className="w-full rounded-xl border border-white/10 px-3 py-2 text-sm dark:border-zinc-700 bg-black/20"
+            id="task-detail-description"
             onBlur={async () => {
               const trimmedDescription = descriptionValue.trim()
 
@@ -130,19 +134,22 @@ const TaskDetailDrawer = ({ task, open, onClose }: TaskDetailDrawerProps) => {
           />
 
           <div className="grid gap-3 sm:grid-cols-2">
-            <select className="rounded-xl border border-white/10 px-3 py-2 text-sm capitalize dark:border-zinc-700 bg-black/20" defaultValue={task.status} onChange={(event) => updateField({ status: event.target.value as TaskStatus })}>
+            <label className="sr-only" htmlFor="task-detail-status">Task status</label>
+            <select className="rounded-xl border border-white/10 px-3 py-2 text-sm capitalize dark:border-zinc-700 bg-black/20" defaultValue={task.status} id="task-detail-status" onChange={(event) => updateField({ status: event.target.value as TaskStatus })}>
               <option value="todo">todo</option>
               <option value="in_progress">in progress</option>
               <option value="review">review</option>
               <option value="done">done</option>
             </select>
-            <select className="rounded-xl border border-white/10 px-3 py-2 text-sm capitalize dark:border-zinc-700 bg-black/20" defaultValue={task.priority} onChange={(event) => updateField({ priority: event.target.value as TaskPriority })}>
+            <label className="sr-only" htmlFor="task-detail-priority">Task priority</label>
+            <select className="rounded-xl border border-white/10 px-3 py-2 text-sm capitalize dark:border-zinc-700 bg-black/20" defaultValue={task.priority} id="task-detail-priority" onChange={(event) => updateField({ priority: event.target.value as TaskPriority })}>
               <option value="low">low</option>
               <option value="medium">medium</option>
               <option value="high">high</option>
               <option value="critical">critical</option>
             </select>
-            <select className="rounded-xl border border-white/10 px-3 py-2 text-sm dark:border-zinc-700 bg-black/20" defaultValue={assigneeId} onChange={(event) => updateField({ assignee: (event.target.value || null) as TaskItem['assignee'] })}>
+            <label className="sr-only" htmlFor="task-detail-assignee">Task assignee</label>
+            <select className="rounded-xl border border-white/10 px-3 py-2 text-sm dark:border-zinc-700 bg-black/20" defaultValue={assigneeId} id="task-detail-assignee" onChange={(event) => updateField({ assignee: (event.target.value || null) as TaskItem['assignee'] })}>
               <option value="">Unassigned</option>
               {members.map((member) => (
                 <option key={member.userId} value={member.userId}>
@@ -150,8 +157,10 @@ const TaskDetailDrawer = ({ task, open, onClose }: TaskDetailDrawerProps) => {
                 </option>
               ))}
             </select>
+            <label className="sr-only" htmlFor="task-detail-due-date">Task due date</label>
             <input
               className="rounded-xl border border-white/10 px-3 py-2 text-sm dark:border-zinc-700 bg-black/20"
+              id="task-detail-due-date"
               onBlur={async () => {
                 if (!dueDateValue) {
                   if (task.dueDate) {
@@ -182,8 +191,10 @@ const TaskDetailDrawer = ({ task, open, onClose }: TaskDetailDrawerProps) => {
             />
           </div>
 
+          <label className="sr-only" htmlFor="task-detail-labels">Task labels</label>
           <input
             className="w-full rounded-xl border border-white/10 px-3 py-2 text-sm dark:border-zinc-700 bg-black/20"
+            id="task-detail-labels"
             onBlur={async () => {
               const nextLabels = Array.from(
                 new Set(
@@ -205,13 +216,15 @@ const TaskDetailDrawer = ({ task, open, onClose }: TaskDetailDrawerProps) => {
           />
           <div className="rounded-2xl border border-white/10 p-3 dark:border-zinc-700">
             <div className="flex flex-wrap items-center justify-between gap-2">
-              <p className="text-sm font-medium text-white font-semibold drop-shadow-md">Attachments</p>
+              <p className="text-sm font-semibold text-white drop-shadow-md">Attachments</p>
               <button className="rounded-xl border border-white/10 px-3 py-2 text-xs dark:border-zinc-700" onClick={() => fileInputRef.current?.click()} type="button">
                 <Paperclip className="mr-1 inline" size={12} />
                 Upload file
               </button>
+              <label className="sr-only" htmlFor="task-detail-attachment-upload">Upload task attachment</label>
               <input
                 className="hidden"
+                id="task-detail-attachment-upload"
                 onChange={async (event) => {
                   const file = event.target.files?.[0]
                   if (!file || !activeWorkspaceId) return
@@ -239,7 +252,7 @@ const TaskDetailDrawer = ({ task, open, onClose }: TaskDetailDrawerProps) => {
             </div>
             <div className="mt-3 flex flex-wrap gap-2">
               {task.attachments.map((attachment) => (
-                <a className="rounded-full bg-white/10 px-3 py-1.5 text-xs text-zinc-700 dark:bg-zinc-800 dark:text-zinc-200" href={buildAssetUrl(attachment.url)} key={attachment.fileId || attachment.url} rel="noreferrer" target="_blank">
+                <a className="max-w-full break-words rounded-full bg-white/10 px-3 py-1.5 text-xs text-zinc-700 dark:bg-zinc-800 dark:text-zinc-200" href={buildAssetUrl(attachment.url)} key={attachment.fileId || attachment.url} rel="noreferrer" target="_blank">
                   {attachment.name}
                 </a>
               ))}
@@ -258,14 +271,16 @@ const TaskDetailDrawer = ({ task, open, onClose }: TaskDetailDrawerProps) => {
           <div className="mt-3 space-y-2">
             {comments.map((comment) => (
               <div className="rounded-xl border border-white/10 p-3 dark:border-zinc-700" key={comment.id}>
-                <div className="flex items-center justify-between">
-                  <p className="text-sm font-medium">{comment.userName}</p>
+                <div className="flex items-center justify-between gap-3">
+                  <p className="min-w-0 truncate text-sm font-medium">{comment.userName}</p>
                   <span className="text-xs text-zinc-500">{new Date(comment.createdAt).toLocaleString()}</span>
                 </div>
                 {editingCommentId === comment.id ? (
                   <div className="mt-2 space-y-2">
+                    <label className="sr-only" htmlFor={`task-comment-edit-${comment.id}`}>Edit comment</label>
                     <textarea
                       className="w-full rounded-lg border border-white/10 px-2 py-1 text-sm dark:border-zinc-700 bg-black/20"
+                      id={`task-comment-edit-${comment.id}`}
                       onChange={(event) => {
                         setEditingCommentContent(event.target.value)
                         setEditCursorPosition(event.target.selectionStart)
@@ -330,7 +345,7 @@ const TaskDetailDrawer = ({ task, open, onClose }: TaskDetailDrawerProps) => {
                     </div>
                   </div>
                 ) : (
-                  <div className="mt-1 text-sm text-zinc-200">
+                  <div className="mt-1 break-words text-sm text-zinc-200">
                     <MentionText members={members} text={comment.content} />
                   </div>
                 )}
@@ -361,8 +376,10 @@ const TaskDetailDrawer = ({ task, open, onClose }: TaskDetailDrawerProps) => {
             ))}
           </div>
           <div className="mt-3 space-y-2">
+            <label className="sr-only" htmlFor="task-comment-draft">New comment</label>
             <textarea
               className="w-full rounded-xl border border-white/10 px-3 py-2 text-sm dark:border-zinc-700 bg-black/20"
+              id="task-comment-draft"
               onChange={(event) => {
                 setCommentDraft(event.target.value)
                 setCursorPosition(event.target.selectionStart)

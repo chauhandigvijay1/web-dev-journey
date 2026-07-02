@@ -66,6 +66,7 @@ const MeetingsPage = () => {
           <h2 className="text-lg font-semibold text-zinc-900 dark:text-white drop-shadow-md">Join a room</h2>
           <p className="mt-1 text-sm text-zinc-400">Paste a room code from your teammate.</p>
           <div className="mt-4 flex gap-2">
+            <label className="sr-only" htmlFor="join-room-input">Room code</label>
             <input
               className="flex-1 rounded-xl border border-white/10 px-3 py-2 text-sm uppercase dark:border-zinc-700 bg-black/20"
               id="join-room-input"
@@ -109,9 +110,9 @@ const MeetingsPage = () => {
           )}
           {meetings.map((meeting) => (
             <div className="flex flex-col gap-3 rounded-2xl border border-white/10 p-4 dark:border-zinc-700 md:flex-row md:items-center md:justify-between" key={meeting.id}>
-              <div>
-                <p className="text-sm font-semibold text-zinc-900 dark:text-white drop-shadow-md">{meeting.title}</p>
-                <p className="mt-1 text-xs text-zinc-500">
+              <div className="min-w-0">
+                <p className="truncate text-sm font-semibold text-zinc-900 dark:text-white drop-shadow-md">{meeting.title}</p>
+                <p className="mt-1 break-words text-xs text-zinc-500">
                   Room {meeting.roomId} | {meeting.status} | {meeting.scheduledFor ? new Date(meeting.scheduledFor).toLocaleString() : 'Started instantly'}
                 </p>
                 <p className="mt-2 text-xs text-zinc-500">

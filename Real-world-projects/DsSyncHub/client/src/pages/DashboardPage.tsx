@@ -384,8 +384,8 @@ const DashboardPage = () => {
                     type="button"
                   >
                     <div className="flex items-start justify-between gap-3">
-                      <div>
-                        <p className="text-sm font-semibold text-white drop-shadow-md">{task.title}</p>
+                      <div className="min-w-0">
+                        <p className="break-words text-sm font-semibold text-white drop-shadow-md">{task.title}</p>
                         <p className="mt-1 text-xs text-zinc-400">
                           Due {new Date(task.dueDate || '').toLocaleDateString()}
                         </p>
@@ -416,8 +416,8 @@ const DashboardPage = () => {
                     type="button"
                   >
                     <span className="min-w-0">
-                      <span className="block truncate text-sm font-medium text-white font-semibold drop-shadow-md">{file.originalName}</span>
-                      <span className="block text-xs text-zinc-400">{file.uploadedBy?.fullName || 'Unknown uploader'}</span>
+                      <span className="block truncate text-sm font-semibold text-white drop-shadow-md">{file.originalName}</span>
+                      <span className="block truncate text-xs text-zinc-400">{file.uploadedBy?.fullName || 'Unknown uploader'}</span>
                     </span>
                     <ArrowUpRight size={14} className="text-zinc-400" />
                   </button>
@@ -452,7 +452,7 @@ const DashboardPage = () => {
                   <Avatar name={item.actor?.fullName || 'Workspace'} size="md" src={item.actor?.avatarUrl} />
                   <div className="min-w-0 flex-1">
                     <div className="flex flex-wrap items-center gap-2">
-                      <p className="text-sm font-medium text-white font-semibold drop-shadow-md">{item.summary}</p>
+                      <p className="break-words text-sm font-semibold text-white drop-shadow-md">{item.summary}</p>
                       <span className="rounded-full glass-card/10 px-2 py-0.5 text-[11px] capitalize text-zinc-500 dark:bg-zinc-800 dark:text-zinc-300">
                         {item.entityType}
                       </span>
@@ -491,8 +491,8 @@ const DashboardPage = () => {
                 onClick={() => navigate(`/meetings/${meeting.roomId}`)}
                 type="button"
               >
-                <span>
-                  <span className="block text-sm font-medium text-white font-semibold drop-shadow-md">{meeting.title}</span>
+                <span className="min-w-0">
+                  <span className="block truncate text-sm font-semibold text-white drop-shadow-md">{meeting.title}</span>
                   <span className="block text-xs text-zinc-400">
                     {meeting.roomId} | {meeting.status}
                   </span>

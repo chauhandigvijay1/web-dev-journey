@@ -77,10 +77,10 @@ const ActivityPage = () => {
               <div className="flex items-center gap-3">
                 <Avatar name={item.actor?.fullName || 'Workspace activity'} src={item.actor?.avatarUrl} />
                 <div className="min-w-0 flex-1">
-                  <p className="text-sm">{item.summary}</p>
+                  <p className="break-words text-sm">{item.summary}</p>
                   <div className="mt-1 flex items-center gap-2 text-xs text-zinc-500">
                     <span className="rounded-full glass-card/10 px-2 py-1 dark:bg-zinc-800">{item.entityType}</span>
-                    <span>{new Date(item.createdAt).toLocaleString()}</span>
+                    <span className="truncate">{new Date(item.createdAt).toLocaleString()}</span>
                   </div>
                 </div>
               </div>

@@ -131,38 +131,39 @@ const SignupPage = () => {
 
           <form className="mt-6 space-y-4" onSubmit={handleSubmit(onSubmit)}>
           <div>
-            <label className="mb-1.5 block text-sm font-medium text-zinc-300">Full Name</label>
-            <input className="w-full rounded-xl border border-white/10 bg-black/20 px-4 py-3 text-sm text-white outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500/50 transition-all placeholder-zinc-500" {...register('fullName')} />
+            <label className="mb-1.5 block text-sm font-medium text-zinc-300" htmlFor="signup-full-name">Full Name</label>
+            <input className="w-full rounded-xl border border-white/10 bg-black/20 px-4 py-3 text-sm text-white outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500/50 transition-all placeholder-zinc-500" id="signup-full-name" {...register('fullName')} />
             {errors.fullName && <p className="mt-1 text-xs text-rose-500">{errors.fullName.message}</p>}
           </div>
 
           <div>
-            <label className="mb-1.5 block text-sm font-medium text-zinc-300">Username</label>
-            <input className="w-full rounded-xl border border-white/10 bg-black/20 px-4 py-3 text-sm text-white outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500/50 transition-all placeholder-zinc-500" {...register('username')} />
+            <label className="mb-1.5 block text-sm font-medium text-zinc-300" htmlFor="signup-username">Username</label>
+            <input className="w-full rounded-xl border border-white/10 bg-black/20 px-4 py-3 text-sm text-white outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500/50 transition-all placeholder-zinc-500" id="signup-username" {...register('username')} />
             {errors.username && <p className="mt-1 text-xs text-rose-500">{errors.username.message}</p>}
           </div>
 
           <div>
-            <label className="mb-1.5 block text-sm font-medium text-zinc-300">Email</label>
-            <input className="w-full rounded-xl border border-white/10 bg-black/20 px-4 py-3 text-sm text-white outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500/50 transition-all placeholder-zinc-500" {...register('email')} />
+            <label className="mb-1.5 block text-sm font-medium text-zinc-300" htmlFor="signup-email">Email</label>
+            <input className="w-full rounded-xl border border-white/10 bg-black/20 px-4 py-3 text-sm text-white outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500/50 transition-all placeholder-zinc-500" id="signup-email" {...register('email')} />
             {errors.email && <p className="mt-1 text-xs text-rose-500">{errors.email.message}</p>}
           </div>
 
           <div>
-            <label className="mb-1.5 block text-sm font-medium text-zinc-300">Phone (optional)</label>
-            <input className="w-full rounded-xl border border-white/10 bg-black/20 px-4 py-3 text-sm text-white outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500/50 transition-all placeholder-zinc-500" {...register('phone')} />
+            <label className="mb-1.5 block text-sm font-medium text-zinc-300" htmlFor="signup-phone">Phone (optional)</label>
+            <input className="w-full rounded-xl border border-white/10 bg-black/20 px-4 py-3 text-sm text-white outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500/50 transition-all placeholder-zinc-500" id="signup-phone" {...register('phone')} />
             {errors.phone && <p className="mt-1 text-xs text-rose-500">{errors.phone.message}</p>}
           </div>
 
           <div>
-            <label className="mb-1.5 block text-sm font-medium text-zinc-300">Password</label>
+            <label className="mb-1.5 block text-sm font-medium text-zinc-300" htmlFor="signup-password">Password</label>
             <div className="relative">
               <input
                 className="w-full rounded-xl border border-white/10 bg-black/20 px-4 py-3 pr-11 text-sm text-white outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500/50 transition-all placeholder-zinc-500"
+                id="signup-password"
                 type={showPassword ? 'text' : 'password'}
                 {...register('password')}
               />
-              <button className="absolute inset-y-0 right-3 text-zinc-400 hover:text-white transition-colors" type="button" onClick={() => setShowPassword((prev) => !prev)}>
+              <button aria-label={showPassword ? 'Hide password' : 'Show password'} className="absolute inset-y-0 right-3 text-zinc-400 hover:text-white transition-colors" type="button" onClick={() => setShowPassword((prev) => !prev)}>
                 {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
               </button>
             </div>
@@ -177,14 +178,16 @@ const SignupPage = () => {
           </div>
 
           <div>
-            <label className="mb-1.5 block text-sm font-medium text-zinc-300">Confirm Password</label>
+            <label className="mb-1.5 block text-sm font-medium text-zinc-300" htmlFor="signup-confirm-password">Confirm Password</label>
             <div className="relative">
               <input
                 className="w-full rounded-xl border border-white/10 bg-black/20 px-4 py-3 pr-11 text-sm text-white outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500/50 transition-all placeholder-zinc-500"
+                id="signup-confirm-password"
                 type={showConfirmPassword ? 'text' : 'password'}
                 {...register('confirmPassword')}
               />
               <button
+                aria-label={showConfirmPassword ? 'Hide confirm password' : 'Show confirm password'}
                 className="absolute inset-y-0 right-3 text-zinc-400 hover:text-white transition-colors"
                 type="button"
                 onClick={() => setShowConfirmPassword((prev) => !prev)}
@@ -197,8 +200,8 @@ const SignupPage = () => {
             )}
           </div>
 
-          <label className="inline-flex items-start gap-2 text-sm text-zinc-300 cursor-pointer">
-            <input className="mt-1 accent-brand-500" type="checkbox" {...register('terms')} />
+          <label className="inline-flex items-start gap-2 text-sm text-zinc-300 cursor-pointer" htmlFor="signup-terms">
+            <input className="mt-1 accent-brand-500" id="signup-terms" type="checkbox" {...register('terms')} />
             <span>I agree to the Terms and Privacy Policy.</span>
           </label>
           {errors.terms && <p className="text-xs text-rose-500">{errors.terms.message}</p>}
@@ -225,7 +228,7 @@ const SignupPage = () => {
                   setApiError('')
                   try {
                     await dispatch(googleRegisterThunk({ idToken })).unwrap()
-                    dispatch(pushToast({ type: 'success', title: 'Account created', message: 'Account created successfully' }))
+                    dispatch(pushToast({ tone: 'success', title: 'Account created', description: 'Account created successfully' }))
                     navigate(nextPath, { replace: true })
                   } catch (error: unknown) {
                     setApiError(getApiErrorMessage(error, 'Google sign up failed.'))

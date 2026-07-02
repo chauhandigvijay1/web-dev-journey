@@ -130,8 +130,10 @@ const NotesPage = () => {
         <div className="space-y-2">
           <div className="flex items-center gap-2 rounded-xl border border-white/10 px-3 py-2 dark:border-zinc-700">
             <Search size={15} className="text-zinc-400" />
+            <label className="sr-only" htmlFor="notes-search">Search notes</label>
             <input
               className="w-full bg-transparent text-sm outline-none"
+              id="notes-search"
               onChange={(event) => {
                 setSearchInput(event.target.value)
                 setCurrentPage(1)
@@ -141,7 +143,7 @@ const NotesPage = () => {
             />
           </div>
           <button
-            className="w-full rounded-xl bg-brand-500 px-3 py-2 text-sm font-medium text-white hover:bg-brand-400 shadow-[0_0_15px_rgba(16,185,129,0.3)] transition-all hover:shadow-[0_0_25px_rgba(16,185,129,0.5)] hover:-translate-y-0.5 duration-300 shadow-[0_0_15px_rgba(16,185,129,0.3)] transition-all hover:shadow-[0_0_25px_rgba(16,185,129,0.5)] hover:-translate-y-0.5 duration-300"
+            className="w-full rounded-xl bg-brand-500 px-3 py-2 text-sm font-medium text-white hover:bg-brand-400 shadow-[0_0_15px_rgba(16,185,129,0.3)] transition-all hover:shadow-[0_0_25px_rgba(16,185,129,0.5)] hover:-translate-y-0.5 duration-300"
             onClick={handleCreateNote}
             type="button"
           >
@@ -173,7 +175,7 @@ const NotesPage = () => {
         <div className="mt-4">
           <p className="mb-2 text-xs font-semibold uppercase text-zinc-400">Folders</p>
           <div className="space-y-1 text-sm text-zinc-300">
-            {folders.length ? folders.map((folder) => <p key={folder}>{folder}</p>) : <p>No folders yet</p>}
+            {folders.length ? folders.map((folder) => <p className="break-words" key={folder}>{folder}</p>) : <p>No folders yet</p>}
           </div>
         </div>
 
@@ -181,7 +183,7 @@ const NotesPage = () => {
           <p className="mb-2 text-xs font-semibold uppercase text-zinc-400">Tags</p>
           <div className="flex flex-wrap gap-1">
             {tags.length ? tags.map((tag) => (
-              <span className="rounded-full glass-card/10 px-2 py-1 text-xs dark:bg-zinc-800" key={tag}>
+              <span className="max-w-full break-words rounded-full glass-card/10 px-2 py-1 text-xs dark:bg-zinc-800" key={tag}>
                 #{tag}
               </span>
             )) : <span className="text-sm text-zinc-500">No tags yet</span>}
@@ -283,14 +285,16 @@ const NotesPage = () => {
             {selectedNote.attachments.length > 0 && (
               <div className="mb-3 flex flex-wrap gap-2 rounded-2xl border border-white/10 glass-card p-3 dark:border-zinc-800 dark:bg-zinc-900">
                 {selectedNote.attachments.map((attachment) => (
-                  <a className="rounded-full glass-card/10 px-3 py-1.5 text-xs text-zinc-700 dark:bg-zinc-800 dark:text-zinc-200" href={buildAssetUrl(attachment.url)} key={attachment.fileId || attachment.url} rel="noreferrer" target="_blank">
+                  <a className="max-w-full break-words rounded-full glass-card/10 px-3 py-1.5 text-xs text-zinc-700 dark:bg-zinc-800 dark:text-zinc-200" href={buildAssetUrl(attachment.url)} key={attachment.fileId || attachment.url} rel="noreferrer" target="_blank">
                     {attachment.name}
                   </a>
                 ))}
               </div>
             )}
+            <label className="sr-only" htmlFor="notes-attachment-upload">Upload note attachment</label>
             <input
               className="hidden"
+              id="notes-attachment-upload"
               onChange={async (event) => {
                 const file = event.target.files?.[0]
                 if (!file || !activeWorkspaceId || !selectedNote) return

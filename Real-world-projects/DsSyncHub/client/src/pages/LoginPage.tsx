@@ -97,9 +97,10 @@ const LoginPage = () => {
 
           <form className="mt-6 space-y-4" onSubmit={handleSubmit(onSubmit)}>
           <div>
-            <label className="mb-1.5 block text-sm font-medium text-zinc-600 dark:text-zinc-300">Email, phone, or username</label>
+            <label className="mb-1.5 block text-sm font-medium text-zinc-600 dark:text-zinc-300" htmlFor="login-identifier">Email, phone, or username</label>
             <input
               className="w-full rounded-xl border border-white/10 bg-black/20 px-4 py-3 text-sm text-white outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500/50 transition-all placeholder-zinc-500"
+              id="login-identifier"
               placeholder="you@company.com or @workspace-handle"
               {...register('identifier')}
             />
@@ -109,15 +110,17 @@ const LoginPage = () => {
           </div>
 
           <div>
-            <label className="mb-1.5 block text-sm font-medium text-zinc-600 dark:text-zinc-300">Password</label>
+            <label className="mb-1.5 block text-sm font-medium text-zinc-600 dark:text-zinc-300" htmlFor="login-password">Password</label>
             <div className="relative">
               <input
                 className="w-full rounded-xl border border-white/10 bg-black/20 px-4 py-3 pr-11 text-sm text-white outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500/50 transition-all placeholder-zinc-500"
+                id="login-password"
                 type={showPassword ? 'text' : 'password'}
                 placeholder="Your password"
                 {...register('password')}
               />
               <button
+                aria-label={showPassword ? 'Hide password' : 'Show password'}
                 className="absolute inset-y-0 right-3 text-zinc-400 hover:text-white transition-colors"
                 type="button"
                 onClick={() => setShowPassword((prev) => !prev)}
@@ -131,8 +134,8 @@ const LoginPage = () => {
           </div>
 
           <div className="flex items-center justify-between text-sm">
-            <label className="inline-flex items-center gap-2 text-zinc-300 cursor-pointer">
-              <input type="checkbox" className="accent-brand-500" {...register('rememberMe')} />
+            <label className="inline-flex items-center gap-2 text-zinc-300 cursor-pointer" htmlFor="login-remember-me">
+              <input id="login-remember-me" type="checkbox" className="accent-brand-500" {...register('rememberMe')} />
               Keep me signed in on this device
             </label>
             <Link className="text-brand-400 hover:text-brand-300 transition-colors" to="/forgot-password">

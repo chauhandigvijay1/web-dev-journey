@@ -95,9 +95,11 @@ const SearchModal = ({ open, onClose }: SearchModalProps) => {
       >
         <div className="flex items-center gap-3 rounded-xl border border-white/10 px-3 py-2 dark:border-zinc-700">
           <Search className="text-zinc-400" size={18} />
+          <label className="sr-only" htmlFor="global-search-input">Global search</label>
           <input
             autoFocus
             className="w-full bg-transparent text-sm outline-none placeholder:text-zinc-400"
+            id="global-search-input"
             onChange={(event) => {
               setActiveIndex(0)
               dispatch(setSearchQuery(event.target.value))
@@ -106,7 +108,7 @@ const SearchModal = ({ open, onClose }: SearchModalProps) => {
             value={query}
             type="text"
           />
-          <button className="rounded-lg p-1 hover:glass-card/10 dark:hover:bg-zinc-800" onClick={handleClose} type="button">
+          <button aria-label="Close search" className="rounded-lg p-1 hover:glass-card/10 dark:hover:bg-zinc-800" onClick={handleClose} type="button">
             <X size={14} />
           </button>
           <kbd className="inline-flex items-center gap-1 rounded-md border border-white/10 px-2 py-1 text-xs dark:border-zinc-700">
@@ -115,7 +117,7 @@ const SearchModal = ({ open, onClose }: SearchModalProps) => {
         </div>
         {Boolean(recent.length) && (
           <div className="mt-3 flex items-center justify-between text-xs">
-            <div className="text-zinc-500">Recent: {recent.join(', ')}</div>
+            <div className="min-w-0 truncate text-zinc-500">Recent: {recent.join(', ')}</div>
             <button className="text-rose-600" onClick={() => dispatch(clearRecentSearches())} type="button">Clear history</button>
           </div>
         )}
@@ -157,9 +159,9 @@ const SearchModal = ({ open, onClose }: SearchModalProps) => {
               }}
               type="button"
             >
-              <span>
-                <span className="block text-sm text-zinc-200 dark:text-zinc-100">{item.title}</span>
-                <span className="block text-xs text-zinc-500">{item.context}</span>
+              <span className="min-w-0">
+                <span className="block truncate text-sm text-zinc-200 dark:text-zinc-100">{item.title}</span>
+                <span className="block truncate text-xs text-zinc-500">{item.context}</span>
               </span>
               <span className="rounded-md glass-card/10 px-2 py-1 text-xs text-zinc-500 dark:bg-zinc-800 dark:text-zinc-300">
                 {item.type}

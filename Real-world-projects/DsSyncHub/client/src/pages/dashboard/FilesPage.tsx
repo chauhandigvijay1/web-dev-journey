@@ -110,7 +110,7 @@ const FilesPage = () => {
     <section className="space-y-4 pb-5">
       <div className="flex flex-col gap-3 rounded-[28px] border border-white/10 glass-panel p-5 lg:flex-row lg:items-center lg:justify-between">
         <div>
-          <h1 className="text-2xl font-semibold text-zinc-900 dark:text-white font-semibold drop-shadow-md">Files</h1>
+          <h1 className="text-2xl font-semibold text-zinc-900 dark:text-white drop-shadow-md">Files</h1>
           <p className="text-sm text-zinc-400">
             Shared documents, assets, and uploads across your workspace.
           </p>
@@ -118,8 +118,10 @@ const FilesPage = () => {
         <div className="flex flex-wrap gap-2">
           <div className="flex items-center gap-2 rounded-xl border border-white/10 px-3 py-2 dark:border-zinc-700">
             <Search size={15} className="text-zinc-400" />
+            <label className="sr-only" htmlFor="files-search">Search files</label>
             <input
               className="bg-transparent text-sm outline-none"
+              id="files-search"
               onChange={(event) => {
                 setQuery(event.target.value)
                 setCurrentPage(1)
@@ -136,8 +138,10 @@ const FilesPage = () => {
             <Upload className="mr-1 inline" size={14} />
             Upload File
           </button>
+          <label className="sr-only" htmlFor="files-upload-input">Upload file</label>
           <input
             className="hidden"
+            id="files-upload-input"
             onChange={(event) => handleUpload(event.target.files?.[0] || null)}
             ref={fileInputRef}
             type="file"
@@ -178,6 +182,7 @@ const FilesPage = () => {
             </div>
             <div className="flex items-center gap-2">
               <button
+                aria-label="Show grid view"
                 className={`rounded-xl border px-3 py-2 ${view === 'grid' ? 'border-brand-500 text-brand-500' : 'border-white/10'}`}
                 onClick={() => {
                   setView('grid')
@@ -188,6 +193,7 @@ const FilesPage = () => {
                 <Grid3X3 size={15} />
               </button>
               <button
+                aria-label="Show list view"
                 className={`rounded-xl border px-3 py-2 ${view === 'list' ? 'border-brand-500 text-brand-500' : 'border-white/10'}`}
                 onClick={() => {
                   setView('list')
@@ -235,7 +241,7 @@ const FilesPage = () => {
                         {file.source}
                       </span>
                     </div>
-                    <p className="mt-4 truncate text-sm font-semibold text-zinc-900 dark:text-white font-semibold drop-shadow-md">{file.originalName}</p>
+                    <p className="mt-4 truncate text-sm font-semibold text-zinc-900 dark:text-white drop-shadow-md">{file.originalName}</p>
                     <p className="mt-1 text-xs text-zinc-500">
                       Uploaded by {file.uploadedBy?.fullName || 'Unknown'}
                     </p>
@@ -279,7 +285,7 @@ const FilesPage = () => {
                 return (
                   <div className="flex flex-col gap-3 rounded-2xl border border-white/10 p-4 dark:border-zinc-700 md:flex-row md:items-center md:justify-between" key={file.id}>
                     <div className="min-w-0">
-                      <p className="truncate text-sm font-semibold text-zinc-900 dark:text-white font-semibold drop-shadow-md">{file.originalName}</p>
+                      <p className="truncate text-sm font-semibold text-zinc-900 dark:text-white drop-shadow-md">{file.originalName}</p>
                       <p className="mt-1 text-xs text-zinc-500">
                         {file.uploadedBy?.fullName || 'Unknown'} | {(file.size / 1024 / 1024).toFixed(2)} MB | {new Date(file.createdAt).toLocaleString()}
                       </p>
@@ -307,12 +313,12 @@ const FilesPage = () => {
 
         <div className="space-y-4">
           <article className="rounded-[28px] border border-white/10 glass-card p-4 shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
-            <h2 className="text-lg font-semibold text-zinc-900 dark:text-white font-semibold drop-shadow-md">Recent uploads</h2>
+            <h2 className="text-lg font-semibold text-zinc-900 dark:text-white drop-shadow-md">Recent uploads</h2>
             <div className="mt-4 space-y-2">
               {recent.map((file) => (
                 <button className="flex w-full items-center justify-between rounded-2xl border border-white/10 px-3 py-3 text-left hover:glass-card/5 dark:border-zinc-700 dark:hover:bg-zinc-800" key={file.id} onClick={() => setPreviewUrl(buildUrl(file.previewUrl))} type="button">
                   <span className="min-w-0">
-                    <span className="block truncate text-sm font-medium text-zinc-900 dark:text-white font-semibold drop-shadow-md">{file.originalName}</span>
+                    <span className="block truncate text-sm font-semibold text-zinc-900 dark:text-white drop-shadow-md">{file.originalName}</span>
                     <span className="block text-xs text-zinc-500">{file.uploadedBy?.fullName || 'Unknown'} | {new Date(file.createdAt).toLocaleDateString()}</span>
                   </span>
                   <Eye size={14} className="text-zinc-400" />

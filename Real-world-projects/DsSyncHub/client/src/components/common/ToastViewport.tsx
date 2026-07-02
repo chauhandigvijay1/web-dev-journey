@@ -54,10 +54,11 @@ const ToastItemView = ({
     >
       <Icon className={`mt-0.5 shrink-0 ${toneClasses[tone].icon}`} size={18} />
       <div className="min-w-0 flex-1">
-        <p className="text-sm font-semibold">{title}</p>
-        {description && <p className="mt-1 text-xs leading-5 opacity-80">{description}</p>}
+        <p className="break-words text-sm font-semibold">{title}</p>
+        {description && <p className="mt-1 break-words text-xs leading-5 opacity-80">{description}</p>}
       </div>
       <button
+        aria-label="Dismiss notification"
         className="rounded-lg p-1 opacity-70 transition hover:bg-black/5 hover:opacity-100 dark:hover:glass-card/10"
         onClick={() => dispatch(dismissToast(id))}
         type="button"

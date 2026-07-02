@@ -121,7 +121,7 @@ const MessageBubble = ({
       )}
       <div className="min-w-0 flex-1">
         {!grouped && (
-          <p className="mb-0.5 text-sm font-semibold text-zinc-900 dark:text-white drop-shadow-md">
+          <p className="mb-0.5 truncate text-sm font-semibold text-zinc-900 dark:text-white drop-shadow-md">
             {message.sender.fullName}{' '}
             <span className="text-xs font-normal text-zinc-500">
               {new Date(message.createdAt).toLocaleTimeString()}
@@ -138,8 +138,10 @@ const MessageBubble = ({
         )}
         {editingMessageId === message._id ? (
           <div className="flex gap-2">
+            <label className="sr-only" htmlFor={`chat-message-edit-${message._id}`}>Edit message</label>
             <input
               className="flex-1 rounded-lg border border-white/10 px-2 py-1 text-sm dark:border-zinc-700 bg-black/20"
+              id={`chat-message-edit-${message._id}`}
               onChange={(event) => setEditingText(event.target.value)}
               value={editingText}
             />
@@ -157,7 +159,7 @@ const MessageBubble = ({
             </button>
           </div>
         ) : (
-          <div className="rounded-xl glass-card/10 px-3 py-2 text-sm dark:bg-zinc-800">
+          <div className="break-words rounded-xl glass-card/10 px-3 py-2 text-sm dark:bg-zinc-800">
             <MentionText members={members as any} text={message.content} />
             {message.editedAt && (
               <span className="ml-2 text-[11px] text-zinc-500">(edited)</span>
@@ -227,6 +229,7 @@ const MessageBubble = ({
           {editingMessageId !== message._id && (
             <div className="flex gap-0.5 opacity-0 transition group-hover:opacity-100">
               <button
+                aria-label="Reply to message"
                 className="rounded-md border border-transparent p-1 text-xs text-zinc-500 hover:border-white/10 hover:text-white"
                 onClick={() => onReply(message)}
                 title="Reply"
@@ -249,6 +252,7 @@ const MessageBubble = ({
               {isOwner && (
                 <>
                   <button
+                    aria-label="Edit message"
                     className="rounded-md border border-transparent p-1 text-xs text-zinc-500 hover:border-white/10 hover:text-white"
                     onClick={() => {
                       setEditingMessageId(message._id)
@@ -259,6 +263,7 @@ const MessageBubble = ({
                     <Pencil size={12} />
                   </button>
                   <button
+                    aria-label="Copy message"
                     className="rounded-md border border-transparent p-1 text-xs text-zinc-500 hover:border-white/10 hover:text-white"
                     onClick={async () => {
                       await navigator.clipboard.writeText(message.content)
@@ -273,6 +278,7 @@ const MessageBubble = ({
                     <Copy size={12} />
                   </button>
                   <button
+                    aria-label="Delete message"
                     className="rounded-md border border-transparent p-1 text-xs text-rose-500 hover:border-rose-900/40"
                     onClick={() => {
                       dispatch(deleteMessageThunk(message._id))
@@ -446,6 +452,7 @@ const ChatPage = () => {
         <div className="mb-3 flex items-center justify-between">
           <h2 className="text-sm font-semibold text-zinc-500">Channels</h2>
           <button
+            aria-label="Create channel"
             className="rounded-lg border border-white/10 p-1.5 dark:border-zinc-700"
             onClick={openChannelModal}
             type="button"
@@ -473,7 +480,7 @@ const ChatPage = () => {
               }}
               type="button"
             >
-              # {channel.name}
+              <span className="block truncate"># {channel.name}</span>
             </button>
           ))}
         </div>
@@ -497,7 +504,7 @@ const ChatPage = () => {
                 type="button"
               >
                 <Avatar name={member.fullName} size="sm" src={member.avatarUrl} />
-                {member.fullName}
+                <span className="min-w-0 truncate">{member.fullName}</span>
               </button>
             ))}
         </div>
@@ -506,8 +513,8 @@ const ChatPage = () => {
       <div className="flex min-w-0 flex-1 gap-4">
         <main className="flex min-w-0 flex-1 flex-col rounded-2xl border border-white/10 glass-card shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
           <header className="flex items-center justify-between border-b border-white/10 px-4 py-3 dark:border-zinc-800">
-            <div>
-              <h1 className="text-lg font-semibold text-zinc-900 dark:text-white drop-shadow-md">
+            <div className="min-w-0">
+              <h1 className="truncate text-lg font-semibold text-zinc-900 dark:text-white drop-shadow-md">
                 {directUserId
                   ? currentDirectUser?.fullName || 'Direct message'
                   : currentChannel
@@ -520,6 +527,7 @@ const ChatPage = () => {
             </div>
             <div className="flex items-center gap-2">
               <button
+                aria-label="Open thread list"
                 className="rounded-xl border border-white/10 p-2 md:hidden dark:border-zinc-700"
                 onClick={() => setMobileThreadsOpen(true)}
                 type="button"
@@ -528,14 +536,16 @@ const ChatPage = () => {
               </button>
               <div className="hidden items-center gap-2 rounded-xl border border-white/10 px-2 py-1.5 text-sm md:flex dark:border-zinc-700">
                 <Search size={14} />
+                <label className="sr-only" htmlFor="chat-message-search">Search messages</label>
                 <input
                   className="w-44 bg-transparent outline-none"
+                  id="chat-message-search"
                   onChange={(event) => setQuery(event.target.value)}
                   placeholder="Search messages"
                   value={query}
                 />
               </div>
-              <button className="rounded-xl border border-white/10 p-2 dark:border-zinc-700" type="button">
+              <button aria-label="Start call" className="rounded-xl border border-white/10 p-2 dark:border-zinc-700" type="button">
                 <Phone size={15} />
               </button>
               <button className="rounded-xl border border-white/10 px-2 py-1.5 text-xs dark:border-zinc-700" onClick={() => setAiOpen(true)} type="button">
@@ -603,6 +613,7 @@ const ChatPage = () => {
                   Replying to <strong>{replyToMessage.sender.fullName}</strong>: {replyToMessage.content}
                 </span>
                 <button
+                  aria-label="Cancel reply"
                   className="shrink-0 rounded-md p-1 text-zinc-500 hover:text-white"
                   onClick={() => setReplyToMessage(null)}
                   type="button"
@@ -613,7 +624,7 @@ const ChatPage = () => {
             )}
             <div className="relative flex items-end gap-2 rounded-2xl border border-white/10 p-2 dark:border-zinc-700">
               <div className="relative">
-                <button className="rounded-lg p-1.5 hover:glass-card/10 dark:hover:bg-zinc-800" onClick={() => { setShowEmojiPicker(!showEmojiPicker); setShowPeoplePicker(false) }} type="button">
+                <button aria-label="Open emoji picker" className="rounded-lg p-1.5 hover:glass-card/10 dark:hover:bg-zinc-800" onClick={() => { setShowEmojiPicker(!showEmojiPicker); setShowPeoplePicker(false) }} type="button">
                   <Smile size={16} />
                 </button>
                 {showEmojiPicker && (
@@ -628,11 +639,11 @@ const ChatPage = () => {
                   />
                 )}
               </div>
-              <button className="rounded-lg p-1.5 hover:glass-card/10 dark:hover:bg-zinc-800" onClick={() => fileInputRef.current?.click()} type="button">
+              <button aria-label="Attach file" className="rounded-lg p-1.5 hover:glass-card/10 dark:hover:bg-zinc-800" onClick={() => fileInputRef.current?.click()} type="button">
                 <Paperclip size={16} />
               </button>
               <div className="relative">
-                <button className="rounded-lg p-1.5 hover:glass-card/10 dark:hover:bg-zinc-800" onClick={() => { setShowPeoplePicker(!showPeoplePicker); setShowEmojiPicker(false) }} type="button">
+                <button aria-label="Open people picker" className="rounded-lg p-1.5 hover:glass-card/10 dark:hover:bg-zinc-800" onClick={() => { setShowPeoplePicker(!showPeoplePicker); setShowEmojiPicker(false) }} type="button">
                   <Users size={16} />
                 </button>
                 {showPeoplePicker && (
@@ -659,9 +670,11 @@ const ChatPage = () => {
                   </div>
                 )}
               </div>
+              <label className="sr-only" htmlFor="chat-file-upload">Upload chat file</label>
               <input
                 accept={ALLOWED_FILE_TYPES.join(',')}
                 className="hidden"
+                id="chat-file-upload"
                 onChange={async (event) => {
                   const file = event.target.files?.[0]
                   if (!file || !activeWorkspaceId) return
@@ -717,8 +730,10 @@ const ChatPage = () => {
                 ref={fileInputRef}
                 type="file"
               />
+              <label className="sr-only" htmlFor="chat-message-composer">Message</label>
               <textarea
                 className="max-h-28 min-h-[36px] flex-1 resize-none bg-transparent text-sm outline-none"
+                id="chat-message-composer"
                 onChange={(event) => {
                   setMessageText(event.target.value)
                   setCursorPosition(event.target.selectionStart)
@@ -739,6 +754,7 @@ const ChatPage = () => {
                 value={messageText}
               />
               <button
+                aria-label="Send message"
                 className="rounded-xl bg-brand-500 px-3 py-2 text-sm font-medium text-white hover:bg-brand-400 shadow-[0_0_15px_rgba(16,185,129,0.3)] transition-all hover:shadow-[0_0_25px_rgba(16,185,129,0.5)] hover:-translate-y-0.5 duration-300 disabled:cursor-not-allowed disabled:opacity-60"
                 disabled={!messageText.trim()}
                 onClick={() => {
@@ -781,7 +797,7 @@ const ChatPage = () => {
             {onlineUsers.map((member) => (
               <div className="flex items-center gap-2" key={member.userId}>
                 <Avatar name={member.fullName} size="sm" src={member.avatarUrl} />
-                <p className="text-sm">{member.fullName}</p>
+                <p className="min-w-0 truncate text-sm">{member.fullName}</p>
               </div>
             ))}
             {!onlineUsers.length && <p className="text-sm text-zinc-500">No one online.</p>}
@@ -852,8 +868,10 @@ const ChatPage = () => {
           >
             <h2 className="text-lg font-semibold">Create Channel</h2>
             <div className="mt-3 space-y-3">
+              <label className="sr-only" htmlFor="chat-channel-name">Channel name</label>
               <input
                 className="w-full rounded-xl border border-white/10 px-3 py-2 text-sm dark:border-zinc-700 bg-black/20"
+                id="chat-channel-name"
                 onChange={(event) => {
                   setNewChannelName(event.target.value)
                   setChannelError('')
@@ -861,8 +879,10 @@ const ChatPage = () => {
                 placeholder="Channel name"
                 value={newChannelName}
               />
+              <label className="sr-only" htmlFor="chat-channel-description">Channel description</label>
               <textarea
                 className="w-full rounded-xl border border-white/10 px-3 py-2 text-sm dark:border-zinc-700 bg-black/20"
+                id="chat-channel-description"
                 onChange={(event) => {
                   setNewChannelDescription(event.target.value)
                   setChannelError('')
@@ -871,9 +891,10 @@ const ChatPage = () => {
                 rows={3}
                 value={newChannelDescription}
               />
-              <label className="flex items-center gap-2 text-sm">
+              <label className="flex items-center gap-2 text-sm" htmlFor="chat-channel-private">
                 <input
                   checked={isPrivateChannel}
+                  id="chat-channel-private"
                   onChange={(event) => setIsPrivateChannel(event.target.checked)}
                   type="checkbox"
                 />

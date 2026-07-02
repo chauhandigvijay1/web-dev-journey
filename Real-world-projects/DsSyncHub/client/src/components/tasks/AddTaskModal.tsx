@@ -97,16 +97,20 @@ const AddTaskModal = ({ open, onClose, onSubmit, defaultAssigneeId }: AddTaskMod
       >
         <h2 className="text-lg font-semibold">Add Task</h2>
         <div className="mt-4 grid gap-3">
-          <input className="rounded-xl border border-white/10 px-3 py-2 text-sm dark:border-zinc-700 bg-black/20" onChange={(event) => setTitle(event.target.value)} placeholder="Title" value={title} />
-          <textarea className="rounded-xl border border-white/10 px-3 py-2 text-sm dark:border-zinc-700 bg-black/20" onChange={(event) => setDescription(event.target.value)} placeholder="Description" rows={3} value={description} />
+          <label className="sr-only" htmlFor="add-task-title">Task title</label>
+          <input className="rounded-xl border border-white/10 px-3 py-2 text-sm dark:border-zinc-700 bg-black/20" id="add-task-title" onChange={(event) => setTitle(event.target.value)} placeholder="Title" value={title} />
+          <label className="sr-only" htmlFor="add-task-description">Task description</label>
+          <textarea className="rounded-xl border border-white/10 px-3 py-2 text-sm dark:border-zinc-700 bg-black/20" id="add-task-description" onChange={(event) => setDescription(event.target.value)} placeholder="Description" rows={3} value={description} />
           <div className="grid gap-3 sm:grid-cols-2">
-            <select className="rounded-xl border border-white/10 px-3 py-2 text-sm capitalize dark:border-zinc-700 bg-black/20" onChange={(event) => setPriority(event.target.value as TaskPriority)} value={priority}>
+            <label className="sr-only" htmlFor="add-task-priority">Task priority</label>
+            <select className="rounded-xl border border-white/10 px-3 py-2 text-sm capitalize dark:border-zinc-700 bg-black/20" id="add-task-priority" onChange={(event) => setPriority(event.target.value as TaskPriority)} value={priority}>
               <option value="low">low</option>
               <option value="medium">medium</option>
               <option value="high">high</option>
               <option value="critical">critical</option>
             </select>
-            <select className="rounded-xl border border-white/10 px-3 py-2 text-sm dark:border-zinc-700 bg-black/20" onChange={(event) => setAssignee(event.target.value)} value={assignee}>
+            <label className="sr-only" htmlFor="add-task-assignee">Task assignee</label>
+            <select className="rounded-xl border border-white/10 px-3 py-2 text-sm dark:border-zinc-700 bg-black/20" id="add-task-assignee" onChange={(event) => setAssignee(event.target.value)} value={assignee}>
               <option value="">Unassigned</option>
               {members.map((member) => (
                 <option key={member.userId} value={member.userId}>
@@ -116,15 +120,17 @@ const AddTaskModal = ({ open, onClose, onSubmit, defaultAssigneeId }: AddTaskMod
             </select>
           </div>
           <div className="grid gap-3 sm:grid-cols-2">
-            <input className="rounded-xl border border-white/10 px-3 py-2 text-sm dark:border-zinc-700 bg-black/20" onChange={(event) => setDueDate(event.target.value)} type="date" value={dueDate} />
-            <input className="rounded-xl border border-white/10 px-3 py-2 text-sm dark:border-zinc-700 bg-black/20" onChange={(event) => setLabels(event.target.value)} placeholder="Labels (comma-separated)" value={labels} />
+            <label className="sr-only" htmlFor="add-task-due-date">Task due date</label>
+            <input className="rounded-xl border border-white/10 px-3 py-2 text-sm dark:border-zinc-700 bg-black/20" id="add-task-due-date" onChange={(event) => setDueDate(event.target.value)} type="date" value={dueDate} />
+            <label className="sr-only" htmlFor="add-task-labels">Task labels</label>
+            <input className="rounded-xl border border-white/10 px-3 py-2 text-sm dark:border-zinc-700 bg-black/20" id="add-task-labels" onChange={(event) => setLabels(event.target.value)} placeholder="Labels (comma-separated)" value={labels} />
           </div>
           <p className="text-xs text-zinc-400">Up to 8 unique labels will be saved for each task.</p>
           {error && <p className="text-sm text-rose-500">{error}</p>}
         </div>
         <div className="mt-5 flex justify-end gap-2">
           <button className="rounded-xl border border-white/10 px-4 py-2 text-sm dark:border-zinc-700" disabled={submitting} onClick={onClose} type="button">Cancel</button>
-          <button className="rounded-xl bg-brand-500 px-4 py-2 text-sm font-medium text-white hover:bg-brand-400 shadow-[0_0_15px_rgba(16,185,129,0.3)] transition-all hover:shadow-[0_0_25px_rgba(16,185,129,0.5)] hover:-translate-y-0.5 duration-300 shadow-[0_0_15px_rgba(16,185,129,0.3)] transition-all hover:shadow-[0_0_25px_rgba(16,185,129,0.5)] hover:-translate-y-0.5 duration-300 disabled:opacity-60" disabled={submitting} onClick={handleCreate} type="button">{submitting ? 'Creating...' : 'Create Task'}</button>
+          <button className="rounded-xl bg-brand-500 px-4 py-2 text-sm font-medium text-white hover:bg-brand-400 shadow-[0_0_15px_rgba(16,185,129,0.3)] transition-all hover:shadow-[0_0_25px_rgba(16,185,129,0.5)] hover:-translate-y-0.5 duration-300 disabled:opacity-60" disabled={submitting} onClick={handleCreate} type="button">{submitting ? 'Creating...' : 'Create Task'}</button>
         </div>
       </div>
     </div>

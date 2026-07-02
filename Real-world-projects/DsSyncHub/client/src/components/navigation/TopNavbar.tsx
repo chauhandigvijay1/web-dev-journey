@@ -114,8 +114,10 @@ const TopNavbar = () => {
             Search...
             <kbd className="rounded border border-white/10 px-1 text-xs dark:border-zinc-600">Ctrl + K</kbd>
           </button>
+          <label className="sr-only" htmlFor="topnav-workspace-select">Active workspace</label>
           <select
             className="min-w-0 max-w-full rounded-xl border border-white/10 bg-black/20 backdrop-blur-md px-3 py-2 text-sm text-zinc-200 sm:max-w-[260px] custom-select"
+            id="topnav-workspace-select"
             onChange={(event) => dispatch(setActiveWorkspaceId(event.target.value))}
             value={activeWorkspaceId || ''}
           >
@@ -138,6 +140,7 @@ const TopNavbar = () => {
             Invite Member
           </button>
           <button
+            aria-label="Open mobile search"
             className="rounded-xl border border-white/10 p-2 hover:glass-card/10 md:hidden dark:border-zinc-700 dark:hover:bg-zinc-800"
             onClick={() => dispatch(openSearchModal())}
             type="button"
@@ -146,6 +149,7 @@ const TopNavbar = () => {
           </button>
           <div ref={notificationsRef}>
             <button
+              aria-label="Toggle notifications"
               className="relative rounded-xl border border-white/10 p-2 hover:glass-card/10 dark:border-zinc-700 dark:hover:bg-zinc-800"
               onClick={() => dispatch(toggleNotifications())}
               type="button"
@@ -156,6 +160,7 @@ const TopNavbar = () => {
             {notificationsOpen && <NotificationsDropdown onClose={() => dispatch(closeNotifications())} open={notificationsOpen} />}
           </div>
           <button
+            aria-label={`Switch to ${theme === 'dark' ? 'light' : 'dark'} theme`}
             className="rounded-xl border border-white/10 p-2 hover:glass-card/10 dark:border-zinc-700 dark:hover:bg-zinc-800"
             onClick={() => dispatch(setTheme(theme === 'dark' ? 'light' : 'dark'))}
             type="button"
@@ -201,6 +206,7 @@ const TopNavbar = () => {
           </div>
           <div ref={profileRef}>
             <button
+              aria-label="Open profile menu"
               className="flex items-center gap-2 rounded-xl border border-white/10 px-2 py-1.5 hover:glass-card/10 dark:border-zinc-700 dark:hover:bg-zinc-800"
               onClick={() => setProfileOpen((prev) => !prev)}
               type="button"

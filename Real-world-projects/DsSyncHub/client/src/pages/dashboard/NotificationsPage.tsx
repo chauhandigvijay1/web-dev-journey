@@ -114,10 +114,10 @@ const NotificationsPage = () => {
                 <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
                   <div className="min-w-0">
                     <div className="flex flex-wrap items-center gap-2">
-                      <p className="text-sm font-semibold text-zinc-900 dark:text-white drop-shadow-md">{item.title}</p>
+                      <p className="break-words text-sm font-semibold text-zinc-900 dark:text-white drop-shadow-md">{item.title}</p>
                       {!item.isRead && <span className="rounded-full bg-brand-500/10 px-2.5 py-1 text-[11px] font-medium text-brand-400 dark:bg-brand-500/15 dark:text-brand-300">New</span>}
                     </div>
-                    <p className="mt-2 text-sm leading-6 text-zinc-400">{item.message}</p>
+                    <p className="mt-2 break-words text-sm leading-6 text-zinc-400">{item.message}</p>
                     <div className="mt-4 flex flex-wrap gap-2">
                       {item.link && <Link className="rounded-full bg-zinc-900 px-4 py-2 text-xs font-medium text-white dark:glass-card dark:text-white" to={item.link}>Open</Link>}
                       {!item.isRead && <button className="rounded-full border border-white/10 px-4 py-2 text-xs dark:border-zinc-700" onClick={() => dispatch(markNotificationReadThunk(item.id))} type="button">Mark read</button>}

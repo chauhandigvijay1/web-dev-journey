@@ -51,8 +51,10 @@ const HomePage = () => {
 
           <div className="flex items-center gap-4">
             <button
+              aria-label={mobileNavOpen ? 'Close navigation menu' : 'Open navigation menu'}
               className="rounded p-2 text-zinc-400 hover:glass-card/10 lg:hidden transition-colors"
               onClick={() => setMobileNavOpen(!mobileNavOpen)}
+              type="button"
             >
               {mobileNavOpen ? <X size={20} /> : <Menu size={20} />}
             </button>

@@ -132,8 +132,10 @@ const TasksPage = () => {
           <p className="text-sm text-zinc-400">{workspaceName}</p>
         </div>
         <div className="flex flex-wrap gap-2">
+          <label className="sr-only" htmlFor="tasks-search">Search tasks</label>
           <input
             className="rounded-xl border border-white/10 px-3 py-2 text-sm dark:border-zinc-700 bg-black/20"
+            id="tasks-search"
             onChange={(event) => {
               setSearchInput(event.target.value)
               setCurrentPage(1)
@@ -172,7 +174,8 @@ const TasksPage = () => {
       </div>
 
       <div className="grid gap-2 rounded-2xl border border-white/10 glass-card p-3 dark:border-zinc-800 dark:bg-zinc-900 sm:grid-cols-2 lg:grid-cols-5">
-        <select className="rounded-xl border border-white/10 px-3 py-2 text-sm capitalize dark:border-zinc-700 bg-black/20" onChange={(event) => {
+        <label className="sr-only" htmlFor="tasks-status-filter">Status filter</label>
+        <select className="rounded-xl border border-white/10 px-3 py-2 text-sm capitalize dark:border-zinc-700 bg-black/20" id="tasks-status-filter" onChange={(event) => {
           setCurrentPage(1)
           dispatch(setTaskFilters({ status: event.target.value as 'all' | TaskStatus }))
         }} value={filters.status}>
@@ -182,7 +185,8 @@ const TasksPage = () => {
           <option value="review">review</option>
           <option value="done">done</option>
         </select>
-        <select className="rounded-xl border border-white/10 px-3 py-2 text-sm capitalize dark:border-zinc-700 bg-black/20" onChange={(event) => {
+        <label className="sr-only" htmlFor="tasks-priority-filter">Priority filter</label>
+        <select className="rounded-xl border border-white/10 px-3 py-2 text-sm capitalize dark:border-zinc-700 bg-black/20" id="tasks-priority-filter" onChange={(event) => {
           setCurrentPage(1)
           dispatch(setTaskFilters({ priority: event.target.value as typeof filters.priority }))
         }} value={filters.priority}>
@@ -192,7 +196,8 @@ const TasksPage = () => {
           <option value="high">high</option>
           <option value="critical">critical</option>
         </select>
-        <select className="rounded-xl border border-white/10 px-3 py-2 text-sm dark:border-zinc-700 bg-black/20" onChange={(event) => {
+        <label className="sr-only" htmlFor="tasks-assignee-filter">Assignee filter</label>
+        <select className="rounded-xl border border-white/10 px-3 py-2 text-sm dark:border-zinc-700 bg-black/20" id="tasks-assignee-filter" onChange={(event) => {
           setCurrentPage(1)
           dispatch(setTaskFilters({ assignee: event.target.value }))
         }} value={filters.assignee}>
@@ -203,7 +208,8 @@ const TasksPage = () => {
             </option>
           ))}
         </select>
-        <select className="rounded-xl border border-white/10 px-3 py-2 text-sm dark:border-zinc-700 bg-black/20" onChange={(event) => {
+        <label className="sr-only" htmlFor="tasks-due-filter">Due date filter</label>
+        <select className="rounded-xl border border-white/10 px-3 py-2 text-sm dark:border-zinc-700 bg-black/20" id="tasks-due-filter" onChange={(event) => {
           setCurrentPage(1)
           dispatch(setTaskFilters({ due: event.target.value as typeof filters.due }))
         }} value={filters.due}>
@@ -271,15 +277,15 @@ const TasksPage = () => {
                           type="button"
                         >
                           <div className="flex items-start justify-between gap-2">
-                            <p className="text-sm font-medium text-zinc-900 dark:text-white font-semibold drop-shadow-md">{task.title}</p>
-                            <span className={`rounded-full px-2 py-0.5 text-[11px] font-medium capitalize ${priorityColor[task.priority]}`}>
+                            <p className="min-w-0 break-words text-sm font-semibold text-zinc-900 dark:text-white drop-shadow-md">{task.title}</p>
+                            <span className={`shrink-0 rounded-full px-2 py-0.5 text-[11px] font-medium capitalize ${priorityColor[task.priority]}`}>
                               {task.priority}
                             </span>
                           </div>
                           <p className="mt-1 line-clamp-2 text-xs text-zinc-400">{task.description}</p>
                           <div className="mt-2 flex flex-wrap gap-1">
                             {task.labels.slice(0, 3).map((label) => (
-                              <span className="rounded-full bg-brand-500/10 px-2 py-0.5 text-[11px] text-brand-400 dark:bg-brand-500/20 dark:text-brand-300" key={label}>
+                              <span className="max-w-full break-words rounded-full bg-brand-500/10 px-2 py-0.5 text-[11px] text-brand-400 dark:bg-brand-500/20 dark:text-brand-300" key={label}>
                                 {label}
                               </span>
                             ))}
@@ -367,6 +373,7 @@ const TasksPage = () => {
       />
 
       <button
+        aria-label="Add task"
         className="fixed bottom-6 right-6 z-20 rounded-full bg-brand-500 p-3 text-white shadow-lg hover:bg-brand-400 md:hidden"
         onClick={() => setAddTaskOpen(true)}
         type="button"

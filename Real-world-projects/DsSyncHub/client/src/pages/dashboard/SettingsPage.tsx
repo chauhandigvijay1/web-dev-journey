@@ -379,12 +379,13 @@ const SettingsPage = () => {
             </p>
             <div className="mt-6 flex flex-col items-center gap-4 rounded-[28px] border border-dashed border-zinc-300 p-6 dark:border-zinc-700">
               <Avatar name={form.fullName || user?.fullName} size="xl" src={form.avatarUrl || user?.avatarUrl} />
-              <label className="inline-flex cursor-pointer items-center gap-2 rounded-full bg-zinc-900 px-4 py-2 text-sm font-medium text-white hover:bg-zinc-800 dark:glass-card dark:text-white dark:hover:glass-card/10">
+              <label className="inline-flex cursor-pointer items-center gap-2 rounded-full bg-zinc-900 px-4 py-2 text-sm font-medium text-white hover:bg-zinc-800 dark:glass-card dark:text-white dark:hover:glass-card/10" htmlFor="settings-avatar-upload">
                 {uploadingAvatar ? <UploadCloud className="animate-pulse" size={16} /> : <Camera size={16} />}
                 {uploadingAvatar ? 'Uploading...' : 'Upload avatar'}
                 <input
                   accept="image/png,image/jpeg,image/webp,image/gif"
                   className="hidden"
+                  id="settings-avatar-upload"
                   onChange={(event) => {
                     handleAvatarUpload(event.target.files?.[0] || null)
                     event.target.value = ''
@@ -400,27 +401,27 @@ const SettingsPage = () => {
 
           <div className="rounded-[30px] border border-white/10 glass-panel p-5">
             <div className="grid gap-4 md:grid-cols-2">
-              <label className="space-y-2 text-sm">
+              <label className="space-y-2 text-sm" htmlFor="settings-full-name">
                 <span className="font-medium text-zinc-200">Full name</span>
-                <input className="w-full rounded-2xl border border-white/10 px-3 py-2.5 text-sm dark:border-zinc-700 bg-black/20" value={form.fullName} onChange={(event) => updateForm((previous) => ({ ...previous, fullName: event.target.value }))} />
+                <input className="w-full rounded-2xl border border-white/10 px-3 py-2.5 text-sm dark:border-zinc-700 bg-black/20" id="settings-full-name" value={form.fullName} onChange={(event) => updateForm((previous) => ({ ...previous, fullName: event.target.value }))} />
               </label>
-              <label className="space-y-2 text-sm">
+              <label className="space-y-2 text-sm" htmlFor="settings-username">
                 <span className="font-medium text-zinc-200">Username</span>
-                <input className="w-full rounded-2xl border border-white/10 px-3 py-2.5 text-sm dark:border-zinc-700 bg-black/20" value={form.username} onChange={(event) => updateForm((previous) => ({ ...previous, username: event.target.value }))} />
+                <input className="w-full rounded-2xl border border-white/10 px-3 py-2.5 text-sm dark:border-zinc-700 bg-black/20" id="settings-username" value={form.username} onChange={(event) => updateForm((previous) => ({ ...previous, username: event.target.value }))} />
               </label>
             </div>
-            <label className="mt-4 block space-y-2 text-sm">
+            <label className="mt-4 block space-y-2 text-sm" htmlFor="settings-avatar-url">
               <span className="font-medium text-zinc-200">Avatar URL</span>
-              <input className="w-full rounded-2xl border border-white/10 px-3 py-2.5 text-sm dark:border-zinc-700 bg-black/20" value={form.avatarUrl} onChange={(event) => updateForm((previous) => ({ ...previous, avatarUrl: event.target.value }))} />
+              <input className="w-full rounded-2xl border border-white/10 px-3 py-2.5 text-sm dark:border-zinc-700 bg-black/20" id="settings-avatar-url" value={form.avatarUrl} onChange={(event) => updateForm((previous) => ({ ...previous, avatarUrl: event.target.value }))} />
             </label>
-            <label className="mt-4 block space-y-2 text-sm">
+            <label className="mt-4 block space-y-2 text-sm" htmlFor="settings-bio">
               <span className="font-medium text-zinc-200">Bio</span>
-              <textarea className="w-full rounded-2xl border border-white/10 px-3 py-2.5 text-sm dark:border-zinc-700 bg-black/20" maxLength={200} rows={4} value={form.bio} onChange={(event) => updateForm((previous) => ({ ...previous, bio: event.target.value }))} />
+              <textarea className="w-full rounded-2xl border border-white/10 px-3 py-2.5 text-sm dark:border-zinc-700 bg-black/20" id="settings-bio" maxLength={200} rows={4} value={form.bio} onChange={(event) => updateForm((previous) => ({ ...previous, bio: event.target.value }))} />
               <span className="text-xs text-zinc-400">{form.bio.trim().length}/200 characters</span>
             </label>
-            <label className="mt-4 block space-y-2 text-sm">
+            <label className="mt-4 block space-y-2 text-sm" htmlFor="settings-timezone">
               <span className="font-medium text-zinc-200">Timezone</span>
-              <select className="w-full rounded-2xl border border-white/10 px-3 py-2.5 text-sm dark:border-zinc-700 bg-black/20" value={form.timezone} onChange={(event) => updateForm((previous) => ({ ...previous, timezone: event.target.value }))}>
+              <select className="w-full rounded-2xl border border-white/10 px-3 py-2.5 text-sm dark:border-zinc-700 bg-black/20" id="settings-timezone" value={form.timezone} onChange={(event) => updateForm((previous) => ({ ...previous, timezone: event.target.value }))}>
                 {[form.timezone, ...commonTimezones].filter((value, index, items) => value && items.indexOf(value) === index).map((timezone) => (
                   <option key={timezone} value={timezone}>
                     {timezone}
@@ -439,7 +440,7 @@ const SettingsPage = () => {
         <article className="grid gap-4 xl:grid-cols-[1.1fr,0.9fr]">
           <div className="rounded-[30px] border border-white/10 glass-panel p-5">
             <div className="grid gap-4 md:grid-cols-2">
-              <label className="space-y-2 text-sm">
+              <label className="space-y-2 text-sm" htmlFor="settings-primary-email">
                 <span className="inline-flex items-center gap-2 font-medium text-zinc-200">
                   <Mail size={15} />Primary email
                   {user?.provider === 'local' && (
@@ -468,16 +469,16 @@ const SettingsPage = () => {
                       )
                   )}
                 </span>
-                <input className="w-full rounded-2xl border border-white/10 px-3 py-2.5 text-sm dark:border-zinc-700 bg-black/20" value={form.email} onChange={(event) => updateForm((previous) => ({ ...previous, email: event.target.value }))} />
+                <input className="w-full rounded-2xl border border-white/10 px-3 py-2.5 text-sm dark:border-zinc-700 bg-black/20" id="settings-primary-email" value={form.email} onChange={(event) => updateForm((previous) => ({ ...previous, email: event.target.value }))} />
               </label>
-              <label className="space-y-2 text-sm">
+              <label className="space-y-2 text-sm" htmlFor="settings-phone">
                 <span className="inline-flex items-center gap-2 font-medium text-zinc-200"><Phone size={15} />Phone</span>
-                <input className="w-full rounded-2xl border border-white/10 px-3 py-2.5 text-sm dark:border-zinc-700 bg-black/20" value={form.phone} onChange={(event) => updateForm((previous) => ({ ...previous, phone: event.target.value }))} />
+                <input className="w-full rounded-2xl border border-white/10 px-3 py-2.5 text-sm dark:border-zinc-700 bg-black/20" id="settings-phone" value={form.phone} onChange={(event) => updateForm((previous) => ({ ...previous, phone: event.target.value }))} />
               </label>
             </div>
-            <label className="mt-4 block space-y-2 text-sm">
+            <label className="mt-4 block space-y-2 text-sm" htmlFor="settings-backup-email">
               <span className="font-medium text-zinc-200">Backup email</span>
-              <input className="w-full rounded-2xl border border-white/10 px-3 py-2.5 text-sm dark:border-zinc-700 bg-black/20" value={form.backupEmail} onChange={(event) => updateForm((previous) => ({ ...previous, backupEmail: event.target.value }))} />
+              <input className="w-full rounded-2xl border border-white/10 px-3 py-2.5 text-sm dark:border-zinc-700 bg-black/20" id="settings-backup-email" value={form.backupEmail} onChange={(event) => updateForm((previous) => ({ ...previous, backupEmail: event.target.value }))} />
             </label>
             <button className="mt-6 rounded-2xl bg-brand-500 px-4 py-2.5 text-sm font-medium text-white hover:bg-brand-400 disabled:opacity-60" disabled={loadingSection === 'account'} onClick={saveAccount} type="button">
               {loadingSection === 'account' ? 'Saving account...' : 'Save account'}
@@ -509,13 +510,13 @@ const SettingsPage = () => {
               Updating your password signs out every active session so your account stays safe.
             </p>
             <div className="mt-5 grid gap-4">
-              <label className="space-y-2 text-sm">
+              <label className="space-y-2 text-sm" htmlFor="settings-current-password">
                 <span className="font-medium text-zinc-200">Current password</span>
-                <input className="w-full rounded-2xl border border-white/10 px-3 py-2.5 text-sm dark:border-zinc-700 bg-black/20" placeholder="Current password" type="password" value={form.currentPassword} onChange={(event) => updateForm((previous) => ({ ...previous, currentPassword: event.target.value }))} />
+                <input className="w-full rounded-2xl border border-white/10 px-3 py-2.5 text-sm dark:border-zinc-700 bg-black/20" id="settings-current-password" placeholder="Current password" type="password" value={form.currentPassword} onChange={(event) => updateForm((previous) => ({ ...previous, currentPassword: event.target.value }))} />
               </label>
-              <label className="space-y-2 text-sm">
+              <label className="space-y-2 text-sm" htmlFor="settings-new-password">
                 <span className="font-medium text-zinc-200">New password</span>
-                <input className="w-full rounded-2xl border border-white/10 px-3 py-2.5 text-sm dark:border-zinc-700 bg-black/20" placeholder="New password" type="password" value={form.newPassword} onChange={(event) => updateForm((previous) => ({ ...previous, newPassword: event.target.value }))} />
+                <input className="w-full rounded-2xl border border-white/10 px-3 py-2.5 text-sm dark:border-zinc-700 bg-black/20" id="settings-new-password" placeholder="New password" type="password" value={form.newPassword} onChange={(event) => updateForm((previous) => ({ ...previous, newPassword: event.target.value }))} />
               </label>
             </div>
             <div className="mt-6 flex flex-wrap gap-2">
@@ -569,15 +570,15 @@ const SettingsPage = () => {
             </div>
             <div>
               <p className="text-sm font-semibold text-zinc-900 dark:text-white drop-shadow-md">Workspace density</p>
-              <label className="mt-4 inline-flex items-center gap-2 text-sm text-zinc-300">
-                <input checked={form.compactMode} onChange={(event) => updateForm((previous) => ({ ...previous, compactMode: event.target.checked }))} type="checkbox" />
+              <label className="mt-4 inline-flex items-center gap-2 text-sm text-zinc-300" htmlFor="settings-compact-mode">
+                <input checked={form.compactMode} id="settings-compact-mode" onChange={(event) => updateForm((previous) => ({ ...previous, compactMode: event.target.checked }))} type="checkbox" />
                 Compact mode
               </label>
             </div>
           </div>
-          <label className="mt-6 block max-w-md space-y-2 text-sm">
+          <label className="mt-6 block max-w-md space-y-2 text-sm" htmlFor="settings-accent-color">
             <span className="font-medium text-zinc-200">Accent color token</span>
-            <input className="w-full rounded-2xl border border-white/10 px-3 py-2.5 text-sm dark:border-zinc-700 bg-black/20" value={form.accentColor} onChange={(event) => updateForm((previous) => ({ ...previous, accentColor: event.target.value }))} />
+            <input className="w-full rounded-2xl border border-white/10 px-3 py-2.5 text-sm dark:border-zinc-700 bg-black/20" id="settings-accent-color" value={form.accentColor} onChange={(event) => updateForm((previous) => ({ ...previous, accentColor: event.target.value }))} />
           </label>
           <p className="mt-3 text-xs text-zinc-400">
             Appearance changes apply after save and are restored automatically the next time your session is loaded.
@@ -632,10 +633,11 @@ const SettingsPage = () => {
         variant="danger"
       >
         <div className="mt-4">
-          <p className="mb-2 text-sm text-zinc-400">Type <span className="font-bold text-red-400">DELETE</span> to confirm:</p>
+          <label className="mb-2 block text-sm text-zinc-400" htmlFor="settings-delete-confirmation">Type <span className="font-bold text-red-400">DELETE</span> to confirm:</label>
           <input
             ref={deleteInputRef}
             className="w-full rounded-2xl border border-rose-500/30 bg-black/20 px-3 py-2.5 text-sm text-white outline-none focus:border-rose-500"
+            id="settings-delete-confirmation"
             onChange={(e) => setDeleteConfirmationText(e.target.value)}
             placeholder="Type DELETE"
             type="text"

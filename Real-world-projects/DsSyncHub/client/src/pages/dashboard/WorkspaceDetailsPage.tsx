@@ -158,11 +158,11 @@ const WorkspaceDetailsPage = () => {
     <section className="animate-fadeIn space-y-4">
       <article className="rounded-2xl border border-white/10 glass-panel p-5 transition-all duration-300 hover:shadow-lg">
         <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-semibold text-zinc-900 dark:text-white drop-shadow-md">
+          <div className="min-w-0">
+            <h1 className="break-words text-2xl font-semibold text-zinc-900 dark:text-white drop-shadow-md">
               {workspace?.name || 'Workspace'}
             </h1>
-            <p className="mt-1 text-sm text-zinc-400">
+            <p className="mt-1 break-words text-sm text-zinc-400">
               {workspace?.description || 'No description yet'}
             </p>
           </div>
@@ -203,7 +203,7 @@ const WorkspaceDetailsPage = () => {
             </div>
             <div className="rounded-xl bg-white/5 p-4 transition-all duration-200 hover:bg-white/10">
               <p className="text-xs text-zinc-500">Invite code</p>
-              <p className="mt-1 text-xl font-semibold">{workspace?.inviteCode || '-'}</p>
+              <p className="mt-1 break-words text-xl font-semibold">{workspace?.inviteCode || '-'}</p>
             </div>
           </div>
         </article>
@@ -255,11 +255,11 @@ const WorkspaceDetailsPage = () => {
                   }`}
                   key={member.id}
                 >
-                  <div className="flex items-center gap-3">
+                  <div className="flex min-w-0 items-center gap-3">
                     <Avatar name={member.fullName} size="md" src={member.avatarUrl} />
-                    <div>
-                      <p className="text-sm font-medium text-zinc-900 dark:text-white drop-shadow-md">{member.fullName}</p>
-                      <p className="text-xs text-zinc-400">
+                    <div className="min-w-0">
+                      <p className="truncate text-sm font-medium text-zinc-900 dark:text-white drop-shadow-md">{member.fullName}</p>
+                      <p className="truncate text-xs text-zinc-400">
                         {member.email}
                         {member.status === 'pending'
                           ? ' | Invited'
@@ -278,8 +278,11 @@ const WorkspaceDetailsPage = () => {
                       {member.status}
                     </span>
                     {canManageMembers && member.role !== 'owner' && (
+                      <>
+                      <label className="sr-only" htmlFor={`workspace-member-role-${member.id}`}>Role for {member.fullName}</label>
                       <select
                         className="rounded-lg border border-white/10 px-2 py-1 text-sm capitalize transition-all duration-200 dark:border-zinc-700 dark:bg-zinc-900"
+                        id={`workspace-member-role-${member.id}`}
                         onChange={(event) => changeRole(member.id, event.target.value as WorkspaceRole)}
                         value={member.role}
                       >
@@ -288,6 +291,7 @@ const WorkspaceDetailsPage = () => {
                         <option value="viewer">viewer</option>
                         <option disabled value="owner">owner</option>
                       </select>
+                      </>
                     )}
                     {!canManageMembers && (
                       <span className="rounded-full bg-brand-500/10 px-2 py-1 text-xs capitalize text-brand-400 dark:bg-brand-500/20 dark:text-brand-300">
@@ -330,7 +334,7 @@ const WorkspaceDetailsPage = () => {
             <ul className="mt-3 space-y-2 text-sm">
               {activity.slice(0, 8).map((item) => (
                 <li className="animate-slideUp rounded-lg bg-white/5 p-3 transition-all duration-200 hover:bg-white/10" key={item.id} style={{ animationDelay: `${activity.indexOf(item) * 50}ms` }}>
-                  <p className="font-medium text-zinc-900 dark:text-white drop-shadow-md">{item.summary}</p>
+                  <p className="break-words font-medium text-zinc-900 dark:text-white drop-shadow-md">{item.summary}</p>
                   <p className="mt-1 text-xs text-zinc-500">{new Date(item.createdAt).toLocaleString()}</p>
                 </li>
               ))}
@@ -343,16 +347,18 @@ const WorkspaceDetailsPage = () => {
         <article className="animate-slideUp rounded-2xl border border-white/10 glass-panel p-5 transition-all duration-300 hover:shadow-lg">
           <div className="space-y-4">
             <div className="rounded-xl border border-white/10 p-4 transition-all duration-200 hover:bg-white/5 dark:border-zinc-700">
-              <p className="text-xs font-semibold uppercase tracking-[0.24em] text-zinc-400">Workspace Name</p>
+              <label className="text-xs font-semibold uppercase tracking-[0.24em] text-zinc-400" htmlFor="workspace-settings-name">Workspace Name</label>
               <input
                 className="mt-2 w-full rounded-lg border border-white/10 bg-transparent px-3 py-2 text-sm text-zinc-900 dark:text-white outline-none transition-all duration-200 focus:border-brand-500 focus:ring-1 focus:ring-brand-500 dark:border-zinc-700"
+                id="workspace-settings-name"
                 onChange={(e) => setEditingName(e.target.value)}
                 type="text"
                 value={editingName}
               />
-              <p className="mt-3 text-xs font-semibold uppercase tracking-[0.24em] text-zinc-400">Description</p>
+              <label className="mt-3 block text-xs font-semibold uppercase tracking-[0.24em] text-zinc-400" htmlFor="workspace-settings-description">Description</label>
               <textarea
                 className="mt-2 w-full rounded-lg border border-white/10 bg-transparent px-3 py-2 text-sm text-zinc-900 dark:text-white outline-none transition-all duration-200 focus:border-brand-500 focus:ring-1 focus:ring-brand-500 dark:border-zinc-700"
+                id="workspace-settings-description"
                 onChange={(e) => setEditingDescription(e.target.value)}
                 rows={3}
                 value={editingDescription}
@@ -369,7 +375,7 @@ const WorkspaceDetailsPage = () => {
             <div className="grid gap-3 md:grid-cols-2">
               <div className="rounded-xl border border-white/10 p-4 transition-all duration-200 hover:bg-white/5 dark:border-zinc-700">
                 <p className="text-xs font-semibold uppercase tracking-[0.24em] text-zinc-400">Invite Code</p>
-                <p className="mt-2 text-xl font-semibold text-zinc-900 dark:text-white drop-shadow-md">{workspace?.inviteCode || '-'}</p>
+                <p className="mt-2 break-words text-xl font-semibold text-zinc-900 dark:text-white drop-shadow-md">{workspace?.inviteCode || '-'}</p>
                 <button
                   className="mt-3 inline-flex items-center gap-1 rounded-xl border border-white/10 px-3 py-2 text-sm transition-all duration-200 hover:bg-white/5 dark:border-zinc-700"
                   onClick={async () => {

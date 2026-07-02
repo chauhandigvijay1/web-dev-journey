@@ -49,13 +49,15 @@ const JoinWorkspaceModal = ({ open, onClose, onSubmit }: JoinWorkspaceModalProps
         onClick={(event) => event.stopPropagation()}
         role="dialog"
       >
-        <h2 className="text-lg font-semibold text-white font-semibold drop-shadow-md">Join Workspace</h2>
+        <h2 className="text-lg font-semibold text-white drop-shadow-md">Join Workspace</h2>
         <div className="mt-4 space-y-3">
           <p className="text-sm text-zinc-400">
             Paste the invite code shared by your teammate. You do not need the workspace URL.
           </p>
+          <label className="sr-only" htmlFor="join-workspace-invite-code">Invite code</label>
           <input
             className="w-full rounded-xl border border-white/10 px-3 py-2 text-sm uppercase dark:border-zinc-700 bg-black/20"
+            id="join-workspace-invite-code"
             onChange={(event) => setInviteCode(event.target.value)}
             placeholder="Invite Code"
             value={inviteCode}
@@ -71,7 +73,7 @@ const JoinWorkspaceModal = ({ open, onClose, onSubmit }: JoinWorkspaceModalProps
             Cancel
           </button>
           <button
-            className="rounded-xl bg-brand-500 px-4 py-2 text-sm font-medium text-white hover:bg-brand-400 shadow-[0_0_15px_rgba(16,185,129,0.3)] transition-all hover:shadow-[0_0_25px_rgba(16,185,129,0.5)] hover:-translate-y-0.5 duration-300 shadow-[0_0_15px_rgba(16,185,129,0.3)] transition-all hover:shadow-[0_0_25px_rgba(16,185,129,0.5)] hover:-translate-y-0.5 duration-300 disabled:opacity-60"
+            className="rounded-xl bg-brand-500 px-4 py-2 text-sm font-medium text-white hover:bg-brand-400 shadow-[0_0_15px_rgba(16,185,129,0.3)] transition-all hover:shadow-[0_0_25px_rgba(16,185,129,0.5)] hover:-translate-y-0.5 duration-300 disabled:opacity-60"
             disabled={submitting || !inviteCode.trim()}
             onClick={handleSubmit}
             type="button"

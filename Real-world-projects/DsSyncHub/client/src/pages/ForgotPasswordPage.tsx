@@ -71,18 +71,19 @@ const ForgotPasswordPage = () => {
           <ArrowLeft size={16} />
           Back to sign in
         </Link>
-        <h2 className="mt-6 text-2xl font-semibold tracking-tight text-white font-semibold drop-shadow-md">Forgot your password?</h2>
+        <h2 className="mt-6 text-2xl font-semibold tracking-tight text-white drop-shadow-md">Forgot your password?</h2>
         <p className="mt-2 text-sm text-zinc-300">
           Enter the email tied to your account and we&apos;ll generate a reset link.
         </p>
 
         <form className="mt-6 space-y-4" onSubmit={handleSubmit(onSubmit)}>
           <div>
-            <label className="mb-1 block text-sm font-medium text-zinc-200">Work email</label>
+            <label className="mb-1 block text-sm font-medium text-zinc-200" htmlFor="forgot-password-email">Work email</label>
             <div className="flex items-center gap-2 rounded-2xl border border-white/10 px-4 py-3 dark:border-zinc-700 bg-black/20">
               <Mail className="text-zinc-400" size={18} />
               <input
                 className="w-full bg-transparent text-sm outline-none"
+                id="forgot-password-email"
                 placeholder="you@company.com"
                 type="email"
                 {...register('email')}

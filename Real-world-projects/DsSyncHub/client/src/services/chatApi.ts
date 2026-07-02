@@ -1,5 +1,5 @@
 import { api } from './api'
-import type { ChannelItem, ChatMessage, MessageReaction } from '../types/chat'
+import type { ChannelItem, ChatMessage } from '../types/chat'
 import type { FileAttachment } from '../types/file'
 
 export const chatApi = {

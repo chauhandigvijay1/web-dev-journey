@@ -57,16 +57,20 @@ const CreateWorkspaceModal = ({ open, onClose, onSubmit }: CreateWorkspaceModalP
         onClick={(event) => event.stopPropagation()}
         role="dialog"
       >
-        <h2 className="text-lg font-semibold text-white font-semibold drop-shadow-md">Create Workspace</h2>
+        <h2 className="text-lg font-semibold text-white drop-shadow-md">Create Workspace</h2>
         <div className="mt-4 space-y-3">
+          <label className="sr-only" htmlFor="create-workspace-name">Workspace name</label>
           <input
             className="w-full rounded-xl border border-white/10 px-3 py-2 text-sm outline-none focus:border-brand-500 dark:border-zinc-700 bg-black/20"
+            id="create-workspace-name"
             onChange={(event) => setName(event.target.value)}
             placeholder="Workspace Name"
             value={name}
           />
+          <label className="sr-only" htmlFor="create-workspace-description">Workspace description</label>
           <textarea
             className="w-full rounded-xl border border-white/10 px-3 py-2 text-sm outline-none focus:border-brand-500 dark:border-zinc-700 bg-black/20"
+            id="create-workspace-description"
             onChange={(event) => setDescription(event.target.value)}
             maxLength={280}
             placeholder="Description"
@@ -84,7 +88,7 @@ const CreateWorkspaceModal = ({ open, onClose, onSubmit }: CreateWorkspaceModalP
             Cancel
           </button>
           <button
-            className="rounded-xl bg-brand-500 px-4 py-2 text-sm font-medium text-white hover:bg-brand-400 shadow-[0_0_15px_rgba(16,185,129,0.3)] transition-all hover:shadow-[0_0_25px_rgba(16,185,129,0.5)] hover:-translate-y-0.5 duration-300 shadow-[0_0_15px_rgba(16,185,129,0.3)] transition-all hover:shadow-[0_0_25px_rgba(16,185,129,0.5)] hover:-translate-y-0.5 duration-300 disabled:opacity-60"
+            className="rounded-xl bg-brand-500 px-4 py-2 text-sm font-medium text-white hover:bg-brand-400 shadow-[0_0_15px_rgba(16,185,129,0.3)] transition-all hover:shadow-[0_0_25px_rgba(16,185,129,0.5)] hover:-translate-y-0.5 duration-300 disabled:opacity-60"
             disabled={submitting || name.trim().length < 2}
             onClick={handleSubmit}
             type="button"

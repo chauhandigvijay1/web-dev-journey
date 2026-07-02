@@ -68,17 +68,21 @@ const InviteMemberModal = ({ open, onClose, onSubmit }: InviteMemberModalProps) 
         onClick={(event) => event.stopPropagation()}
         role="dialog"
       >
-        <h2 className="text-lg font-semibold text-white font-semibold drop-shadow-md">Invite Member</h2>
+        <h2 className="text-lg font-semibold text-white drop-shadow-md">Invite Member</h2>
         <div className="mt-4 space-y-3">
+          <label className="sr-only" htmlFor="invite-member-email">Member email</label>
           <input
             className="w-full rounded-xl border border-white/10 px-3 py-2 text-sm dark:border-zinc-700 bg-black/20"
+            id="invite-member-email"
             onChange={(event) => setEmail(event.target.value)}
             placeholder="member@email.com"
             type="email"
             value={email}
           />
+          <label className="sr-only" htmlFor="invite-member-role">Member role</label>
           <select
             className="w-full rounded-xl border border-white/10 px-3 py-2 text-sm dark:border-zinc-700 bg-black/20"
+            id="invite-member-role"
             onChange={(event) => setRole(event.target.value as WorkspaceRole)}
             value={role}
           >

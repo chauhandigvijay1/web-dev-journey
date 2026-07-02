@@ -14,16 +14,16 @@ const ALLOWED_TAGS = ['p', 'br', 'b', 'i', 'u', 'strong', 'em', 'h1', 'h2', 'h3'
 const ALLOWED_ATTR = ['href', 'target', 'class']
 
 const toolbarItems = [
-  { icon: Bold, action: 'bold' },
-  { icon: Italic, action: 'italic' },
-  { icon: Underline, action: 'underline' },
-  { icon: Heading, action: 'formatBlock', value: 'h2' },
-  { icon: List, action: 'insertUnorderedList' },
-  { icon: ListOrdered, action: 'insertOrderedList' },
-  { icon: Quote, action: 'formatBlock', value: 'blockquote' },
-  { icon: Code, action: 'formatBlock', value: 'pre' },
-  { icon: Link2, action: 'createLink', value: 'https://' },
-  { icon: Minus, action: 'insertHorizontalRule' },
+  { icon: Bold, action: 'bold', label: 'Bold' },
+  { icon: Italic, action: 'italic', label: 'Italic' },
+  { icon: Underline, action: 'underline', label: 'Underline' },
+  { icon: Heading, action: 'formatBlock', value: 'h2', label: 'Heading' },
+  { icon: List, action: 'insertUnorderedList', label: 'Bulleted list' },
+  { icon: ListOrdered, action: 'insertOrderedList', label: 'Numbered list' },
+  { icon: Quote, action: 'formatBlock', value: 'blockquote', label: 'Quote' },
+  { icon: Code, action: 'formatBlock', value: 'pre', label: 'Code block' },
+  { icon: Link2, action: 'createLink', value: 'https://', label: 'Insert link' },
+  { icon: Minus, action: 'insertHorizontalRule', label: 'Divider' },
 ]
 
 const sanitize = (html: string) =>
@@ -80,8 +80,10 @@ const NoteEditor = ({ note, onPatchNote, onSavingState }: NoteEditorProps) => {
       <div className="sticky top-0 z-10 border-b border-white/10 glass-card p-3 dark:border-zinc-800 dark:bg-zinc-900">
         <div className="mb-2 flex items-center gap-2">
           <span className="text-xl">{note.icon || 'N'}</span>
+          <label className="sr-only" htmlFor="note-editor-title">Note title</label>
           <input
             className="w-full border-none bg-transparent text-xl font-semibold outline-none"
+            id="note-editor-title"
             onChange={(event) => {
               const nextTitle = event.target.value
               setTitle(nextTitle)
@@ -95,6 +97,7 @@ const NoteEditor = ({ note, onPatchNote, onSavingState }: NoteEditorProps) => {
             const Icon = item.icon
             return (
               <button
+                aria-label={item.label}
                 className="rounded-lg border border-white/10 p-2 hover:glass-card/10 dark:border-zinc-700 dark:hover:bg-zinc-800"
                 key={item.action + (item.value || '')}
                 onClick={() => applyCommand(item.action, item.value)}

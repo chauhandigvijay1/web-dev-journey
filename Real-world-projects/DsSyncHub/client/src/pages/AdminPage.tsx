@@ -154,8 +154,10 @@ const AdminPage = () => {
       {tab === 'users' && (
         <div>
           <div className="mb-4 flex gap-3">
+            <label className="sr-only" htmlFor="admin-user-search">Search users</label>
             <input
               className="flex-1 rounded-xl border border-white/10 bg-black/20 px-3 py-2 text-sm outline-none dark:border-zinc-700"
+              id="admin-user-search"
               onChange={(e) => setSearch(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && fetchUsers()}
               placeholder="Search users..."
@@ -184,12 +186,14 @@ const AdminPage = () => {
               <tbody>
                 {users.map((u) => (
                   <tr className="border-b border-white/5 hover:bg-zinc-800/30 dark:border-zinc-800" key={u._id}>
-                    <td className="px-3 py-3">{u.fullName}</td>
-                    <td className="px-3 py-3 text-zinc-400">{u.email}</td>
-                    <td className="px-3 py-3 text-zinc-400">{u.username}</td>
+                    <td className="max-w-48 truncate px-3 py-3">{u.fullName}</td>
+                    <td className="max-w-56 truncate px-3 py-3 text-zinc-400">{u.email}</td>
+                    <td className="max-w-44 truncate px-3 py-3 text-zinc-400">{u.username}</td>
                     <td className="px-3 py-3">
+                      <label className="sr-only" htmlFor={`admin-user-role-${u._id}`}>Role for {u.fullName}</label>
                       <select
                         className="rounded-lg border border-white/10 bg-black/20 px-2 py-1 text-xs dark:border-zinc-700"
+                        id={`admin-user-role-${u._id}`}
                         onChange={(e) => updateRole(u._id, e.target.value)}
                         value={u.role}
                       >
@@ -254,14 +258,14 @@ const AdminPage = () => {
               <tbody>
                 {workspaces.map((w) => (
                   <tr className="border-b border-white/5 hover:bg-zinc-800/30 dark:border-zinc-800" key={w._id}>
-                    <td className="px-3 py-3 font-medium">{w.name}</td>
-                    <td className="px-3 py-3 text-zinc-400">{w.slug}</td>
+                    <td className="max-w-56 truncate px-3 py-3 font-medium">{w.name}</td>
+                    <td className="max-w-48 truncate px-3 py-3 text-zinc-400">{w.slug}</td>
                     <td className="px-3 py-3">
                       <span className={`rounded-md px-2 py-0.5 text-xs font-semibold ${w.plan === 'pro' ? 'bg-amber-500/10 text-amber-400' : 'bg-zinc-800 text-zinc-400'}`}>
                         {w.plan}
                       </span>
                     </td>
-                    <td className="px-3 py-3 text-zinc-400">{w.owner?.fullName || 'Unknown'}</td>
+                    <td className="max-w-48 truncate px-3 py-3 text-zinc-400">{w.owner?.fullName || 'Unknown'}</td>
                     <td className="px-3 py-3 text-zinc-400">{w.membersCount}</td>
                     <td className="px-3 py-3 text-zinc-400">{new Date(w.createdAt).toLocaleDateString()}</td>
                   </tr>
@@ -296,12 +300,12 @@ const AdminPage = () => {
       {deleteTarget && (
         <ConfirmModal
           confirmLabel="Delete"
-          danger
-          message="This will permanently delete the user and all their memberships. This action cannot be undone."
+          description="This will permanently delete the user and all their memberships. This action cannot be undone."
           onCancel={() => setDeleteTarget(null)}
           onConfirm={() => deleteUser(deleteTarget)}
           open
           title="Delete user"
+          variant="danger"
         />
       )}
     </section>

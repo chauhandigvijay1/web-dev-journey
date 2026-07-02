@@ -1,6 +1,6 @@
 import { createAsyncThunk, createSlice, type PayloadAction } from '@reduxjs/toolkit'
 import { chatApi } from '../services/chatApi'
-import type { ChannelItem, ChatMessage, MessageReaction, TypingUser } from '../types/chat'
+import type { ChannelItem, ChatMessage, TypingUser } from '../types/chat'
 import type { FileAttachment } from '../types/file'
 
 type ChatState = {

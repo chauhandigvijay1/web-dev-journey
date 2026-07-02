@@ -105,9 +105,9 @@ const CalendarPage = () => {
         <div className="flex flex-wrap items-center justify-between gap-2">
           <h1 className="text-2xl font-semibold">Calendar</h1>
           <div className="flex gap-2">
-            <button className="rounded-xl border border-white/10 p-2 dark:border-zinc-700" onClick={() => shiftSelectedDate('previous')} type="button"><ChevronLeft size={16} /></button>
+            <button aria-label="Previous date range" className="rounded-xl border border-white/10 p-2 dark:border-zinc-700" onClick={() => shiftSelectedDate('previous')} type="button"><ChevronLeft size={16} /></button>
             <button className="rounded-xl border border-white/10 px-3 py-2 text-sm dark:border-zinc-700" onClick={() => dispatch(setSelectedDate(new Date().toISOString()))} type="button">Today</button>
-            <button className="rounded-xl border border-white/10 p-2 dark:border-zinc-700" onClick={() => shiftSelectedDate('next')} type="button"><ChevronRight size={16} /></button>
+            <button aria-label="Next date range" className="rounded-xl border border-white/10 p-2 dark:border-zinc-700" onClick={() => shiftSelectedDate('next')} type="button"><ChevronRight size={16} /></button>
             {(['month', 'week', 'agenda'] as const).map((item) => (
               <button className={`rounded-xl px-3 py-2 text-sm ${view === item ? 'bg-brand-500 text-white' : 'border border-white/10'}`} key={item} onClick={() => dispatch(setCalendarView(item))} type="button">{item}</button>
             ))}
@@ -130,15 +130,16 @@ const CalendarPage = () => {
           <div className="space-y-2">
             {visibleEvents.map((item) => (
               <div className="flex w-full items-center justify-between rounded-xl border border-white/10 px-3 py-2 dark:border-zinc-700" key={`${item.source}-${item.id}`}>
-                <button className="flex flex-1 items-center justify-between text-left" onClick={() => item.taskId ? navigate('/tasks') : undefined} type="button">
-                  <div>
-                    <p className="font-medium">{item.title}</p>
+                <button className="flex min-w-0 flex-1 items-center justify-between gap-3 text-left" onClick={() => item.taskId ? navigate('/tasks') : undefined} type="button">
+                  <div className="min-w-0">
+                    <p className="truncate font-medium">{item.title}</p>
                     <p className="text-xs text-zinc-500">{new Date(item.date).toLocaleString()}</p>
                   </div>
                   <span className="rounded-full glass-card/10 px-2 py-1 text-xs capitalize dark:bg-zinc-800">{item.source}</span>
                 </button>
                 {!item.taskId && item.source !== 'task' && (
                   <button
+                    aria-label={`Delete ${item.title}`}
                     className="ml-2 rounded-lg border border-rose-200 px-2 py-1 text-xs text-rose-600 dark:border-rose-900/40"
                     onClick={() => setDeleteConfirmId(item.id)}
                     type="button"
@@ -172,15 +173,20 @@ const CalendarPage = () => {
           <div className="w-full max-w-md rounded-2xl border border-white/10 glass-card p-4 dark:border-zinc-700 dark:bg-zinc-900">
             <h2 className="text-lg font-semibold">Add Event</h2>
             <div className="mt-3 space-y-2">
-              <input className="w-full rounded-xl border border-white/10 px-3 py-2 text-sm dark:border-zinc-700 bg-black/20" onChange={(event) => setTitle(event.target.value)} placeholder="Title" value={title} />
-              <input className="w-full rounded-xl border border-white/10 px-3 py-2 text-sm dark:border-zinc-700 bg-black/20" onChange={(event) => setDate(event.target.value)} type="date" value={date} />
-              <input className="w-full rounded-xl border border-white/10 px-3 py-2 text-sm dark:border-zinc-700 bg-black/20" onChange={(event) => setEndDate(event.target.value)} placeholder="End date (optional)" type="date" value={endDate} />
-              <label className="flex items-center gap-2 text-sm">
-                <input checked={allDay} onChange={(event) => setAllDay(event.target.checked)} type="checkbox" />
+              <label className="sr-only" htmlFor="calendar-event-title">Event title</label>
+              <input className="w-full rounded-xl border border-white/10 px-3 py-2 text-sm dark:border-zinc-700 bg-black/20" id="calendar-event-title" onChange={(event) => setTitle(event.target.value)} placeholder="Title" value={title} />
+              <label className="sr-only" htmlFor="calendar-event-date">Event date</label>
+              <input className="w-full rounded-xl border border-white/10 px-3 py-2 text-sm dark:border-zinc-700 bg-black/20" id="calendar-event-date" onChange={(event) => setDate(event.target.value)} type="date" value={date} />
+              <label className="sr-only" htmlFor="calendar-event-end-date">Event end date</label>
+              <input className="w-full rounded-xl border border-white/10 px-3 py-2 text-sm dark:border-zinc-700 bg-black/20" id="calendar-event-end-date" onChange={(event) => setEndDate(event.target.value)} placeholder="End date (optional)" type="date" value={endDate} />
+              <label className="flex items-center gap-2 text-sm" htmlFor="calendar-event-all-day">
+                <input checked={allDay} id="calendar-event-all-day" onChange={(event) => setAllDay(event.target.checked)} type="checkbox" />
                 All day
               </label>
-              <input className="w-full rounded-xl border border-white/10 px-3 py-2 text-sm dark:border-zinc-700 bg-black/20" onChange={(event) => setTime(event.target.value)} placeholder="Time (optional)" value={time} />
-              <textarea className="w-full rounded-xl border border-white/10 px-3 py-2 text-sm dark:border-zinc-700 bg-black/20" onChange={(event) => setDescription(event.target.value)} placeholder="Description (optional)" rows={3} value={description} />
+              <label className="sr-only" htmlFor="calendar-event-time">Event time</label>
+              <input className="w-full rounded-xl border border-white/10 px-3 py-2 text-sm dark:border-zinc-700 bg-black/20" id="calendar-event-time" onChange={(event) => setTime(event.target.value)} placeholder="Time (optional)" value={time} />
+              <label className="sr-only" htmlFor="calendar-event-description">Event description</label>
+              <textarea className="w-full rounded-xl border border-white/10 px-3 py-2 text-sm dark:border-zinc-700 bg-black/20" id="calendar-event-description" onChange={(event) => setDescription(event.target.value)} placeholder="Description (optional)" rows={3} value={description} />
             </div>
             <div className="mt-3 flex justify-end gap-2">
               <button className="rounded-xl border border-white/10 px-3 py-2 text-sm dark:border-zinc-700" onClick={() => setOpen(false)} type="button">Cancel</button>

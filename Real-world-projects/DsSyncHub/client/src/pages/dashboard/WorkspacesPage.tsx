@@ -83,8 +83,10 @@ const WorkspacesPage = () => {
           <p className="text-sm text-zinc-400">Manage team spaces and access levels</p>
         </div>
         <div className="flex flex-wrap gap-2">
+          <label className="sr-only" htmlFor="workspaces-search">Search workspaces</label>
           <input
             className="rounded-xl border border-white/10 px-3 py-2 text-sm outline-none focus:border-brand-500 dark:border-zinc-700 bg-black/20"
+            id="workspaces-search"
             onChange={(event) => setSearch(event.target.value)}
             placeholder="Search workspace..."
             value={search}
@@ -97,7 +99,7 @@ const WorkspacesPage = () => {
             Join via Invite Code
           </button>
           <button
-            className="rounded-xl bg-brand-500 px-3 py-2 text-sm font-medium text-white hover:bg-brand-400 shadow-[0_0_15px_rgba(16,185,129,0.3)] transition-all hover:shadow-[0_0_25px_rgba(16,185,129,0.5)] hover:-translate-y-0.5 duration-300 shadow-[0_0_15px_rgba(16,185,129,0.3)] transition-all hover:shadow-[0_0_25px_rgba(16,185,129,0.5)] hover:-translate-y-0.5 duration-300"
+            className="rounded-xl bg-brand-500 px-3 py-2 text-sm font-medium text-white hover:bg-brand-400 shadow-[0_0_15px_rgba(16,185,129,0.3)] transition-all hover:shadow-[0_0_25px_rgba(16,185,129,0.5)] hover:-translate-y-0.5 duration-300"
             onClick={() => setCreateModalOpen(true)}
             type="button"
           >
@@ -124,7 +126,7 @@ const WorkspacesPage = () => {
               : 'Bring your team into one shared collaboration space.'}
           </p>
           <button
-            className="mt-4 rounded-xl bg-brand-500 px-4 py-2 text-sm font-medium text-white hover:bg-brand-400 shadow-[0_0_15px_rgba(16,185,129,0.3)] transition-all hover:shadow-[0_0_25px_rgba(16,185,129,0.5)] hover:-translate-y-0.5 duration-300 shadow-[0_0_15px_rgba(16,185,129,0.3)] transition-all hover:shadow-[0_0_25px_rgba(16,185,129,0.5)] hover:-translate-y-0.5 duration-300"
+            className="mt-4 rounded-xl bg-brand-500 px-4 py-2 text-sm font-medium text-white hover:bg-brand-400 shadow-[0_0_15px_rgba(16,185,129,0.3)] transition-all hover:shadow-[0_0_25px_rgba(16,185,129,0.5)] hover:-translate-y-0.5 duration-300"
             onClick={() => (search.trim() ? setSearch('') : setCreateModalOpen(true))}
             type="button"
           >
@@ -139,18 +141,18 @@ const WorkspacesPage = () => {
               key={workspace.id}
             >
               <div className="flex items-start justify-between">
-                <div className="flex items-center gap-3">
+                <div className="flex min-w-0 items-center gap-3">
                   <div className="grid h-10 w-10 place-items-center rounded-xl bg-brand-500/10 font-semibold text-brand-400 dark:bg-brand-500/20 dark:text-brand-300">
                     {workspace.name.slice(0, 1)}
                   </div>
-                  <div>
-                    <h2 className="text-lg font-semibold text-zinc-900 dark:text-white drop-shadow-md">
+                  <div className="min-w-0">
+                    <h2 className="truncate text-lg font-semibold text-zinc-900 dark:text-white drop-shadow-md">
                       {workspace.name}
                     </h2>
-                    <p className="text-xs text-zinc-400">{workspace.description}</p>
+                    <p className="truncate text-xs text-zinc-400">{workspace.description}</p>
                   </div>
                 </div>
-                <button className="rounded-lg p-1.5 hover:glass-card/10 dark:hover:bg-zinc-800" type="button" aria-label="Ellipsis">
+                <button className="rounded-lg p-1.5 hover:glass-card/10 dark:hover:bg-zinc-800" type="button" aria-label={`Workspace actions for ${workspace.name}`}>
                   <Ellipsis size={16} />
                 </button>
               </div>

@@ -29,10 +29,10 @@ const PlanUpgradeModal = ({ open, title, message, onClose }: PlanUpgradeModalPro
               <p className="text-xs font-semibold uppercase tracking-[0.24em] text-amber-600 dark:text-amber-300">
                 Premium unlock
               </p>
-              <h3 className="text-lg font-semibold text-white font-semibold drop-shadow-md">{title}</h3>
+              <h3 className="text-lg font-semibold text-white drop-shadow-md">{title}</h3>
             </div>
           </div>
-          <button className="rounded-xl border border-white/10 p-2 dark:border-zinc-700" onClick={onClose} type="button">
+          <button aria-label="Close upgrade modal" className="rounded-xl border border-white/10 p-2 dark:border-zinc-700" onClick={onClose} type="button">
             <X size={16} />
           </button>
         </div>

@@ -10,7 +10,7 @@ const StorageUsageBar = ({ usage, compact = false }: StorageUsageBarProps) => {
     <div className={`rounded-2xl border border-white/10 glass-card ${compact ? 'p-3' : 'p-4'} dark:border-zinc-700 dark:bg-zinc-900`}>
       <div className="flex items-center justify-between gap-3">
         <div>
-          <p className="text-sm font-medium text-white font-semibold drop-shadow-md">Storage usage</p>
+          <p className="text-sm font-semibold text-white drop-shadow-md">Storage usage</p>
           <p className="text-xs text-zinc-400">
             {usage.usedMb.toFixed(2)} MB of {usage.limitMb.toFixed(0)} MB used
           </p>
