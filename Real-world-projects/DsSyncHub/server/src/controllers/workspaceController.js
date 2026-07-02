@@ -1,7 +1,19 @@
 const crypto = require('crypto')
-const Membership = require('../models/Membership')
+const ActivityLog = require('../models/ActivityLog')
+const AiUsage = require('../models/AiUsage')
+const BillingInvoice = require('../models/BillingInvoice')
+const CalendarEvent = require('../models/CalendarEvent')
+const Channel = require('../models/Channel')
+const FileAsset = require('../models/FileAsset')
 const Invite = require('../models/Invite')
+const Meeting = require('../models/Meeting')
+const Membership = require('../models/Membership')
+const Message = require('../models/Message')
+const Note = require('../models/Note')
 const Notification = require('../models/Notification')
+const Subscription = require('../models/Subscription')
+const Task = require('../models/Task')
+const TaskComment = require('../models/TaskComment')
 const User = require('../models/User')
 const Workspace = require('../models/Workspace')
 const { createActivityLog, createNotification } = require('../utils/collabEvents')
@@ -468,6 +480,26 @@ const inviteMember = async (req, res, next) => {
     }
 
     const normalizedEmail = email.trim().toLowerCase()
+
+    const existingMember = await Membership.findOne({ workspace: workspace._id }).populate({
+      path: 'user',
+      match: { email: normalizedEmail },
+      select: '_id',
+    })
+    if (existingMember && existingMember.user) {
+      if (existingMember.status === 'active') {
+        return res.status(400).json({ success: false, message: 'This user is already a member of this workspace.' })
+      }
+      if (existingMember.status === 'pending') {
+        return res.status(400).json({ success: false, message: 'An invite has already been sent to this email. Cancel the pending invite first.' })
+      }
+    }
+
+    const existingInvite = await Invite.findOne({ workspace: workspace._id, email: normalizedEmail, usedAt: null, expiresAt: { $gt: new Date() } })
+    if (existingInvite) {
+      return res.status(400).json({ success: false, message: 'An active invite already exists for this email. Cancel it first or wait for it to expire.' })
+    }
+
     const user = await User.findOne({ email: normalizedEmail })
 
     const invite = await Invite.create({
@@ -659,12 +691,95 @@ const removeMember = async (req, res, next) => {
   }
 }
 
+const cancelInvite = async (req, res, next) => {
+  try {
+    const requesterMembership = await getMembershipOr404(req.user._id, req.params.id)
+    if (!requesterMembership || !canManageMembers(requesterMembership.role)) {
+      return res.status(403).json({ success: false, message: 'Insufficient permission.' })
+    }
+
+    const { memberId } = req.params
+    const targetMembership = await Membership.findById(memberId)
+
+    if (targetMembership) {
+      if (targetMembership.workspace.toString() !== req.params.id) {
+        return res.status(404).json({ success: false, message: 'Member not found.' })
+      }
+      if (targetMembership.role === 'owner') {
+        return res.status(400).json({ success: false, message: 'Owner cannot be removed.' })
+      }
+
+      const email = targetMembership.email || (targetMembership.user ? (await User.findById(targetMembership.user))?.email : null)
+      if (email) {
+        await Invite.updateMany({ workspace: req.params.id, email, usedAt: null }, { usedAt: new Date() })
+      }
+
+      await targetMembership.deleteOne()
+    } else {
+      const openInvite = await Invite.findOne({ _id: memberId, workspace: req.params.id, usedAt: null })
+      if (openInvite) {
+        openInvite.usedAt = new Date()
+        await openInvite.save()
+      } else {
+        return res.status(404).json({ success: false, message: 'Invite not found.' })
+      }
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: 'Invite cancelled successfully.',
+    })
+  } catch (error) {
+    return next(error)
+  }
+}
+
+const deleteWorkspace = async (req, res, next) => {
+  try {
+    const membership = await getMembershipOr404(req.user._id, req.params.id)
+    if (!membership || !isOwner(membership.role)) {
+      return res.status(403).json({ success: false, message: 'Only the workspace owner can delete the workspace.' })
+    }
+
+    const workspace = await Workspace.findById(req.params.id)
+    if (!workspace) {
+      return res.status(404).json({ success: false, message: 'Workspace not found.' })
+    }
+
+    const workspaceId = workspace._id
+
+    await Promise.all([
+      ActivityLog.deleteMany({ workspace: workspaceId }),
+      AiUsage.deleteMany({ workspace: workspaceId }),
+      BillingInvoice.deleteMany({ workspace: workspaceId }),
+      CalendarEvent.deleteMany({ workspace: workspaceId }),
+      Channel.deleteMany({ workspace: workspaceId }),
+      FileAsset.deleteMany({ workspace: workspaceId }),
+      Invite.deleteMany({ workspace: workspaceId }),
+      Meeting.deleteMany({ workspace: workspaceId }),
+      Membership.deleteMany({ workspace: workspaceId }),
+      Message.deleteMany({ workspace: workspaceId }),
+      Note.deleteMany({ workspace: workspaceId }),
+      Notification.deleteMany({ workspace: workspaceId }),
+      Subscription.deleteMany({ workspace: workspaceId }),
+      Task.deleteMany({ workspace: workspaceId }),
+      TaskComment.deleteMany({ workspace: workspaceId }),
+      workspace.deleteOne(),
+    ])
+
+    return res.status(200).json({ success: true, message: 'Workspace and all associated data deleted permanently.' })
+  } catch (error) {
+    return next(error)
+  }
+}
+
 module.exports = {
   listWorkspaces,
   createWorkspace,
   getWorkspaceDetails,
   updateWorkspace,
   archiveWorkspace,
+  deleteWorkspace,
   joinWorkspaceByCode,
   joinWorkspace,
   joinWorkspaceByToken,
@@ -672,4 +787,5 @@ module.exports = {
   listMembers,
   updateMemberRole,
   removeMember,
+  cancelInvite,
 }

@@ -76,6 +76,22 @@ export const removeWorkspaceMemberThunk = createAsyncThunk(
   },
 )
 
+export const cancelInviteThunk = createAsyncThunk(
+  'workspace/cancelInvite',
+  async (payload: { workspaceId: string; memberId: string }, { dispatch }) => {
+    await workspaceApi.cancelInvite(payload.workspaceId, payload.memberId)
+    dispatch(fetchWorkspaceMembersThunk(payload.workspaceId))
+  },
+)
+
+export const deleteWorkspaceThunk = createAsyncThunk(
+  'workspace/deleteWorkspace',
+  async (workspaceId: string, { dispatch }) => {
+    await workspaceApi.deleteWorkspace(workspaceId)
+    dispatch(fetchWorkspacesThunk())
+  },
+)
+
 const workspaceSlice = createSlice({
   name: 'workspace',
   initialState,

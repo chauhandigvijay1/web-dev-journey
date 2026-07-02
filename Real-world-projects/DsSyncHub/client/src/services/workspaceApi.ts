@@ -59,4 +59,12 @@ export const workspaceApi = {
     const response = await api.post<JoinResponse>('/workspaces/join-with-token', { token })
     return response.data
   },
+  cancelInvite: async (workspaceId: string, memberId: string) => {
+    const response = await api.post(`/workspaces/${workspaceId}/members/${memberId}/cancel-invite`)
+    return response.data
+  },
+  deleteWorkspace: async (workspaceId: string) => {
+    const response = await api.delete(`/workspaces/${workspaceId}/destroy`)
+    return response.data
+  },
 }

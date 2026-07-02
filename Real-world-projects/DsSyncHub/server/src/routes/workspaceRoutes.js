@@ -1,7 +1,9 @@
 const express = require('express')
 const {
   archiveWorkspace,
+  cancelInvite,
   createWorkspace,
+  deleteWorkspace,
   getWorkspaceDetails,
   inviteMember,
   joinWorkspaceByCode,
@@ -26,10 +28,12 @@ router.post('/join-with-token', joinWorkspaceByToken)
 router.get('/:id', getWorkspaceDetails)
 router.patch('/:id', updateWorkspace)
 router.delete('/:id', archiveWorkspace)
+router.delete('/:id/destroy', deleteWorkspace)
 router.post('/:id/join', joinWorkspace)
 router.post('/:id/invite', inviteMember)
 router.get('/:id/members', listMembers)
 router.patch('/:id/members/:memberId/role', updateMemberRole)
 router.delete('/:id/members/:memberId', removeMember)
+router.post('/:id/members/:memberId/cancel-invite', cancelInvite)
 
 module.exports = router
