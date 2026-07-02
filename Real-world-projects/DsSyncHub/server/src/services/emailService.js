@@ -1,23 +1,26 @@
 const nodemailer = require('nodemailer')
+const logger = require('./logger')
 
 let transporter
+
+const trim = (v) => (typeof v === 'string' ? v.trim() : v)
 
 const getTransporter = () => {
   if (transporter) return transporter
 
-  const user = process.env.EMAIL_USER
-  const pass = process.env.EMAIL_PASS
+  const user = trim(process.env.EMAIL_USER)
+  const pass = trim(process.env.EMAIL_PASS)
 
   if (!user || !pass) {
-    console.error('[email] EMAIL_USER or EMAIL_PASS not set')
+    logger.error('[email] EMAIL_USER or EMAIL_PASS not set')
     return null
   }
 
-  const host = process.env.EMAIL_HOST
-  const port = parseInt(process.env.EMAIL_PORT || '', 10)
+  const host = trim(process.env.EMAIL_HOST)
+  const port = parseInt(trim(process.env.EMAIL_PORT) || '', 10)
 
   if (host) {
-    console.error(`[email] using SMTP: ${host}:${port || 587}`)
+    logger.info(`[email] using SMTP: ${host}:${port || 587}`)
     transporter = nodemailer.createTransport({
       host,
       port: port || 587,
@@ -27,7 +30,7 @@ const getTransporter = () => {
       socketTimeout: 10000,
     })
   } else {
-    console.error('[email] using Gmail SMTP (fallback)')
+    logger.info('[email] using Gmail SMTP (fallback)')
     transporter = nodemailer.createTransport({
       service: 'gmail',
       auth: { user, pass },
@@ -37,8 +40,10 @@ const getTransporter = () => {
   return transporter
 }
 
+const getEmailFrom = () => trim(process.env.EMAIL_FROM) || trim(process.env.EMAIL_USER) || ''
+
 const sendPasswordResetEmail = async ({ toEmail, resetUrl }) => {
-  const emailFrom = process.env.EMAIL_FROM || process.env.EMAIL_USER
+  const emailFrom = getEmailFrom()
   const mailer = getTransporter()
 
   if (!mailer) {
@@ -67,7 +72,7 @@ const sendPasswordResetEmail = async ({ toEmail, resetUrl }) => {
 }
 
 const sendVerificationEmail = async ({ toEmail, verifyUrl }) => {
-  const emailFrom = process.env.EMAIL_FROM || process.env.EMAIL_USER
+  const emailFrom = getEmailFrom()
   const mailer = getTransporter()
 
   if (!mailer) {
@@ -96,7 +101,7 @@ const sendVerificationEmail = async ({ toEmail, verifyUrl }) => {
 }
 
 const sendInviteEmail = async ({ toEmail, inviteUrl, inviterName, workspaceName }) => {
-  const emailFrom = process.env.EMAIL_FROM || process.env.EMAIL_USER
+  const emailFrom = getEmailFrom()
   const mailer = getTransporter()
 
   if (!mailer) {

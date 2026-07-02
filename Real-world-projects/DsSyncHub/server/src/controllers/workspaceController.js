@@ -7,6 +7,7 @@ const Workspace = require('../models/Workspace')
 const { createActivityLog, createNotification } = require('../utils/collabEvents')
 const { enforceMemberLimit, enforceWorkspaceCreateLimit } = require('../services/planLimits')
 const { sendInviteEmail } = require('../services/emailService')
+const logger = require('../services/logger')
 
 const ROLE_WEIGHT = {
   viewer: 1,
@@ -450,8 +451,8 @@ const inviteMember = async (req, res, next) => {
       inviteUrl,
       inviterName: req.user.fullName,
       workspaceName: workspace.name,
-    }).catch((_emailErr) => {
-      console.error('Failed to send invite email:', _emailErr.message)
+    }).catch((emailErr) => {
+      logger.error({ err: emailErr.message, email: normalizedEmail, workspace: workspace._id }, 'Failed to send invite email')
     })
 
     return res.status(200).json({
