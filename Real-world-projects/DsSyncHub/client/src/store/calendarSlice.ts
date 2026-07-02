@@ -32,6 +32,7 @@ export const createCalendarEventThunk = createAsyncThunk(
     description?: string
     date: string
     endDate?: string
+    allDay?: boolean
     time?: string
     source?: string
     color?: string
@@ -44,6 +45,7 @@ export const createCalendarEventThunk = createAsyncThunk(
         ? new Date(`${payload.date.split('T')[0]}T${payload.time || '09:00'}`).toISOString()
         : new Date(payload.date).toISOString(),
       endDate: payload.endDate,
+      allDay: payload.allDay,
       source: payload.source || 'event',
       color: payload.color,
     })

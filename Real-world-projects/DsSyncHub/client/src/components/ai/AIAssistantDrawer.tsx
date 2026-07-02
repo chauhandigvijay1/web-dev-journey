@@ -31,7 +31,7 @@ const AIAssistantDrawer = ({ open, onClose, workspaceId, title, actions, onInser
 
   return (
     <div className={`fixed inset-0 z-50 bg-zinc-950/40 backdrop-blur-sm transition-opacity duration-300 ${open ? 'opacity-100' : 'opacity-0 pointer-events-none'}`} onClick={onClose} role="presentation">
-      <div className={`fixed bottom-0 right-0 h-[85vh] w-full max-w-xl rounded-t-3xl border border-white/10 glass-card p-4 shadow-2xl md:top-0 md:h-full md:rounded-none md:rounded-l-3xl dark:border-zinc-700 dark:bg-zinc-900 transition-transform duration-300 ease-in-out ${open ? 'tranzinc-y-0 md:tranzinc-x-0' : 'tranzinc-y-full md:tranzinc-y-0 md:tranzinc-x-full'}`} onClick={(event) => event.stopPropagation()} role="dialog">
+      <div className={`fixed bottom-0 right-0 h-[85vh] w-full max-w-xl rounded-t-3xl border border-white/10 glass-card p-4 shadow-2xl md:top-0 md:h-full md:rounded-none md:rounded-l-3xl dark:border-zinc-700 dark:bg-zinc-900 transition-transform duration-300 ease-in-out ${open ? 'translate-y-0 md:translate-x-0' : 'translate-y-full md:translate-y-0 md:translate-x-full'}`} onClick={(event) => event.stopPropagation()} role="dialog">
         <div className="mb-3 flex items-center justify-between">
           <h3 className="text-lg font-semibold">
             <Sparkles className="mr-1 inline" size={16} />
@@ -78,7 +78,7 @@ const AIAssistantDrawer = ({ open, onClose, workspaceId, title, actions, onInser
               Generating...
             </div>
           ) : (
-            <pre className="mt-2 max-h-[50vh] overflow-auto whitespace-pre-wrap text-sm">{output || 'Run an AI action to see output.'}</pre>
+            <pre className="mt-2 max-h-[50vh] overflow-auto whitespace-pre-wrap text-sm">{output ? output.replace(/<[^>]*>/g, '') : 'Run an AI action to see output.'}</pre>
           )}
           <div className="mt-3 flex gap-2">
             <button

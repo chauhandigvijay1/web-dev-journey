@@ -1,9 +1,11 @@
 import { ArrowRight, CalendarClock, Video, VideoOff } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
+import EmptyState from '../../components/common/EmptyState'
 import WorkspaceRequiredState from '../../components/common/WorkspaceRequiredState'
 import { useAppDispatch, useAppSelector } from '../../hooks/redux'
-import { createMeetingRoomThunk, fetchUpcomingMeetingsThunk } from '../../store/meetingSlice'
+import { createMeetingRoomThunk, fetchMeetingRoomThunk, fetchUpcomingMeetingsThunk } from '../../store/meetingSlice'
+import { pushToast } from '../../store/toastSlice'
 
 const MeetingsPage = () => {
   const navigate = useNavigate()
@@ -71,7 +73,15 @@ const MeetingsPage = () => {
               placeholder="AB12CD34"
               value={roomCode}
             />
-            <button className="rounded-xl bg-brand-500 px-4 py-2 text-sm font-medium text-white hover:bg-brand-400 shadow-[0_0_15px_rgba(16,185,129,0.3)] transition-all hover:shadow-[0_0_25px_rgba(16,185,129,0.5)] hover:-tranzinc-y-0.5 duration-300 shadow-[0_0_15px_rgba(16,185,129,0.3)] transition-all hover:shadow-[0_0_25px_rgba(16,185,129,0.5)] hover:-tranzinc-y-0.5 duration-300" onClick={() => roomCode && navigate(`/meetings/${roomCode}`)} type="button">
+            <button className="rounded-xl bg-brand-500 px-4 py-2 text-sm font-medium text-white hover:bg-brand-400 shadow-[0_0_15px_rgba(16,185,129,0.3)] transition-all hover:shadow-[0_0_25px_rgba(16,185,129,0.5)] hover:-translate-y-0.5 duration-300" onClick={async () => {
+              if (!roomCode) return
+              try {
+                await dispatch(fetchMeetingRoomThunk(roomCode)).unwrap()
+                navigate(`/meetings/${roomCode}`)
+              } catch {
+                dispatch(pushToast({ title: 'Room not found', description: 'No meeting room matches that code.', tone: 'error' }))
+              }
+            }} type="button">
               Join
             </button>
           </div>
@@ -91,10 +101,11 @@ const MeetingsPage = () => {
         <div className="mt-4 space-y-3">
           {loading && <p className="text-sm text-zinc-500">Loading meetings...</p>}
           {!loading && !meetings.length && (
-            <div className="rounded-2xl border border-dashed border-zinc-300 p-10 text-center dark:border-zinc-700">
-              <VideoOff className="mx-auto text-zinc-400" size={26} />
-              <p className="mt-3 text-sm text-zinc-500">No live or upcoming rooms yet.</p>
-            </div>
+            <EmptyState
+              description="Start an instant meeting or schedule one to see it listed here."
+              icon={<VideoOff size={24} />}
+              title="No meetings yet"
+            />
           )}
           {meetings.map((meeting) => (
             <div className="flex flex-col gap-3 rounded-2xl border border-white/10 p-4 dark:border-zinc-700 md:flex-row md:items-center md:justify-between" key={meeting.id}>

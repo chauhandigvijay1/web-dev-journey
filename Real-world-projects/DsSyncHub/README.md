@@ -102,8 +102,10 @@ Built with a **MERN + TypeScript** stack and hardened for production with **Redi
 - Forgot/reset password flow with SHA-256 hashed tokens + 60-min expiry
 - Email verification flow with dedicated VerifyEmailPage
 - Input sanitization stripping `<>{}$` to prevent XSS across all inputs
+- DOMPurify client-side sanitization on note content (ALLOWED_TAGS/ALLOWED_ATTR whitelist)
+- Server-side regex sanitization removing script/style/iframe/object/embed + event handlers + javascript: URLs
 - Helmet security headers + CORS whitelist + httpOnly cookies (sameSite none in prod)
-- Rate limiting: global (500/15min) + auth (10/15min) + login (8/15min) + forgot/reset/verify (5/hour) + file uploads (10/min) + messages (20/10s) — distributed via Redis when configured
+- Rate limiting: global (500/15min) + auth (10/15min) + login (8/15min) + forgot/reset/verify (5/hour) + file uploads (10/min) + messages (20/10s) + search (30/min) — distributed via Redis when configured
 - No stack traces in production error handler
 - Uncaught exception/rejection handlers for graceful shutdown
 
@@ -125,7 +127,7 @@ Every resource (tasks, notes, messages, files, calendar events) is scoped to a w
 
 ### Billing & Monetization
 
-- Razorpay payment gateway integration (test mode ready) with lazy initialization
+- Razorpay payment gateway integration (test mode ready) with lazy `getRazorpayClient()` + lazy Google OAuth2Client initialization
 - Free / Pro Monthly (₹999) / Pro Yearly (₹9999) tiers with 9-row feature comparison table
 - Plan-based storage limits, member caps, and AI usage quotas
 - Coupon code system — enter a code to upgrade directly to Pro (independent of Razorpay)
@@ -158,7 +160,7 @@ Every resource (tasks, notes, messages, files, calendar events) is scoped to a w
 - **Bull Email Queue** — Async email dispatch (password-reset, verify-email, invite) with 3 retries and exponential backoff — falls back to direct send when Redis unconfigured
 - **Cron Jobs** — Expired token cleanup (invite/password/verify tokens) runs every 6 hours via `node-cron`
 - **API Versioning** — All 17 route modules mounted under both `/api` and `/api/v1`
-- **CI/CD** — GitHub Actions: 92 backend tests + frontend build on every push/PR to main
+- **CI/CD** — GitHub Actions: 92 backend tests + TypeScript strict compile + Vite production build on every push/PR to main
 
 ---
 
@@ -177,8 +179,8 @@ Every resource (tasks, notes, messages, files, calendar events) is scoped to a w
 │  Node.js 20 · Express 5 · Mongoose 8 · Socket.io 4 · JWT   │
 │                                                             │
 │  ┌──────────┐ ┌──────────┐ ┌──────────┐ ┌───────────────┐  │
-│  │ Routes   │ │ Middleware│ │ Services │ │ Socket (4)    │  │
-│  │ (17)     │ │ (6)      │ │ (6)      │ │ Chat/Task/    │  │
+  │  │ Routes   │ │ Middleware│ │ Services │ │ Socket (4)    │  │
+  │  │ (17)     │ │ (6)      │ │ (7)      │ │ Chat/Task/    │  │
 │  │          │ │          │ │          │ │ Note/Calendar │  │
 │  └──────────┘ └──────────┘ └──────────┘ └───────────────┘  │
 │                                                             │
@@ -221,13 +223,15 @@ Full architecture deep-dive at [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
 | **Express 5** | HTTP server, middleware pipeline, REST routing with 17 route modules |
 | **Mongoose 8** | MongoDB ODM with schema validation, compound indexes, population |
 | **MongoDB Atlas** | Managed document database with replica sets, SRV→direct DNS fallback |
-| **Socket.io 4** | WebSocket server with rooms, namespaces, JWT auth, presence tracking |
+| **Socket.io 4** | WebSocket server with rooms, namespaces, shared JWT auth middleware, presence tracking |
 | **JWT + bcrypt** | Token-based auth with token versioning, 12-round password hashing |
 | **Nodemailer** | SMTP email delivery with HTML templates (reset, verify, invite) |
 | **Razorpay** | Payment gateway with HMAC SHA-256 signature verification |
 | **Google Auth Library** | OAuth 2.0 token verification (Google Identity Services) |
 | **Multer** | Multipart file uploads (memory storage, 50MB limit, 29 MIME types) |
-| **Pino** | Structured JSON logging with redaction, serializers, and pino-http |
+| **DOMPurify** | Client-side HTML sanitization for note editor content (ALLOWED_TAGS whitelist) |
+| **pino** | Structured JSON logging with redaction, serializers, pino-http |
+
 | **Bull** | Redis-backed job queue for async email dispatch with retry |
 | **adm-zip** | In-memory ZIP generation for data export |
 | **node-cron** | Scheduled task execution for token cleanup |
@@ -277,7 +281,7 @@ Every resource belongs to a workspace. Access is enforced via the `Membership` j
 |--------|-----------|------|
 | Auth | Register, Login, Google, Logout, Forgot/Reset Password, Verify Email, Send Verification | Mixed |
 | Users | Profile CRUD, Change Password, Upload Avatar, Logout All | JWT |
-| Workspaces | CRUD, Invite Member, Join by Code, List Members, Update/Remove Member | Mixed |
+| Workspaces | CRUD, Invite Member, Join by Code, List Members, Update/Remove Member, Export as ZIP | Mixed |
 | Tasks | CRUD, Move Status, Complete, Archive | JWT |
 | Notes | CRUD, Pin, Archive, Duplicate, Public Share | JWT |
 | Chat | Messages CRUD, Edit, Delete, Reactions | JWT |
@@ -287,7 +291,7 @@ Every resource belongs to a workspace. Access is enforced via the `Membership` j
 | Files | Upload, List, Stream/Download, Delete | JWT |
 | Billing | Plans, Create Order, Verify Payment, Invoices, Cancel Subscription | JWT |
 | AI | Summarize, Rewrite, Generate Tasks | JWT |
-| Search | Global search across tasks, notes, users, files | JWT |
+| Search | Global search across tasks, notes, messages, users, files | JWT + rate limited |
 | Notifications | List, Mark Read, Mark All Read, Delete | JWT |
 | Activity | List with actor population, filter by entity | JWT |
 | Admin | Stats, Users CRUD, Workspaces List, Role Update | JWT + Admin |
@@ -425,8 +429,8 @@ cd client && npm run test:e2e
 - **Authentication**: JWT with token versioning, bcrypt (12 rounds), SHA-256 reset tokens
 - **Authorization**: Membership-based RBAC on every endpoint (owner/admin/member/viewer)
 - **Input Validation**: Custom sanitizer stripping `<>{}$` across all inputs
-- **XSS Prevention**: Note content sanitized for script/style/iframe/object/embed + event handlers
-- **Rate Limiting**: Global 500/15min + auth 8/15min (Redis-backed when configured)
+- **XSS Prevention**: Note content sanitized server-side (script/style/iframe/object/embed + event handlers) + client-side (DOMPurify ALLOWED_TAGS whitelist)
+- **Rate Limiting**: Global 500/15min + auth 8/15min + search 30/min (Redis-backed when configured)
 - **Headers**: Helmet with CSP, CORS whitelist, production cross-origin resource policy
 - **Cookies**: httpOnly, sameSite, secure in production
 - **Errors**: No stack traces in production, Sentry capture

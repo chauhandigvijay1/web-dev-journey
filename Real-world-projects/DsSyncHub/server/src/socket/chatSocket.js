@@ -1,50 +1,13 @@
 const Channel = require('../models/Channel')
 const Membership = require('../models/Membership')
 const Message = require('../models/Message')
-const User = require('../models/User')
-const { verifyToken } = require('../utils/jwt')
+const logger = require('../services/logger')
+const { socketAuthMiddleware } = require('../services/socketAuth')
 
 const workspaceOnlineUsers = new Map()
 
-const parseCookies = (cookieHeader = '') =>
-  cookieHeader
-    .split(';')
-    .map((part) => part.trim())
-    .filter(Boolean)
-    .reduce((acc, item) => {
-      const [key, ...value] = item.split('=')
-      if (!key) return acc
-      acc[key] = decodeURIComponent(value.join('='))
-      return acc
-    }, {})
-
 const registerChatSocket = (io) => {
-  io.use(async (socket, next) => {
-    try {
-      const authToken =
-        socket.handshake.auth?.token ||
-        socket.handshake.headers?.authorization?.replace('Bearer ', '') ||
-        parseCookies(socket.handshake.headers?.cookie).accessToken
-
-      if (!authToken) {
-        return next(new Error('Unauthorized'))
-      }
-
-      const payload = verifyToken(authToken)
-      const user = await User.findById(payload.sub).select('-passwordHash')
-      if (!user || !user.isActive) {
-        return next(new Error('Unauthorized'))
-      }
-      if (Number(payload.tokenVersion || 0) !== Number(user.tokenVersion || 0)) {
-        return next(new Error('Unauthorized'))
-      }
-
-      socket.user = user
-      return next()
-    } catch (_error) {
-      return next(new Error('Unauthorized'))
-    }
-  })
+  io.use(socketAuthMiddleware)
 
   io.on('connection', (socket) => {
     socket.on('join_workspace', async ({ workspaceId }) => {
@@ -74,7 +37,7 @@ const registerChatSocket = (io) => {
           workspaceId,
           users: Array.from(workspaceOnlineUsers.get(workspaceId).values()),
         })
-      } catch (err) { console.error('Socket error in join_workspace:', err) }
+      } catch (err) { logger.error('Socket error in join_workspace:', err) }
     })
 
     socket.on('join_channel', async ({ workspaceId, channelId }) => {
@@ -89,14 +52,14 @@ const registerChatSocket = (io) => {
         const channel = await Channel.findById(channelId)
         if (!channel || channel.workspace.toString() !== workspaceId) return
         socket.join(`channel:${channelId}`)
-      } catch (err) { console.error('Socket error in join_channel:', err) }
+      } catch (err) { logger.error('Socket error in join_channel:', err) }
     })
 
     socket.on('leave_channel', ({ channelId }) => {
       try {
         if (!channelId) return
         socket.leave(`channel:${channelId}`)
-      } catch (err) { console.error('Socket error in leave_channel:', err) }
+      } catch (err) { logger.error('Socket error in leave_channel:', err) }
     })
 
     socket.on('send_message', async (payload) => {
@@ -104,7 +67,7 @@ const registerChatSocket = (io) => {
         const { workspace, channel = null } = payload || {}
         if (!workspace || !channel) return
         socket.to(`channel:${channel}`).emit('message_received', payload)
-      } catch (err) { console.error('Socket error in send_message:', err) }
+      } catch (err) { logger.error('Socket error in send_message:', err) }
     })
 
     socket.on('typing_start', async ({ workspaceId, channelId }) => {
@@ -122,7 +85,7 @@ const registerChatSocket = (io) => {
           userId: socket.user._id.toString(),
           fullName: socket.user.fullName,
         })
-      } catch (err) { console.error('Socket error in typing_start:', err) }
+      } catch (err) { logger.error('Socket error in typing_start:', err) }
     })
 
     socket.on('typing_stop', async ({ workspaceId, channelId }) => {
@@ -141,7 +104,7 @@ const registerChatSocket = (io) => {
             channelId: channelId || null,
             userId: socket.user._id.toString(),
           })
-      } catch (err) { console.error('Socket error in typing_stop:', err) }
+      } catch (err) { logger.error('Socket error in typing_stop:', err) }
     })
 
     socket.on('mark_seen', async ({ messageIds = [], workspaceId }) => {
@@ -161,7 +124,7 @@ const registerChatSocket = (io) => {
           messageIds,
           userId: socket.user._id.toString(),
         })
-      } catch (err) { console.error('Socket error in mark_seen:', err) }
+      } catch (err) { logger.error('Socket error in mark_seen:', err) }
     })
 
     socket.on('edit_message', async ({ messageId, content }) => {
@@ -183,7 +146,7 @@ const registerChatSocket = (io) => {
           content: message.content,
           editedAt: message.editedAt,
         })
-      } catch (err) { console.error('Socket error in edit_message:', err) }
+      } catch (err) { logger.error('Socket error in edit_message:', err) }
     })
 
     socket.on('delete_message', async ({ messageId }) => {
@@ -202,7 +165,7 @@ const registerChatSocket = (io) => {
         io.to(`workspace:${message.workspace}`).emit('message_deleted', {
           messageId: message._id.toString(),
         })
-      } catch (err) { console.error('Socket error in delete_message:', err) }
+      } catch (err) { logger.error('Socket error in delete_message:', err) }
     })
 
     socket.on('add_reaction', async ({ messageId, emoji }) => {
@@ -236,7 +199,7 @@ const registerChatSocket = (io) => {
         io.to(`workspace:${message.workspace}`).emit('message_reaction', {
           message: populated,
         })
-      } catch (err) { console.error('Socket error in add_reaction:', err) }
+      } catch (err) { logger.error('Socket error in add_reaction:', err) }
     })
 
     socket.on('disconnect', () => {
@@ -249,7 +212,7 @@ const registerChatSocket = (io) => {
           workspaceId,
           users: Array.from(users.values()),
         })
-      } catch (err) { console.error('Socket error in disconnect:', err) }
+      } catch (err) { logger.error('Socket error in disconnect:', err) }
     })
   })
 }

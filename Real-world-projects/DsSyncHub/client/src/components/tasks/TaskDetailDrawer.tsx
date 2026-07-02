@@ -71,7 +71,7 @@ const TaskDetailDrawer = ({ task, open, onClose }: TaskDetailDrawerProps) => {
   return (
     <div className={`fixed inset-0 z-50 bg-zinc-900/40 backdrop-blur-sm transition-opacity duration-300 ${open ? 'opacity-100' : 'opacity-0 pointer-events-none'}`} onClick={onClose} role="presentation">
       <aside
-        className={`ml-auto h-full w-full overflow-y-auto glass-card p-5 shadow-xl sm:w-[560px] dark:bg-zinc-900 transition-transform duration-300 ease-in-out ${open ? 'tranzinc-x-0' : 'tranzinc-x-full'}`}
+        className={`ml-auto h-full w-full overflow-y-auto glass-card p-5 shadow-xl sm:w-[560px] dark:bg-zinc-900 transition-transform duration-300 ease-in-out ${open ? 'translate-x-0' : 'translate-x-full'}`}
         onClick={(event) => event.stopPropagation()}
         role="dialog"
       >
@@ -398,7 +398,7 @@ const TaskDetailDrawer = ({ task, open, onClose }: TaskDetailDrawerProps) => {
             )}
             <div className="flex justify-end">
             <button
-              className="rounded-xl bg-brand-500 px-3 py-2 text-sm font-medium text-white hover:bg-brand-400 shadow-[0_0_15px_rgba(16,185,129,0.3)] transition-all hover:shadow-[0_0_25px_rgba(16,185,129,0.5)] hover:-tranzinc-y-0.5 duration-300"
+              className="rounded-xl bg-brand-500 px-3 py-2 text-sm font-medium text-white hover:bg-brand-400 shadow-[0_0_15px_rgba(16,185,129,0.3)] transition-all hover:shadow-[0_0_25px_rgba(16,185,129,0.5)] hover:-translate-y-0.5 duration-300"
               onClick={() => {
                 if (!commentDraft.trim()) return
                 dispatch(addTaskCommentThunk({ taskId: task.id, content: commentDraft.trim(), mentions: extractMentionIds(commentDraft, members) }))

@@ -23,6 +23,8 @@ const toActivity = (item) => ({
 const listWorkspaceActivity = async (req, res, next) => {
   try {
     const workspaceId = req.query.workspace
+    const page = Math.max(1, parseInt(req.query.page, 10) || 1)
+    const limit = Math.min(150, Math.max(1, parseInt(req.query.limit, 10) || 50))
     if (!workspaceId) {
       return res.status(400).json({ success: false, message: 'workspace query is required.' })
     }
@@ -36,14 +38,20 @@ const listWorkspaceActivity = async (req, res, next) => {
       return res.status(403).json({ success: false, message: 'Not a workspace member.' })
     }
 
+    const total = await ActivityLog.countDocuments({ workspace: workspaceId })
     const activity = await ActivityLog.find({ workspace: workspaceId })
       .populate('actor', 'fullName email avatarUrl')
       .sort({ createdAt: -1 })
-      .limit(150)
+      .skip((page - 1) * limit)
+      .limit(limit)
 
     return res.status(200).json({
       success: true,
       activity: activity.map(toActivity),
+      total,
+      page,
+      limit,
+      totalPages: Math.ceil(total / limit),
     })
   } catch (error) {
     return next(error)

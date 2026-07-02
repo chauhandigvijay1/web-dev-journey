@@ -124,7 +124,7 @@ const AddTaskModal = ({ open, onClose, onSubmit, defaultAssigneeId }: AddTaskMod
         </div>
         <div className="mt-5 flex justify-end gap-2">
           <button className="rounded-xl border border-white/10 px-4 py-2 text-sm dark:border-zinc-700" disabled={submitting} onClick={onClose} type="button">Cancel</button>
-          <button className="rounded-xl bg-brand-500 px-4 py-2 text-sm font-medium text-white hover:bg-brand-400 shadow-[0_0_15px_rgba(16,185,129,0.3)] transition-all hover:shadow-[0_0_25px_rgba(16,185,129,0.5)] hover:-tranzinc-y-0.5 duration-300 shadow-[0_0_15px_rgba(16,185,129,0.3)] transition-all hover:shadow-[0_0_25px_rgba(16,185,129,0.5)] hover:-tranzinc-y-0.5 duration-300 disabled:opacity-60" disabled={submitting} onClick={handleCreate} type="button">{submitting ? 'Creating...' : 'Create Task'}</button>
+          <button className="rounded-xl bg-brand-500 px-4 py-2 text-sm font-medium text-white hover:bg-brand-400 shadow-[0_0_15px_rgba(16,185,129,0.3)] transition-all hover:shadow-[0_0_25px_rgba(16,185,129,0.5)] hover:-translate-y-0.5 duration-300 shadow-[0_0_15px_rgba(16,185,129,0.3)] transition-all hover:shadow-[0_0_25px_rgba(16,185,129,0.5)] hover:-translate-y-0.5 duration-300 disabled:opacity-60" disabled={submitting} onClick={handleCreate} type="button">{submitting ? 'Creating...' : 'Create Task'}</button>
         </div>
       </div>
     </div>

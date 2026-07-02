@@ -1,15 +1,18 @@
-import { ChevronLeft, ChevronRight, Plus } from 'lucide-react'
+import { ChevronLeft, ChevronRight, Plus, Trash2 } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import ConfirmModal from '../../components/common/ConfirmModal'
 import WorkspaceRequiredState from '../../components/common/WorkspaceRequiredState'
 import { useCalendarSocket } from '../../hooks/useCalendarSocket'
 import { useAppDispatch, useAppSelector } from '../../hooks/redux'
 import {
   createCalendarEventThunk,
+  deleteCalendarEventThunk,
   fetchCalendarEventsThunk,
   setCalendarView,
   setSelectedDate,
 } from '../../store/calendarSlice'
+import { pushToast } from '../../store/toastSlice'
 import { fetchTasksThunk } from '../../store/taskSlice'
 
 const CalendarPage = () => {
@@ -17,12 +20,15 @@ const CalendarPage = () => {
   const dispatch = useAppDispatch()
   const { activeWorkspaceId } = useAppSelector((state) => state.workspace)
   const { items: tasks } = useAppSelector((state) => state.task)
-  const { events, selectedDate, view } = useAppSelector((state) => state.calendar)
+  const { events, selectedDate, view, loading } = useAppSelector((state) => state.calendar)
   const [open, setOpen] = useState(false)
   const [title, setTitle] = useState('')
   const [date, setDate] = useState(new Date().toISOString().slice(0, 10))
+  const [endDate, setEndDate] = useState('')
+  const [allDay, setAllDay] = useState(false)
   const [time, setTime] = useState('')
   const [description, setDescription] = useState('')
+  const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null)
 
   useCalendarSocket()
 
@@ -112,22 +118,54 @@ const CalendarPage = () => {
       </div>
 
       <div className="rounded-2xl border border-white/10 glass-card p-4 shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
-        {!visibleEvents.length ? (
+        {loading ? (
+          <div className="space-y-3">
+            {Array.from({ length: 4 }).map((_, index) => (
+              <div className="h-16 animate-pulse rounded-xl border border-white/10 glass-card/5 dark:border-zinc-700 bg-black/20" key={index} />
+            ))}
+          </div>
+        ) : !visibleEvents.length ? (
           <div className="py-12 text-center text-sm text-zinc-500">Nothing scheduled in this {view} view.</div>
         ) : (
           <div className="space-y-2">
             {visibleEvents.map((item) => (
-              <button className="flex w-full items-center justify-between rounded-xl border border-white/10 px-3 py-2 text-left dark:border-zinc-700" key={`${item.source}-${item.id}`} onClick={() => item.taskId ? navigate('/tasks') : undefined} type="button">
-                <div>
-                  <p className="font-medium">{item.title}</p>
-                  <p className="text-xs text-zinc-500">{new Date(item.date).toLocaleString()}</p>
-                </div>
-                <span className="rounded-full glass-card/10 px-2 py-1 text-xs capitalize dark:bg-zinc-800">{item.source}</span>
-              </button>
+              <div className="flex w-full items-center justify-between rounded-xl border border-white/10 px-3 py-2 dark:border-zinc-700" key={`${item.source}-${item.id}`}>
+                <button className="flex flex-1 items-center justify-between text-left" onClick={() => item.taskId ? navigate('/tasks') : undefined} type="button">
+                  <div>
+                    <p className="font-medium">{item.title}</p>
+                    <p className="text-xs text-zinc-500">{new Date(item.date).toLocaleString()}</p>
+                  </div>
+                  <span className="rounded-full glass-card/10 px-2 py-1 text-xs capitalize dark:bg-zinc-800">{item.source}</span>
+                </button>
+                {!item.taskId && item.source !== 'task' && (
+                  <button
+                    className="ml-2 rounded-lg border border-rose-200 px-2 py-1 text-xs text-rose-600 dark:border-rose-900/40"
+                    onClick={() => setDeleteConfirmId(item.id)}
+                    type="button"
+                  >
+                    <Trash2 size={12} />
+                  </button>
+                )}
+              </div>
             ))}
           </div>
         )}
       </div>
+
+      <ConfirmModal
+        confirmLabel="Delete"
+        description="This event will be permanently removed from the calendar."
+        onCancel={() => setDeleteConfirmId(null)}
+        onConfirm={async () => {
+          if (!deleteConfirmId) return
+          await dispatch(deleteCalendarEventThunk(deleteConfirmId))
+          dispatch(pushToast({ title: 'Event deleted', description: 'The event has been removed.', tone: 'success' }))
+          setDeleteConfirmId(null)
+        }}
+        open={Boolean(deleteConfirmId)}
+        title="Delete event?"
+        variant="danger"
+      />
 
       {open && (
         <div className="fixed inset-0 z-40 grid place-items-center bg-zinc-950/40 p-4">
@@ -136,6 +174,11 @@ const CalendarPage = () => {
             <div className="mt-3 space-y-2">
               <input className="w-full rounded-xl border border-white/10 px-3 py-2 text-sm dark:border-zinc-700 bg-black/20" onChange={(event) => setTitle(event.target.value)} placeholder="Title" value={title} />
               <input className="w-full rounded-xl border border-white/10 px-3 py-2 text-sm dark:border-zinc-700 bg-black/20" onChange={(event) => setDate(event.target.value)} type="date" value={date} />
+              <input className="w-full rounded-xl border border-white/10 px-3 py-2 text-sm dark:border-zinc-700 bg-black/20" onChange={(event) => setEndDate(event.target.value)} placeholder="End date (optional)" type="date" value={endDate} />
+              <label className="flex items-center gap-2 text-sm">
+                <input checked={allDay} onChange={(event) => setAllDay(event.target.checked)} type="checkbox" />
+                All day
+              </label>
               <input className="w-full rounded-xl border border-white/10 px-3 py-2 text-sm dark:border-zinc-700 bg-black/20" onChange={(event) => setTime(event.target.value)} placeholder="Time (optional)" value={time} />
               <textarea className="w-full rounded-xl border border-white/10 px-3 py-2 text-sm dark:border-zinc-700 bg-black/20" onChange={(event) => setDescription(event.target.value)} placeholder="Description (optional)" rows={3} value={description} />
             </div>
@@ -148,6 +191,8 @@ const CalendarPage = () => {
                   title: title.trim(),
                   date,
                   time,
+                  endDate: endDate || undefined,
+                  allDay,
                   description,
                   source: 'event',
                 }))
@@ -155,6 +200,8 @@ const CalendarPage = () => {
                 setTitle('')
                 setDescription('')
                 setTime('')
+                setEndDate('')
+                setAllDay(false)
               }} type="button">Save</button>
             </div>
           </div>

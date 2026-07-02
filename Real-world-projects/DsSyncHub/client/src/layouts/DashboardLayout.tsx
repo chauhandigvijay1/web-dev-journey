@@ -46,7 +46,7 @@ const DashboardLayout = () => {
         >
           <div
             className={`h-full w-72 p-3 transition-transform duration-300 ease-in-out ${
-              mobileSidebarOpen ? 'tranzinc-x-0' : '-tranzinc-x-full'
+              mobileSidebarOpen ? 'translate-x-0' : '-translate-x-full'
             }`}
             onClick={(event) => event.stopPropagation()}
             role="presentation"

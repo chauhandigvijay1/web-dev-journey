@@ -107,5 +107,6 @@ const messageSchema = new mongoose.Schema(
 messageSchema.index({ workspace: 1, createdAt: -1 })
 messageSchema.index({ workspace: 1, channel: 1, createdAt: -1 })
 messageSchema.index({ sender: 1, createdAt: -1 })
+messageSchema.index({ content: 'text' })
 
 module.exports = mongoose.model('Message', messageSchema)

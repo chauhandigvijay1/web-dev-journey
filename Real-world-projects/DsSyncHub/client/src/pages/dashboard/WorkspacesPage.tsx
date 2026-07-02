@@ -97,7 +97,7 @@ const WorkspacesPage = () => {
             Join via Invite Code
           </button>
           <button
-            className="rounded-xl bg-brand-500 px-3 py-2 text-sm font-medium text-white hover:bg-brand-400 shadow-[0_0_15px_rgba(16,185,129,0.3)] transition-all hover:shadow-[0_0_25px_rgba(16,185,129,0.5)] hover:-tranzinc-y-0.5 duration-300 shadow-[0_0_15px_rgba(16,185,129,0.3)] transition-all hover:shadow-[0_0_25px_rgba(16,185,129,0.5)] hover:-tranzinc-y-0.5 duration-300"
+            className="rounded-xl bg-brand-500 px-3 py-2 text-sm font-medium text-white hover:bg-brand-400 shadow-[0_0_15px_rgba(16,185,129,0.3)] transition-all hover:shadow-[0_0_25px_rgba(16,185,129,0.5)] hover:-translate-y-0.5 duration-300 shadow-[0_0_15px_rgba(16,185,129,0.3)] transition-all hover:shadow-[0_0_25px_rgba(16,185,129,0.5)] hover:-translate-y-0.5 duration-300"
             onClick={() => setCreateModalOpen(true)}
             type="button"
           >
@@ -124,7 +124,7 @@ const WorkspacesPage = () => {
               : 'Bring your team into one shared collaboration space.'}
           </p>
           <button
-            className="mt-4 rounded-xl bg-brand-500 px-4 py-2 text-sm font-medium text-white hover:bg-brand-400 shadow-[0_0_15px_rgba(16,185,129,0.3)] transition-all hover:shadow-[0_0_25px_rgba(16,185,129,0.5)] hover:-tranzinc-y-0.5 duration-300 shadow-[0_0_15px_rgba(16,185,129,0.3)] transition-all hover:shadow-[0_0_25px_rgba(16,185,129,0.5)] hover:-tranzinc-y-0.5 duration-300"
+            className="mt-4 rounded-xl bg-brand-500 px-4 py-2 text-sm font-medium text-white hover:bg-brand-400 shadow-[0_0_15px_rgba(16,185,129,0.3)] transition-all hover:shadow-[0_0_25px_rgba(16,185,129,0.5)] hover:-translate-y-0.5 duration-300 shadow-[0_0_15px_rgba(16,185,129,0.3)] transition-all hover:shadow-[0_0_25px_rgba(16,185,129,0.5)] hover:-translate-y-0.5 duration-300"
             onClick={() => (search.trim() ? setSearch('') : setCreateModalOpen(true))}
             type="button"
           >
@@ -135,7 +135,7 @@ const WorkspacesPage = () => {
         <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
           {filteredWorkspaces.map((workspace) => (
             <article
-              className="rounded-2xl border border-white/10 glass-panel p-5 shadow-sm transition hover:-tranzinc-y-0.5 hover:shadow-md dark:border-zinc-800 dark:bg-zinc-900"
+              className="rounded-2xl border border-white/10 glass-panel p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md dark:border-zinc-800 dark:bg-zinc-900"
               key={workspace.id}
             >
               <div className="flex items-start justify-between">

@@ -1,5 +1,5 @@
 import { Camera, Mail, Phone, ShieldCheck, Trash2, UploadCloud } from 'lucide-react'
-import { useMemo, useState } from 'react'
+import { useMemo, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import Avatar from '../../components/common/Avatar'
 import ConfirmModal from '../../components/common/ConfirmModal'
@@ -68,6 +68,8 @@ const SettingsPage = () => {
   const [verifyingEmail, setVerifyingEmail] = useState(false)
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false)
   const [deletingAccount, setDeletingAccount] = useState(false)
+  const [deleteConfirmationText, setDeleteConfirmationText] = useState('')
+  const deleteInputRef = useRef<HTMLInputElement | null>(null)
   const [draftForm, setDraftForm] = useState<SettingsForm | null>(null)
   const form = draftForm ?? baseForm
 
@@ -285,6 +287,9 @@ const SettingsPage = () => {
   }
 
   const handleDeleteAccount = async () => {
+    if (deleteConfirmationText !== 'DELETE') {
+      return
+    }
     setDeletingAccount(true)
     try {
       await dispatch(deleteMyAccountThunk())
@@ -616,13 +621,28 @@ const SettingsPage = () => {
         cancelLabel="Keep account"
         confirmLabel="Yes, delete my account"
         description="This action permanently removes your profile, membership data, and all associated content. You will not be able to recover any data."
-        disabled={deletingAccount}
-        onCancel={() => setDeleteConfirmOpen(false)}
+        disabled={deletingAccount || deleteConfirmationText !== 'DELETE'}
+        onCancel={() => {
+          setDeleteConfirmOpen(false)
+          setDeleteConfirmationText('')
+        }}
         onConfirm={handleDeleteAccount}
         open={deleteConfirmOpen}
         title="Delete your account?"
         variant="danger"
-      />
+      >
+        <div className="mt-4">
+          <p className="mb-2 text-sm text-zinc-400">Type <span className="font-bold text-red-400">DELETE</span> to confirm:</p>
+          <input
+            ref={deleteInputRef}
+            className="w-full rounded-2xl border border-rose-500/30 bg-black/20 px-3 py-2.5 text-sm text-white outline-none focus:border-rose-500"
+            onChange={(e) => setDeleteConfirmationText(e.target.value)}
+            placeholder="Type DELETE"
+            type="text"
+            value={deleteConfirmationText}
+          />
+        </div>
+      </ConfirmModal>
     </section>
   )
 }

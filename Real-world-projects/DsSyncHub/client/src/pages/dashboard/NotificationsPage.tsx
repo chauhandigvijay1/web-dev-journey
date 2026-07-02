@@ -1,4 +1,4 @@
-import { Bell, Inbox } from 'lucide-react'
+import { Bell, Inbox, Loader } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import EmptyState from '../../components/common/EmptyState'
@@ -27,6 +27,8 @@ const NotificationsPage = () => {
   const { items, loading } = useAppSelector((state) => state.notification)
   const [activeFilter, setActiveFilter] = useState<FilterKey>('all')
   const [currentPage, setCurrentPage] = useState(1)
+  const [markingAllRead, setMarkingAllRead] = useState(false)
+  const [removingIds, setRemovingIds] = useState<Set<string>>(new Set())
   const pageSize = 8
 
   useEffect(() => {
@@ -54,7 +56,11 @@ const NotificationsPage = () => {
             <p className="mt-1 text-sm text-zinc-400">Stay on top of mentions, assignments, billing changes, and workspace activity.</p>
           </div>
           <div className="flex flex-wrap gap-2">
-            <button className="rounded-full border border-white/10 px-4 py-2 text-sm dark:border-zinc-700" onClick={() => dispatch(markAllNotificationsReadThunk())} type="button">Mark all read</button>
+            <button className="rounded-full border border-white/10 px-4 py-2 text-sm dark:border-zinc-700 disabled:opacity-50" disabled={markingAllRead} onClick={async () => {
+              setMarkingAllRead(true)
+              await dispatch(markAllNotificationsReadThunk())
+              setMarkingAllRead(false)
+            }} type="button">{markingAllRead ? <Loader className="inline animate-spin" size={14} /> : null} Mark all read</button>
             <button className="rounded-full border border-white/10 px-4 py-2 text-sm dark:border-zinc-700" onClick={() => items.filter((item) => item.isRead).forEach((item) => dispatch(removeNotificationThunk(item.id)))} type="button">Clear read items</button>
           </div>
         </div>
@@ -102,9 +108,9 @@ const NotificationsPage = () => {
         <>
           <div className="space-y-3">
             {paginatedItems.map((item) => (
-              <article className={`rounded-[28px] border glass-card p-4 shadow-sm dark:bg-zinc-900 ${
+              <article className={`rounded-[28px] border glass-card p-4 shadow-sm transition-opacity duration-300 dark:bg-zinc-900 ${
                 item.isRead ? 'border-white/10' : 'border-brand-500/20 dark:border-brand-500/20'
-              }`} key={item.id}>
+              } ${removingIds.has(item.id) ? 'opacity-0' : ''}`} key={item.id}>
                 <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
                   <div className="min-w-0">
                     <div className="flex flex-wrap items-center gap-2">
@@ -115,7 +121,10 @@ const NotificationsPage = () => {
                     <div className="mt-4 flex flex-wrap gap-2">
                       {item.link && <Link className="rounded-full bg-zinc-900 px-4 py-2 text-xs font-medium text-white dark:glass-card dark:text-white" to={item.link}>Open</Link>}
                       {!item.isRead && <button className="rounded-full border border-white/10 px-4 py-2 text-xs dark:border-zinc-700" onClick={() => dispatch(markNotificationReadThunk(item.id))} type="button">Mark read</button>}
-                      <button className="rounded-full border border-rose-200 px-4 py-2 text-xs text-rose-600 dark:border-rose-900/40" onClick={() => dispatch(removeNotificationThunk(item.id))} type="button">Delete</button>
+                      <button className="rounded-full border border-rose-200 px-4 py-2 text-xs text-rose-600 dark:border-rose-900/40" disabled={removingIds.has(item.id)} onClick={() => {
+                        setRemovingIds((prev) => new Set(prev).add(item.id))
+                        setTimeout(() => dispatch(removeNotificationThunk(item.id)), 300)
+                      }} type="button">Delete</button>
                     </div>
                   </div>
                   <span className="rounded-full glass-card/10 px-3 py-1 text-xs capitalize text-zinc-500 dark:bg-zinc-800 dark:text-zinc-300">{item.type.replace('_', ' ')}</span>

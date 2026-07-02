@@ -1,6 +1,6 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import { GoogleLogin } from '@react-oauth/google'
-import { Eye, EyeOff } from 'lucide-react'
+import { Eye, EyeOff, Loader2 } from 'lucide-react'
 import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
@@ -143,10 +143,11 @@ const LoginPage = () => {
           {apiError && <p className="text-sm text-red-500">{apiError}</p>}
 
           <button
-            className="w-full rounded-xl bg-brand-500 px-4 py-3.5 text-sm font-bold text-dark-950 hover:bg-brand-400 shadow-[0_0_15px_rgba(16,185,129,0.3)] transition-all disabled:cursor-not-allowed disabled:opacity-60"
+            className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-brand-500 px-4 py-3.5 text-sm font-bold text-dark-950 hover:bg-brand-400 shadow-[0_0_15px_rgba(16,185,129,0.3)] transition-all disabled:cursor-not-allowed disabled:opacity-60"
             disabled={loading}
             type="submit"
           >
+            {loading && <Loader2 className="animate-spin" size={16} />}
             {loading ? 'Logging in...' : 'Login to Workspace'}
           </button>
 

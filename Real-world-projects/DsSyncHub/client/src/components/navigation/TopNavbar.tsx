@@ -6,6 +6,8 @@ import { useAppDispatch, useAppSelector } from '../../hooks/redux'
 import { logoutThunk } from '../../store/authSlice'
 import { fetchNotificationsThunk } from '../../store/notificationSlice'
 import { openSearchModal } from '../../store/searchSlice'
+import { pushToast } from '../../store/toastSlice'
+import { getApiErrorMessage } from '../../utils/errors'
 import {
   closeNotifications,
   setTheme,
@@ -75,8 +77,12 @@ const TopNavbar = () => {
   }, [dispatch, notificationsOpen, profileOpen, quickActionsOpen])
 
   const handleLogout = async () => {
-    await dispatch(logoutThunk())
-    navigate('/login')
+    try {
+      await dispatch(logoutThunk()).unwrap()
+      navigate('/login')
+    } catch (error) {
+      dispatch(pushToast({ title: 'Logout failed', description: getApiErrorMessage(error, 'Could not log out. Please try again.'), tone: 'error' }))
+    }
   }
 
   const openMembers = () => {
@@ -123,7 +129,7 @@ const TopNavbar = () => {
 
         <div className="relative flex shrink-0 items-center gap-2">
           <button
-            className="hidden rounded-xl bg-brand-500 px-3 py-2 text-sm font-medium text-white hover:bg-brand-400 shadow-[0_0_15px_rgba(16,185,129,0.3)] transition-all hover:shadow-[0_0_25px_rgba(16,185,129,0.5)] hover:-tranzinc-y-0.5 duration-300 shadow-[0_0_15px_rgba(16,185,129,0.3)] transition-all hover:shadow-[0_0_25px_rgba(16,185,129,0.5)] hover:-tranzinc-y-0.5 duration-300 sm:block"
+            className="hidden rounded-xl bg-brand-500 px-3 py-2 text-sm font-medium text-white hover:bg-brand-400 shadow-[0_0_15px_rgba(16,185,129,0.3)] transition-all hover:shadow-[0_0_25px_rgba(16,185,129,0.5)] hover:-translate-y-0.5 duration-300 sm:block"
             onClick={openMembers}
             type="button"
           >

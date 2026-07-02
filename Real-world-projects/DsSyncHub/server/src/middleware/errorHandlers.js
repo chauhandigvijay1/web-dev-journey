@@ -1,3 +1,5 @@
+const logger = require('../services/logger')
+
 const notFoundHandler = (req, res, _next) => {
   return res.status(404).json({
     success: false,
@@ -24,7 +26,7 @@ const errorHandler = (err, _req, res, _next) => {
         ? 'Internal server error'
         : err.message || 'Internal server error'
 
-  console.error(`[${statusCode}] ${err.message || err}`)
+  logger.error({ err, statusCode }, `Error: ${err.message || err}`)
 
   return res.status(statusCode).json({
     success: false,

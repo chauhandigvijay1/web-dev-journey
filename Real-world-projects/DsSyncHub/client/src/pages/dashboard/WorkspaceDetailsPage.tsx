@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
-import { AlertTriangle, Copy, Trash2, XCircle } from 'lucide-react'
+import { AlertTriangle, Copy, Loader, Trash2, XCircle } from 'lucide-react'
 import Avatar from '../../components/common/Avatar'
 import ConfirmModal from '../../components/common/ConfirmModal'
 import EmptyState from '../../components/common/EmptyState'
@@ -37,6 +37,8 @@ const WorkspaceDetailsPage = () => {
   const [upgradeOpen, setUpgradeOpen] = useState(false)
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false)
   const [deleting, setDeleting] = useState(false)
+  const [membersLoading, setMembersLoading] = useState(false)
+  const [exporting, setExporting] = useState(false)
   const [editingName, setEditingName] = useState('')
   const [editingDescription, setEditingDescription] = useState('')
   const [saving, setSaving] = useState(false)
@@ -55,7 +57,8 @@ const WorkspaceDetailsPage = () => {
 
   useEffect(() => {
     if (id && currentTab === 'members') {
-      dispatch(fetchWorkspaceMembersThunk(id))
+      setMembersLoading(true)
+      dispatch(fetchWorkspaceMembersThunk(id)).finally(() => setMembersLoading(false))
     }
   }, [currentTab, id, dispatch])
 
@@ -228,7 +231,13 @@ const WorkspaceDetailsPage = () => {
               </button>
             )}
           </div>
-          {members.length === 0 ? (
+          {membersLoading ? (
+            <div className="space-y-3">
+              {Array.from({ length: 3 }).map((_, index) => (
+                <div className="h-16 animate-pulse rounded-xl border border-white/10 glass-card/5 dark:border-zinc-700 bg-black/20" key={index} />
+              ))}
+            </div>
+          ) : members.length === 0 ? (
             <EmptyState
               actionLabel={canManageMembers ? 'Invite member' : undefined}
               description="Bring teammates into this workspace so tasks, files, and conversations stay aligned in one place."
@@ -395,11 +404,23 @@ const WorkspaceDetailsPage = () => {
               <p className="text-xs font-semibold uppercase tracking-[0.24em] text-zinc-400">Data</p>
               <p className="mt-1 text-sm text-zinc-400">Export all workspace data including tasks, notes, messages, calendar events, and files as a ZIP archive.</p>
               <button
-                className="mt-3 inline-flex items-center gap-1 rounded-xl border border-white/10 px-3 py-2 text-sm transition-all duration-200 hover:bg-white/5 dark:border-zinc-700"
-                onClick={() => workspaceApi.exportWorkspace(id)}
+                className="mt-3 inline-flex items-center gap-1 rounded-xl border border-white/10 px-3 py-2 text-sm transition-all duration-200 hover:bg-white/5 dark:border-zinc-700 disabled:opacity-50"
+                disabled={exporting}
+                onClick={async () => {
+                  setExporting(true)
+                  try {
+                    await workspaceApi.exportWorkspace(id)
+                    dispatch(pushToast({ title: 'Export started', description: 'Your workspace data is being exported.', tone: 'success' }))
+                  } catch (error) {
+                    dispatch(pushToast({ title: 'Export failed', description: getApiErrorMessage(error, 'Could not export workspace data.'), tone: 'error' }))
+                  } finally {
+                    setExporting(false)
+                  }
+                }}
                 type="button"
               >
-                Export Workspace Data
+                {exporting ? <Loader className="inline animate-spin" size={14} /> : null}
+                {exporting ? 'Exporting...' : 'Export Workspace Data'}
               </button>
             </div>
             {isOwner && (

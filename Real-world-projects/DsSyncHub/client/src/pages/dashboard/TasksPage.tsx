@@ -154,7 +154,7 @@ const TasksPage = () => {
             Clear Filters
           </button>
           <button
-            className="rounded-xl bg-brand-500 px-3 py-2 text-sm font-medium text-white hover:bg-brand-400 shadow-[0_0_15px_rgba(16,185,129,0.3)] transition-all hover:shadow-[0_0_25px_rgba(16,185,129,0.5)] hover:-tranzinc-y-0.5 duration-300 shadow-[0_0_15px_rgba(16,185,129,0.3)] transition-all hover:shadow-[0_0_25px_rgba(16,185,129,0.5)] hover:-tranzinc-y-0.5 duration-300"
+            className="rounded-xl bg-brand-500 px-3 py-2 text-sm font-medium text-white hover:bg-brand-400 shadow-[0_0_15px_rgba(16,185,129,0.3)] transition-all hover:shadow-[0_0_25px_rgba(16,185,129,0.5)] hover:-translate-y-0.5 duration-300"
             onClick={() => setAddTaskOpen(true)}
             type="button"
           >
@@ -260,10 +260,13 @@ const TasksPage = () => {
                     <span className="rounded-full glass-card/10 px-2 py-0.5 text-xs dark:bg-zinc-800">{tasksInColumn.length}</span>
                   </div>
                   <div className="space-y-2">
+                    {tasksInColumn.length === 0 && (
+                      <div className="flex items-center justify-center rounded-xl border border-dashed border-white/5 py-8 text-sm text-zinc-500">No tasks</div>
+                    )}
                     {tasksInColumn.map((task) => (
                       <article className="rounded-xl border border-white/10" key={task.id}>
                         <button
-                          className="w-full p-3 text-left transition hover:-tranzinc-y-0.5 hover:shadow-sm"
+                          className="w-full p-3 text-left transition hover:-translate-y-0.5 hover:shadow-sm"
                           onClick={() => openTask(task)}
                           type="button"
                         >

@@ -171,10 +171,43 @@ const logoutAllSessions = async (_req, res) => {
 const deleteOwnAccount = async (req, res, next) => {
   try {
     const userId = req.user._id
+    const Note = require('./models/Note')
+    const Task = require('./models/Task')
+    const FileAsset = require('./models/FileAsset')
+    const Workspace = require('./models/Workspace')
+    const BillingInvoice = require('./models/BillingInvoice')
+    const Notification = require('./models/Notification')
+    const AiUsage = require('./models/AiUsage')
+    const Invite = require('./models/Invite')
+
+    const ownedWorkspaces = await Workspace.find({ owner: userId })
+    const ownedIds = ownedWorkspaces.map((w) => w._id)
+
     await Promise.all([
       User.findByIdAndDelete(userId),
       Membership.deleteMany({ user: userId }),
       Message.updateMany({ sender: userId }, { deletedAt: new Date() }),
+      Note.deleteMany({ createdBy: userId }),
+      Task.deleteMany({ createdBy: userId }),
+      FileAsset.deleteMany({ uploadedBy: userId }),
+      BillingInvoice.deleteMany({ user: userId }),
+      Notification.deleteMany({ user: userId }),
+      AiUsage.deleteMany({ user: userId }),
+      Invite.deleteMany({ createdBy: userId }),
+      ...ownedWorkspaces.map((w) =>
+        Workspace.findByIdAndDelete(w._id).then(() =>
+          Promise.all([
+            Membership.deleteMany({ workspace: w._id }),
+            Note.deleteMany({ workspace: w._id }),
+            Task.deleteMany({ workspace: w._id }),
+            Message.deleteMany({ workspace: w._id }),
+            FileAsset.deleteMany({ workspace: w._id }),
+            BillingInvoice.deleteMany({ workspace: w._id }),
+            Notification.deleteMany({ workspace: w._id }),
+            AiUsage.deleteMany({ workspace: w._id }),
+          ]),
+        ),
+      ),
     ])
     res.clearCookie('accessToken', { ...getAuthCookieOptions(), maxAge: undefined })
     return res.status(200).json({ success: true, message: 'Account deleted.' })

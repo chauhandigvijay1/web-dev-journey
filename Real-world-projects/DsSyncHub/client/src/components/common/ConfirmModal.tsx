@@ -1,5 +1,6 @@
 import { AlertTriangle } from 'lucide-react'
 import { useEffect, useRef } from 'react'
+import type { ReactNode } from 'react'
 
 type ConfirmModalProps = {
   open: boolean
@@ -9,6 +10,7 @@ type ConfirmModalProps = {
   cancelLabel?: string
   variant?: 'danger' | 'default'
   disabled?: boolean
+  children?: ReactNode
   onConfirm: () => void
   onCancel: () => void
 }
@@ -21,6 +23,7 @@ const ConfirmModal = ({
   cancelLabel = 'Cancel',
   variant = 'default',
   disabled = false,
+  children,
   onConfirm,
   onCancel,
 }: ConfirmModalProps) => {
@@ -64,6 +67,7 @@ const ConfirmModal = ({
           <h2 className="text-lg font-semibold text-white">{title}</h2>
         </div>
         <p className="mt-3 text-sm text-zinc-400">{description}</p>
+        {children}
         <div className="mt-6 flex justify-end gap-3">
           <button
             className="rounded-xl border border-white/10 px-4 py-2 text-sm text-zinc-300 transition-all duration-200 hover:bg-white/5 disabled:opacity-50"

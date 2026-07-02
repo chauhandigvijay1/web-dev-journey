@@ -43,8 +43,46 @@ const deleteUser = async (req, res, next) => {
     const user = await User.findById(req.params.id)
     if (!user) return res.status(404).json({ success: false, message: 'User not found.' })
 
-    await Membership.deleteMany({ user: user._id })
-    await user.deleteOne()
+    const userId = user._id
+    const Workspace = require('./models/Workspace')
+    const Note = require('./models/Note')
+    const Task = require('./models/Task')
+    const FileAsset = require('./models/FileAsset')
+    const Message = require('./models/Message')
+    const BillingInvoice = require('./models/BillingInvoice')
+    const Notification = require('./models/Notification')
+    const AiUsage = require('./models/AiUsage')
+    const Invite = require('./models/Invite')
+
+    const ownedWorkspaces = await Workspace.find({ owner: userId })
+    const ownedIds = ownedWorkspaces.map((w) => w._id)
+
+    await Promise.all([
+      User.findByIdAndDelete(userId),
+      Membership.deleteMany({ user: userId }),
+      Message.updateMany({ sender: userId }, { deletedAt: new Date() }),
+      Note.deleteMany({ createdBy: userId }),
+      Task.deleteMany({ createdBy: userId }),
+      FileAsset.deleteMany({ uploadedBy: userId }),
+      BillingInvoice.deleteMany({ user: userId }),
+      Notification.deleteMany({ user: userId }),
+      AiUsage.deleteMany({ user: userId }),
+      Invite.deleteMany({ createdBy: userId }),
+      ...ownedWorkspaces.map((w) =>
+        Workspace.findByIdAndDelete(w._id).then(() =>
+          Promise.all([
+            Membership.deleteMany({ workspace: w._id }),
+            Note.deleteMany({ workspace: w._id }),
+            Task.deleteMany({ workspace: w._id }),
+            Message.deleteMany({ workspace: w._id }),
+            FileAsset.deleteMany({ workspace: w._id }),
+            BillingInvoice.deleteMany({ workspace: w._id }),
+            Notification.deleteMany({ workspace: w._id }),
+            AiUsage.deleteMany({ workspace: w._id }),
+          ]),
+        ),
+      ),
+    ])
 
     logger.info({ userId: req.params.id, adminId: req.user._id }, 'User deleted by admin')
     return res.status(200).json({ success: true, message: 'User deleted.' })

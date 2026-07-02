@@ -1,5 +1,6 @@
 import { Bold, Code, Heading, Italic, Link2, List, ListOrdered, Minus, Quote, Underline } from 'lucide-react'
 import { useRef, useState } from 'react'
+import DOMPurify from 'dompurify'
 import { noteApi } from '../../services/noteApi'
 import type { NoteItem } from '../../types/note'
 
@@ -8,6 +9,9 @@ type NoteEditorProps = {
   onPatchNote: (note: NoteItem) => void
   onSavingState: (state: 'idle' | 'saving' | 'saved' | 'error') => void
 }
+
+const ALLOWED_TAGS = ['p', 'br', 'b', 'i', 'u', 'strong', 'em', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'ul', 'ol', 'li', 'blockquote', 'pre', 'code', 'hr', 'a', 'span', 'div']
+const ALLOWED_ATTR = ['href', 'target', 'class']
 
 const toolbarItems = [
   { icon: Bold, action: 'bold' },
@@ -22,10 +26,13 @@ const toolbarItems = [
   { icon: Minus, action: 'insertHorizontalRule' },
 ]
 
+const sanitize = (html: string) =>
+  DOMPurify.sanitize(html, { ALLOWED_TAGS, ALLOWED_ATTR, ALLOW_DATA_ATTR: false })
+
 const NoteEditor = ({ note, onPatchNote, onSavingState }: NoteEditorProps) => {
   const editorRef = useRef<HTMLDivElement | null>(null)
   const [title, setTitle] = useState(note.title)
-  const [content, setContent] = useState(note.content || '<p></p>')
+  const [content, setContent] = useState(sanitize(note.content || '<p></p>'))
   const saveTimeoutRef = useRef<number | null>(null)
 
   const scheduleSave = (nextTitle: string, nextContent: string) => {
@@ -37,7 +44,7 @@ const NoteEditor = ({ note, onPatchNote, onSavingState }: NoteEditorProps) => {
         onSavingState('saving')
         const response = await noteApi.update(note.id, {
           title: nextTitle,
-          content: nextContent,
+          content: sanitize(nextContent),
         })
         onPatchNote(response.note)
         onSavingState('saved')
@@ -58,12 +65,14 @@ const NoteEditor = ({ note, onPatchNote, onSavingState }: NoteEditorProps) => {
         const link = document.createElement('a')
         link.href = value
         link.target = '_blank'
+        link.rel = 'noopener noreferrer'
         range.surroundContents(link)
       }
     }
     const updatedHtml = editorRef.current?.innerHTML || '<p></p>'
-    setContent(updatedHtml)
-    scheduleSave(title, updatedHtml)
+    const safeHtml = sanitize(updatedHtml)
+    setContent(safeHtml)
+    scheduleSave(title, safeHtml)
   }
 
   return (
@@ -102,7 +111,10 @@ const NoteEditor = ({ note, onPatchNote, onSavingState }: NoteEditorProps) => {
         contentEditable
         dangerouslySetInnerHTML={{ __html: content }}
         onInput={(event) => {
-          const nextContent = (event.target as HTMLDivElement).innerHTML
+          const nextContent = sanitize((event.target as HTMLDivElement).innerHTML)
+          if (editorRef.current && editorRef.current.innerHTML !== nextContent) {
+            editorRef.current.innerHTML = nextContent
+          }
           setContent(nextContent)
           scheduleSave(title, nextContent)
         }}

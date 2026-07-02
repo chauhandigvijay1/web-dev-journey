@@ -26,6 +26,10 @@ const workspaceSchema = new mongoose.Schema(
       type: String,
       default: '',
       trim: true,
+      validate: {
+        validator: (v) => !v || /^https?:\/\/.+/.test(v),
+        message: 'logoUrl must be a valid URL starting with http:// or https://',
+      },
     },
     owner: {
       type: mongoose.Schema.Types.ObjectId,

@@ -23,7 +23,14 @@ const toPublicUser = (user) => ({
   appearance: user.appearance || { theme: 'system', accentColor: 'violet', compactMode: false },
 })
 
-const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID)
+let _googleClient = null
+const getGoogleClient = () => {
+  if (!_googleClient) {
+    const clientId = process.env.GOOGLE_CLIENT_ID
+    if (clientId) _googleClient = new OAuth2Client(clientId)
+  }
+  return _googleClient
+}
 
 const registerUser = async (req, res, next) => {
   try {
@@ -213,7 +220,15 @@ const googleAuth = async (req, res, next) => {
       })
     }
 
-    const ticket = await googleClient.verifyIdToken({
+    const client = getGoogleClient()
+    if (!client) {
+      return res.status(500).json({
+        success: false,
+        message: 'Google auth is not configured on server.',
+      })
+    }
+
+    const ticket = await client.verifyIdToken({
       idToken,
       audience: process.env.GOOGLE_CLIENT_ID,
     })
