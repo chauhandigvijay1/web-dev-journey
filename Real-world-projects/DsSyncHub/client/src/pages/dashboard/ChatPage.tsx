@@ -121,7 +121,7 @@ const MessageBubble = ({
       )}
       <div className="min-w-0 flex-1">
         {!grouped && (
-          <p className="mb-0.5 text-sm font-semibold text-white drop-shadow-md">
+          <p className="mb-0.5 text-sm font-semibold text-zinc-900 dark:text-white drop-shadow-md">
             {message.sender.fullName}{' '}
             <span className="text-xs font-normal text-zinc-500">
               {new Date(message.createdAt).toLocaleTimeString()}
@@ -507,7 +507,7 @@ const ChatPage = () => {
         <main className="flex min-w-0 flex-1 flex-col rounded-2xl border border-white/10 glass-card shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
           <header className="flex items-center justify-between border-b border-white/10 px-4 py-3 dark:border-zinc-800">
             <div>
-              <h1 className="text-lg font-semibold text-white drop-shadow-md">
+              <h1 className="text-lg font-semibold text-zinc-900 dark:text-white drop-shadow-md">
                 {directUserId
                   ? currentDirectUser?.fullName || 'Direct message'
                   : currentChannel

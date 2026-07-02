@@ -32,7 +32,7 @@ const NotificationsDropdown = ({ open, onClose }: NotificationsDropdownProps) =>
   return (
     <div className="absolute right-0 top-12 z-30 w-80 rounded-2xl border border-white/10 glass-card p-3 shadow-lg dark:border-zinc-700 dark:bg-zinc-900">
       <div className="mb-2 flex items-center justify-between">
-        <p className="font-semibold text-white font-semibold drop-shadow-md">Notifications</p>
+        <p className="font-semibold text-white drop-shadow-md">Notifications</p>
         <button className="text-xs text-brand-500 hover:underline" onClick={() => dispatch(markAllNotificationsReadThunk())} type="button">
           Mark all read
         </button>
@@ -46,7 +46,7 @@ const NotificationsDropdown = ({ open, onClose }: NotificationsDropdownProps) =>
             key={item.id}
             onClick={() => {
               dispatch(markNotificationReadThunk(item.id))
-              if (item.link) {
+              if (item.link?.startsWith('/')) {
                 navigate(item.link)
               }
               onClose()

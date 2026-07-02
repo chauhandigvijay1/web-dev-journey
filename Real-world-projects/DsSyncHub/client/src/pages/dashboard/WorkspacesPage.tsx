@@ -79,7 +79,7 @@ const WorkspacesPage = () => {
     <section className="space-y-4">
       <div className="flex flex-col justify-between gap-3 rounded-2xl border border-white/10 glass-panel p-5 sm:flex-row sm:items-center">
         <div>
-          <h1 className="text-2xl font-semibold text-white font-semibold drop-shadow-md">Workspaces</h1>
+          <h1 className="text-2xl font-semibold text-zinc-900 dark:text-white drop-shadow-md">Workspaces</h1>
           <p className="text-sm text-zinc-400">Manage team spaces and access levels</p>
         </div>
         <div className="flex flex-wrap gap-2">
@@ -144,13 +144,13 @@ const WorkspacesPage = () => {
                     {workspace.name.slice(0, 1)}
                   </div>
                   <div>
-                    <h2 className="text-lg font-semibold text-white font-semibold drop-shadow-md">
+                    <h2 className="text-lg font-semibold text-zinc-900 dark:text-white drop-shadow-md">
                       {workspace.name}
                     </h2>
                     <p className="text-xs text-zinc-400">{workspace.description}</p>
                   </div>
                 </div>
-                <button className="rounded-lg p-1.5 hover:glass-card/10 dark:hover:bg-zinc-800" type="button">
+                <button className="rounded-lg p-1.5 hover:glass-card/10 dark:hover:bg-zinc-800" type="button" aria-label="Ellipsis">
                   <Ellipsis size={16} />
                 </button>
               </div>

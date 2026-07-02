@@ -26,7 +26,7 @@ const EmptyState = ({
           {icon}
         </div>
       )}
-      <p className="text-lg font-semibold text-white font-semibold drop-shadow-md">{title}</p>
+      <p className="text-lg font-semibold text-white drop-shadow-md">{title}</p>
       <p className="mt-2 text-sm leading-6 text-zinc-400">{description}</p>
       {actionLabel && onAction && (
           <button

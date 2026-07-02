@@ -159,7 +159,7 @@ const WorkspaceDetailsPage = () => {
       <article className="rounded-2xl border border-white/10 glass-panel p-5 transition-all duration-300 hover:shadow-lg">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-semibold text-white drop-shadow-md">
+            <h1 className="text-2xl font-semibold text-zinc-900 dark:text-white drop-shadow-md">
               {workspace?.name || 'Workspace'}
             </h1>
             <p className="mt-1 text-sm text-zinc-400">
@@ -258,7 +258,7 @@ const WorkspaceDetailsPage = () => {
                   <div className="flex items-center gap-3">
                     <Avatar name={member.fullName} size="md" src={member.avatarUrl} />
                     <div>
-                      <p className="text-sm font-medium text-white drop-shadow-md">{member.fullName}</p>
+                      <p className="text-sm font-medium text-zinc-900 dark:text-white drop-shadow-md">{member.fullName}</p>
                       <p className="text-xs text-zinc-400">
                         {member.email}
                         {member.status === 'pending'
@@ -330,7 +330,7 @@ const WorkspaceDetailsPage = () => {
             <ul className="mt-3 space-y-2 text-sm">
               {activity.slice(0, 8).map((item) => (
                 <li className="animate-slideUp rounded-lg bg-white/5 p-3 transition-all duration-200 hover:bg-white/10" key={item.id} style={{ animationDelay: `${activity.indexOf(item) * 50}ms` }}>
-                  <p className="font-medium text-white drop-shadow-md">{item.summary}</p>
+                  <p className="font-medium text-zinc-900 dark:text-white drop-shadow-md">{item.summary}</p>
                   <p className="mt-1 text-xs text-zinc-500">{new Date(item.createdAt).toLocaleString()}</p>
                 </li>
               ))}
@@ -345,14 +345,14 @@ const WorkspaceDetailsPage = () => {
             <div className="rounded-xl border border-white/10 p-4 transition-all duration-200 hover:bg-white/5 dark:border-zinc-700">
               <p className="text-xs font-semibold uppercase tracking-[0.24em] text-zinc-400">Workspace Name</p>
               <input
-                className="mt-2 w-full rounded-lg border border-white/10 bg-transparent px-3 py-2 text-sm text-white outline-none transition-all duration-200 focus:border-brand-500 focus:ring-1 focus:ring-brand-500 dark:border-zinc-700"
+                className="mt-2 w-full rounded-lg border border-white/10 bg-transparent px-3 py-2 text-sm text-zinc-900 dark:text-white outline-none transition-all duration-200 focus:border-brand-500 focus:ring-1 focus:ring-brand-500 dark:border-zinc-700"
                 onChange={(e) => setEditingName(e.target.value)}
                 type="text"
                 value={editingName}
               />
               <p className="mt-3 text-xs font-semibold uppercase tracking-[0.24em] text-zinc-400">Description</p>
               <textarea
-                className="mt-2 w-full rounded-lg border border-white/10 bg-transparent px-3 py-2 text-sm text-white outline-none transition-all duration-200 focus:border-brand-500 focus:ring-1 focus:ring-brand-500 dark:border-zinc-700"
+                className="mt-2 w-full rounded-lg border border-white/10 bg-transparent px-3 py-2 text-sm text-zinc-900 dark:text-white outline-none transition-all duration-200 focus:border-brand-500 focus:ring-1 focus:ring-brand-500 dark:border-zinc-700"
                 onChange={(e) => setEditingDescription(e.target.value)}
                 rows={3}
                 value={editingDescription}
@@ -369,7 +369,7 @@ const WorkspaceDetailsPage = () => {
             <div className="grid gap-3 md:grid-cols-2">
               <div className="rounded-xl border border-white/10 p-4 transition-all duration-200 hover:bg-white/5 dark:border-zinc-700">
                 <p className="text-xs font-semibold uppercase tracking-[0.24em] text-zinc-400">Invite Code</p>
-                <p className="mt-2 text-xl font-semibold text-white drop-shadow-md">{workspace?.inviteCode || '-'}</p>
+                <p className="mt-2 text-xl font-semibold text-zinc-900 dark:text-white drop-shadow-md">{workspace?.inviteCode || '-'}</p>
                 <button
                   className="mt-3 inline-flex items-center gap-1 rounded-xl border border-white/10 px-3 py-2 text-sm transition-all duration-200 hover:bg-white/5 dark:border-zinc-700"
                   onClick={async () => {
@@ -385,7 +385,7 @@ const WorkspaceDetailsPage = () => {
               </div>
               <div className="rounded-xl border border-white/10 p-4 transition-all duration-200 hover:bg-white/5 dark:border-zinc-700">
                 <p className="text-xs font-semibold uppercase tracking-[0.24em] text-zinc-400">Workspace Plan</p>
-                <p className="mt-2 text-xl font-semibold capitalize text-white drop-shadow-md">{workspace?.plan || 'free'}</p>
+                <p className="mt-2 text-xl font-semibold capitalize text-zinc-900 dark:text-white drop-shadow-md">{workspace?.plan || 'free'}</p>
                 <p className="mt-2 text-sm text-zinc-400">
                   Upgrade from billing when you need more members, storage, and AI usage.
                 </p>

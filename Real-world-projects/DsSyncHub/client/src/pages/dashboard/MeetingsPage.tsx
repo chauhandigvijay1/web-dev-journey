@@ -44,7 +44,7 @@ const MeetingsPage = () => {
           </p>
           <div className="mt-5 flex flex-wrap gap-3">
             <button
-              className="rounded-xl glass-card px-4 py-2 text-sm font-medium text-white hover:glass-card/10"
+              className="rounded-xl glass-card px-4 py-2 text-sm font-medium text-zinc-900 dark:text-white hover:glass-card/10"
               onClick={() =>
                 activeWorkspaceId &&
                 dispatch(createMeetingRoomThunk({ workspace: activeWorkspaceId }))
@@ -63,7 +63,7 @@ const MeetingsPage = () => {
         </article>
 
         <article className="rounded-[30px] border border-white/10 glass-panel p-5">
-          <h2 className="text-lg font-semibold text-white font-semibold drop-shadow-md">Join a room</h2>
+          <h2 className="text-lg font-semibold text-zinc-900 dark:text-white drop-shadow-md">Join a room</h2>
           <p className="mt-1 text-sm text-zinc-400">Paste a room code from your teammate.</p>
           <div className="mt-4 flex gap-2">
             <input
@@ -94,7 +94,7 @@ const MeetingsPage = () => {
       <article className="rounded-[30px] border border-white/10 glass-panel p-5">
         <div className="flex items-center justify-between gap-3">
           <div>
-            <h2 className="text-lg font-semibold text-white font-semibold drop-shadow-md">Upcoming meetings</h2>
+            <h2 className="text-lg font-semibold text-zinc-900 dark:text-white drop-shadow-md">Upcoming meetings</h2>
             <p className="text-sm text-zinc-400">Live rooms and scheduled syncs for the active workspace.</p>
           </div>
         </div>
@@ -110,7 +110,7 @@ const MeetingsPage = () => {
           {meetings.map((meeting) => (
             <div className="flex flex-col gap-3 rounded-2xl border border-white/10 p-4 dark:border-zinc-700 md:flex-row md:items-center md:justify-between" key={meeting.id}>
               <div>
-                <p className="text-sm font-semibold text-white font-semibold drop-shadow-md">{meeting.title}</p>
+                <p className="text-sm font-semibold text-zinc-900 dark:text-white drop-shadow-md">{meeting.title}</p>
                 <p className="mt-1 text-xs text-zinc-500">
                   Room {meeting.roomId} | {meeting.status} | {meeting.scheduledFor ? new Date(meeting.scheduledFor).toLocaleString() : 'Started instantly'}
                 </p>

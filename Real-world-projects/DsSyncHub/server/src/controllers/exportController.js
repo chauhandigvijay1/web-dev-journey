@@ -14,6 +14,9 @@ const exportWorkspace = async (req, res, next) => {
 
     const membership = await Membership.findOne({ user: req.user._id, workspace: workspaceId, status: 'active' })
     if (!membership) return res.status(403).json({ success: false, message: 'Not a workspace member.' })
+    if (!['owner', 'admin', 'member'].includes(membership.role)) {
+      return res.status(403).json({ success: false, message: 'Insufficient permission to export workspace data.' })
+    }
 
     const workspace = await Workspace.findById(workspaceId)
     if (!workspace) return res.status(404).json({ success: false, message: 'Workspace not found.' })

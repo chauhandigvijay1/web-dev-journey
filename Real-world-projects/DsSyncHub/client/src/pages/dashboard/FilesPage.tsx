@@ -110,7 +110,7 @@ const FilesPage = () => {
     <section className="space-y-4 pb-5">
       <div className="flex flex-col gap-3 rounded-[28px] border border-white/10 glass-panel p-5 lg:flex-row lg:items-center lg:justify-between">
         <div>
-          <h1 className="text-2xl font-semibold text-white font-semibold drop-shadow-md">Files</h1>
+          <h1 className="text-2xl font-semibold text-zinc-900 dark:text-white font-semibold drop-shadow-md">Files</h1>
           <p className="text-sm text-zinc-400">
             Shared documents, assets, and uploads across your workspace.
           </p>
@@ -235,7 +235,7 @@ const FilesPage = () => {
                         {file.source}
                       </span>
                     </div>
-                    <p className="mt-4 truncate text-sm font-semibold text-white font-semibold drop-shadow-md">{file.originalName}</p>
+                    <p className="mt-4 truncate text-sm font-semibold text-zinc-900 dark:text-white font-semibold drop-shadow-md">{file.originalName}</p>
                     <p className="mt-1 text-xs text-zinc-500">
                       Uploaded by {file.uploadedBy?.fullName || 'Unknown'}
                     </p>
@@ -279,7 +279,7 @@ const FilesPage = () => {
                 return (
                   <div className="flex flex-col gap-3 rounded-2xl border border-white/10 p-4 dark:border-zinc-700 md:flex-row md:items-center md:justify-between" key={file.id}>
                     <div className="min-w-0">
-                      <p className="truncate text-sm font-semibold text-white font-semibold drop-shadow-md">{file.originalName}</p>
+                      <p className="truncate text-sm font-semibold text-zinc-900 dark:text-white font-semibold drop-shadow-md">{file.originalName}</p>
                       <p className="mt-1 text-xs text-zinc-500">
                         {file.uploadedBy?.fullName || 'Unknown'} | {(file.size / 1024 / 1024).toFixed(2)} MB | {new Date(file.createdAt).toLocaleString()}
                       </p>
@@ -307,12 +307,12 @@ const FilesPage = () => {
 
         <div className="space-y-4">
           <article className="rounded-[28px] border border-white/10 glass-card p-4 shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
-            <h2 className="text-lg font-semibold text-white font-semibold drop-shadow-md">Recent uploads</h2>
+            <h2 className="text-lg font-semibold text-zinc-900 dark:text-white font-semibold drop-shadow-md">Recent uploads</h2>
             <div className="mt-4 space-y-2">
               {recent.map((file) => (
                 <button className="flex w-full items-center justify-between rounded-2xl border border-white/10 px-3 py-3 text-left hover:glass-card/5 dark:border-zinc-700 dark:hover:bg-zinc-800" key={file.id} onClick={() => setPreviewUrl(buildUrl(file.previewUrl))} type="button">
                   <span className="min-w-0">
-                    <span className="block truncate text-sm font-medium text-white font-semibold drop-shadow-md">{file.originalName}</span>
+                    <span className="block truncate text-sm font-medium text-zinc-900 dark:text-white font-semibold drop-shadow-md">{file.originalName}</span>
                     <span className="block text-xs text-zinc-500">{file.uploadedBy?.fullName || 'Unknown'} | {new Date(file.createdAt).toLocaleDateString()}</span>
                   </span>
                   <Eye size={14} className="text-zinc-400" />

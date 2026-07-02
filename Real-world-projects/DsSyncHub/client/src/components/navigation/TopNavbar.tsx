@@ -98,6 +98,7 @@ const TopNavbar = () => {
       <header className="sticky top-0 z-20 mb-4 flex flex-wrap items-center justify-between gap-3 rounded-2xl glass-panel p-3 text-zinc-200">
         <div className="flex min-w-0 flex-1 flex-wrap items-center gap-2 md:gap-3">
           <button
+            aria-label="Toggle sidebar menu"
             className="rounded-xl border border-white/10 p-2 hover:glass-card/10 dark:border-zinc-700 dark:hover:bg-zinc-800 lg:hidden"
             onClick={() => dispatch(toggleMobileSidebar())}
             type="button"

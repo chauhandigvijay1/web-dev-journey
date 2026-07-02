@@ -21,8 +21,11 @@ html, body, #root {
 }
 
 html {
-  color-scheme: dark;
+  color-scheme: light dark;
   scroll-behavior: smooth;
+}
+.dark html {
+  color-scheme: dark;
 }
 
 body {
@@ -216,8 +219,8 @@ p {
 }
 
 /* Base Interactions & States */
-button:focus-visible, input:focus-visible {
-  outline: 2px solid rgba(212, 212, 216, 0.5);
+button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible {
+  outline: 2px solid rgba(16, 185, 129, 0.5);
   outline-offset: 2px;
 }
 

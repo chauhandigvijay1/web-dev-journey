@@ -52,7 +52,7 @@ const NotificationsPage = () => {
       <div className="rounded-[30px] border border-white/10 glass-panel p-5">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
           <div>
-            <h1 className="text-2xl font-semibold text-white font-semibold drop-shadow-md">Notifications</h1>
+            <h1 className="text-2xl font-semibold text-zinc-900 dark:text-white drop-shadow-md">Notifications</h1>
             <p className="mt-1 text-sm text-zinc-400">Stay on top of mentions, assignments, billing changes, and workspace activity.</p>
           </div>
           <div className="flex flex-wrap gap-2">
@@ -114,7 +114,7 @@ const NotificationsPage = () => {
                 <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
                   <div className="min-w-0">
                     <div className="flex flex-wrap items-center gap-2">
-                      <p className="text-sm font-semibold text-white font-semibold drop-shadow-md">{item.title}</p>
+                      <p className="text-sm font-semibold text-zinc-900 dark:text-white drop-shadow-md">{item.title}</p>
                       {!item.isRead && <span className="rounded-full bg-brand-500/10 px-2.5 py-1 text-[11px] font-medium text-brand-400 dark:bg-brand-500/15 dark:text-brand-300">New</span>}
                     </div>
                     <p className="mt-2 text-sm leading-6 text-zinc-400">{item.message}</p>

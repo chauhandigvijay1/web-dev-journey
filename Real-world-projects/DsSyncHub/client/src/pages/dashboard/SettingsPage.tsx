@@ -347,7 +347,7 @@ const SettingsPage = () => {
           <div className="flex items-center gap-4">
             <Avatar name={user?.fullName || form.fullName} size="xl" src={form.avatarUrl || user?.avatarUrl} />
             <div>
-              <h1 className="text-2xl font-semibold text-white font-semibold drop-shadow-md">Settings</h1>
+              <h1 className="text-2xl font-semibold text-zinc-900 dark:text-white drop-shadow-md">Settings</h1>
               <p className="mt-1 text-sm text-zinc-400">{profileSummary}</p>
             </div>
           </div>
@@ -373,7 +373,7 @@ const SettingsPage = () => {
       {activeTab === 'profile' && (
         <article className="grid gap-4 xl:grid-cols-[0.9fr,1.1fr]">
           <div className="rounded-[30px] border border-white/10 glass-panel p-5">
-            <p className="text-sm font-semibold text-white font-semibold drop-shadow-md">Profile picture</p>
+            <p className="text-sm font-semibold text-zinc-900 dark:text-white drop-shadow-md">Profile picture</p>
             <p className="mt-1 text-sm text-zinc-400">
               Your avatar is used in the navbar, team directory, chat, and activity feeds.
             </p>
@@ -485,7 +485,7 @@ const SettingsPage = () => {
           </div>
 
           <div className="rounded-[30px] border border-white/10 glass-panel p-5">
-            <p className="text-sm font-semibold text-white font-semibold drop-shadow-md">Recovery guidance</p>
+            <p className="text-sm font-semibold text-zinc-900 dark:text-white drop-shadow-md">Recovery guidance</p>
             <div className="mt-4 space-y-3">
               {[
                 'Keep a backup email on file so password recovery stays reliable.',
@@ -504,7 +504,7 @@ const SettingsPage = () => {
       {activeTab === 'security' && (
         <article className="grid gap-4 xl:grid-cols-[1.1fr,0.9fr]">
           <div className="rounded-[30px] border border-white/10 glass-panel p-5">
-            <p className="text-sm font-semibold text-white font-semibold drop-shadow-md">Change password</p>
+            <p className="text-sm font-semibold text-zinc-900 dark:text-white drop-shadow-md">Change password</p>
             <p className="mt-1 text-sm text-zinc-400">
               Updating your password signs out every active session so your account stays safe.
             </p>
@@ -529,7 +529,7 @@ const SettingsPage = () => {
           </div>
 
           <div className="rounded-[30px] border border-white/10 glass-panel p-5">
-            <p className="inline-flex items-center gap-2 text-sm font-semibold text-white font-semibold drop-shadow-md"><ShieldCheck size={16} />Security reminders</p>
+            <p className="inline-flex items-center gap-2 text-sm font-semibold text-zinc-900 dark:text-white drop-shadow-md"><ShieldCheck size={16} />Security reminders</p>
             <div className="mt-4 space-y-3">
               {[
                 'Use a unique password for DsSync Hub.',
@@ -549,7 +549,7 @@ const SettingsPage = () => {
         <article className="rounded-[30px] border border-white/10 glass-panel p-5">
           <div className="grid gap-4 md:grid-cols-2">
             <div>
-              <p className="text-sm font-semibold text-white font-semibold drop-shadow-md">Theme</p>
+              <p className="text-sm font-semibold text-zinc-900 dark:text-white drop-shadow-md">Theme</p>
               <div className="mt-4 flex flex-wrap gap-2">
                 {(['light', 'dark', 'system'] as const).map((item) => (
                   <button
@@ -568,7 +568,7 @@ const SettingsPage = () => {
               </div>
             </div>
             <div>
-              <p className="text-sm font-semibold text-white font-semibold drop-shadow-md">Workspace density</p>
+              <p className="text-sm font-semibold text-zinc-900 dark:text-white drop-shadow-md">Workspace density</p>
               <label className="mt-4 inline-flex items-center gap-2 text-sm text-zinc-300">
                 <input checked={form.compactMode} onChange={(event) => updateForm((previous) => ({ ...previous, compactMode: event.target.checked }))} type="checkbox" />
                 Compact mode
@@ -601,7 +601,7 @@ const SettingsPage = () => {
             <Trash2 className="size-5 text-rose-400" />
           </div>
           <div>
-            <p className="text-sm font-semibold text-white font-semibold drop-shadow-md">Danger zone</p>
+            <p className="text-sm font-semibold text-zinc-900 dark:text-white drop-shadow-md">Danger zone</p>
             <p className="mt-1 text-sm text-zinc-400">
               Deleting your account is permanent and cannot be undone.
             </p>

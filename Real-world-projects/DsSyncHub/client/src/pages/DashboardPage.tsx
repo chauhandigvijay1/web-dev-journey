@@ -246,7 +246,7 @@ const DashboardPage = () => {
               <p className="text-sm font-medium text-zinc-400">AI requests used</p>
               <Bot size={18} className="text-zinc-400" />
             </div>
-            <p className="mt-3 text-3xl font-semibold text-white font-semibold drop-shadow-md">
+            <p className="mt-3 text-3xl font-semibold text-white drop-shadow-md">
               {aiRequestsUsed}
               <span className="text-base font-medium text-zinc-400">/{aiRequestLimit || 0}</span>
             </p>
@@ -268,7 +268,7 @@ const DashboardPage = () => {
               <p className="text-sm font-medium text-zinc-400">Storage used</p>
               <HardDrive size={18} className="text-zinc-400" />
             </div>
-            <p className="mt-3 text-3xl font-semibold text-white font-semibold drop-shadow-md">
+            <p className="mt-3 text-3xl font-semibold text-white drop-shadow-md">
               {billingCurrent?.usage.storageUsedMb || 0}
               <span className="text-base font-medium text-zinc-400">MB</span>
             </p>
@@ -322,7 +322,7 @@ const DashboardPage = () => {
               <p className="text-sm text-zinc-400">{item.label}</p>
               {item.icon}
             </div>
-            <p className="mt-4 text-3xl font-semibold text-white font-semibold drop-shadow-md">{item.value}</p>
+            <p className="mt-4 text-3xl font-semibold text-white drop-shadow-md">{item.value}</p>
             <p className="mt-3 text-sm leading-6 text-zinc-400">{item.description}</p>
           </article>
         ))}
@@ -333,7 +333,7 @@ const DashboardPage = () => {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-zinc-400">Productivity chart</p>
-              <h2 className="mt-1 text-xl font-semibold text-white font-semibold drop-shadow-md">Last 7 days of execution</h2>
+              <h2 className="mt-1 text-xl font-semibold text-white drop-shadow-md">Last 7 days of execution</h2>
             </div>
             <button
               className="inline-flex items-center gap-1 rounded-full border border-white/10 px-3 py-1.5 text-xs text-zinc-300 hover:glass-card/5 dark:border-zinc-700 dark:text-zinc-300 dark:hover:bg-zinc-800"
@@ -370,7 +370,7 @@ const DashboardPage = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-zinc-400">Focus queue</p>
-                <h2 className="mt-1 text-xl font-semibold text-white font-semibold drop-shadow-md">What needs attention next</h2>
+                <h2 className="mt-1 text-xl font-semibold text-white drop-shadow-md">What needs attention next</h2>
               </div>
               <Sparkles size={18} className="text-brand-400" />
             </div>
@@ -385,7 +385,7 @@ const DashboardPage = () => {
                   >
                     <div className="flex items-start justify-between gap-3">
                       <div>
-                        <p className="text-sm font-semibold text-white font-semibold drop-shadow-md">{task.title}</p>
+                        <p className="text-sm font-semibold text-white drop-shadow-md">{task.title}</p>
                         <p className="mt-1 text-xs text-zinc-400">
                           Due {new Date(task.dueDate || '').toLocaleDateString()}
                         </p>
@@ -435,7 +435,7 @@ const DashboardPage = () => {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-zinc-400">Recent activity</p>
-              <h2 className="mt-1 text-xl font-semibold text-white font-semibold drop-shadow-md">Latest workspace movement</h2>
+              <h2 className="mt-1 text-xl font-semibold text-white drop-shadow-md">Latest workspace movement</h2>
             </div>
             <button
               className="rounded-full border border-white/10 px-3 py-1.5 text-xs text-zinc-300 hover:glass-card/5 dark:border-zinc-700 dark:text-zinc-300 dark:hover:bg-zinc-800"
@@ -473,7 +473,7 @@ const DashboardPage = () => {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-zinc-400">Meetings and AI</p>
-              <h2 className="mt-1 text-xl font-semibold text-white font-semibold drop-shadow-md">Support the next decision</h2>
+              <h2 className="mt-1 text-xl font-semibold text-white drop-shadow-md">Support the next decision</h2>
             </div>
             <button
               className="rounded-full bg-zinc-900 px-3 py-1.5 text-xs font-medium text-white dark:glass-card dark:text-white"

@@ -124,7 +124,7 @@ const SignupPage = () => {
         </div>
 
         <div>
-          <h1 className="text-3xl font-bold tracking-tight text-white">Create account</h1>
+          <h1 className="text-3xl font-bold tracking-tight text-zinc-900 dark:text-white">Create account</h1>
           <p className="mt-2 text-sm text-zinc-400">
             Start your workspace in under two minutes.
           </p>
@@ -206,7 +206,7 @@ const SignupPage = () => {
           {apiError && <p className="text-sm text-rose-500">{apiError}</p>}
 
           <button
-            className="w-full rounded-xl bg-brand-500 px-4 py-3.5 text-sm font-bold text-dark-950 hover:bg-brand-400 shadow-[0_0_15px_rgba(16,185,129,0.3)] transition-all disabled:cursor-not-allowed disabled:opacity-60"
+            className="w-full rounded-xl bg-brand-500 px-4 py-3.5 text-sm font-bold text-zinc-950 hover:bg-brand-400 shadow-[0_0_15px_rgba(16,185,129,0.3)] transition-all disabled:cursor-not-allowed disabled:opacity-60"
             disabled={loading}
             type="submit"
           >

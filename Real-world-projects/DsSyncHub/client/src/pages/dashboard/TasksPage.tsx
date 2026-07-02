@@ -128,7 +128,7 @@ const TasksPage = () => {
     <section className="space-y-4 pb-5">
       <div className="flex flex-col justify-between gap-3 rounded-2xl border border-white/10 glass-card p-4 shadow-sm dark:border-zinc-800 dark:bg-zinc-900 md:flex-row md:items-center">
         <div>
-          <h1 className="text-2xl font-semibold text-white font-semibold drop-shadow-md">Tasks</h1>
+          <h1 className="text-2xl font-semibold text-zinc-900 dark:text-white drop-shadow-md">Tasks</h1>
           <p className="text-sm text-zinc-400">{workspaceName}</p>
         </div>
         <div className="flex flex-wrap gap-2">
@@ -256,7 +256,7 @@ const TasksPage = () => {
                   key={column.key}
                 >
                   <div className="mb-3 flex items-center justify-between">
-                    <h2 className="font-semibold text-white font-semibold drop-shadow-md">{column.title}</h2>
+                    <h2 className="font-semibold text-zinc-900 dark:text-white drop-shadow-md">{column.title}</h2>
                     <span className="rounded-full glass-card/10 px-2 py-0.5 text-xs dark:bg-zinc-800">{tasksInColumn.length}</span>
                   </div>
                   <div className="space-y-2">
@@ -271,7 +271,7 @@ const TasksPage = () => {
                           type="button"
                         >
                           <div className="flex items-start justify-between gap-2">
-                            <p className="text-sm font-medium text-white font-semibold drop-shadow-md">{task.title}</p>
+                            <p className="text-sm font-medium text-zinc-900 dark:text-white font-semibold drop-shadow-md">{task.title}</p>
                             <span className={`rounded-full px-2 py-0.5 text-[11px] font-medium capitalize ${priorityColor[task.priority]}`}>
                               {task.priority}
                             </span>

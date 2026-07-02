@@ -160,11 +160,25 @@ const chatSlice = createSlice({
       .addCase(createChannelThunk.fulfilled, (state, action) => {
         state.channels.push(action.payload)
       })
+      .addCase(fetchMessagesThunk.pending, (state) => {
+        state.loading = true
+      })
       .addCase(fetchMessagesThunk.fulfilled, (state, action) => {
+        state.loading = false
         state.messages = action.payload
       })
+      .addCase(fetchMessagesThunk.rejected, (state) => {
+        state.loading = false
+      })
+      .addCase(fetchDirectMessagesThunk.pending, (state) => {
+        state.loading = true
+      })
       .addCase(fetchDirectMessagesThunk.fulfilled, (state, action) => {
+        state.loading = false
         state.messages = action.payload
+      })
+      .addCase(fetchDirectMessagesThunk.rejected, (state) => {
+        state.loading = false
       })
       .addCase(sendMessageThunk.fulfilled, (state, action) => {
         if (!state.messages.some((message) => message._id === action.payload._id)) {

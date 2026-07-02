@@ -171,14 +171,14 @@ const logoutAllSessions = async (_req, res) => {
 const deleteOwnAccount = async (req, res, next) => {
   try {
     const userId = req.user._id
-    const Note = require('./models/Note')
-    const Task = require('./models/Task')
-    const FileAsset = require('./models/FileAsset')
-    const Workspace = require('./models/Workspace')
-    const BillingInvoice = require('./models/BillingInvoice')
-    const Notification = require('./models/Notification')
-    const AiUsage = require('./models/AiUsage')
-    const Invite = require('./models/Invite')
+    const Note = require('../models/Note')
+    const Task = require('../models/Task')
+    const FileAsset = require('../models/FileAsset')
+    const Workspace = require('../models/Workspace')
+    const BillingInvoice = require('../models/BillingInvoice')
+    const Notification = require('../models/Notification')
+    const AiUsage = require('../models/AiUsage')
+    const Invite = require('../models/Invite')
 
     const ownedWorkspaces = await Workspace.find({ owner: userId })
     const ownedIds = ownedWorkspaces.map((w) => w._id)

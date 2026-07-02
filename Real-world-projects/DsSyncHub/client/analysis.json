@@ -1,0 +1,233 @@
+{
+  "dupFontsCount": 40,
+  "iconButtonsCount": 5,
+  "dupFonts": [
+    {
+      "file": "src\\components\\common\\EmptyState.tsx",
+      "line": 29,
+      "content": "<p className=\"text-lg font-semibold text-white font-semibold drop-shadow-md\">{title}</p>"
+    },
+    {
+      "file": "src\\components\\common\\PlanUpgradeModal.tsx",
+      "line": 35,
+      "content": "<h3 className=\"text-lg font-semibold text-white font-semibold drop-shadow-md\">{title}</h3>"
+    },
+    {
+      "file": "src\\components\\dashboard\\CreateWorkspaceModal.tsx",
+      "line": 69,
+      "content": "<h2 className=\"text-lg font-semibold text-white font-semibold drop-shadow-md\">Create Workspace</h2>"
+    },
+    {
+      "file": "src\\components\\dashboard\\InviteMemberModal.tsx",
+      "line": 80,
+      "content": "<h2 className=\"text-lg font-semibold text-white font-semibold drop-shadow-md\">Invite Member</h2>"
+    },
+    {
+      "file": "src\\components\\dashboard\\JoinWorkspaceModal.tsx",
+      "line": 60,
+      "content": "<h2 className=\"text-lg font-semibold text-white font-semibold drop-shadow-md\">Join Workspace</h2>"
+    },
+    {
+      "file": "src\\components\\navigation\\NotificationsDropdown.tsx",
+      "line": 35,
+      "content": "<p className=\"font-semibold text-white font-semibold drop-shadow-md\">Notifications</p>"
+    },
+    {
+      "file": "src\\pages\\dashboard\\FilesPage.tsx",
+      "line": 116,
+      "content": "<h1 className=\"text-2xl font-semibold text-zinc-900 dark:text-white font-semibold drop-shadow-md\">Files</h1>"
+    },
+    {
+      "file": "src\\pages\\dashboard\\FilesPage.tsx",
+      "line": 241,
+      "content": "<p className=\"mt-4 truncate text-sm font-semibold text-zinc-900 dark:text-white font-semibold drop-shadow-md\">{file.originalName}</p>"
+    },
+    {
+      "file": "src\\pages\\dashboard\\FilesPage.tsx",
+      "line": 285,
+      "content": "<p className=\"truncate text-sm font-semibold text-zinc-900 dark:text-white font-semibold drop-shadow-md\">{file.originalName}</p>"
+    },
+    {
+      "file": "src\\pages\\dashboard\\FilesPage.tsx",
+      "line": 313,
+      "content": "<h2 className=\"text-lg font-semibold text-zinc-900 dark:text-white font-semibold drop-shadow-md\">Recent uploads</h2>"
+    },
+    {
+      "file": "src\\pages\\dashboard\\MeetingsPage.tsx",
+      "line": 66,
+      "content": "<h2 className=\"text-lg font-semibold text-zinc-900 dark:text-white font-semibold drop-shadow-md\">Join a room</h2>"
+    },
+    {
+      "file": "src\\pages\\dashboard\\MeetingsPage.tsx",
+      "line": 97,
+      "content": "<h2 className=\"text-lg font-semibold text-zinc-900 dark:text-white font-semibold drop-shadow-md\">Upcoming meetings</h2>"
+    },
+    {
+      "file": "src\\pages\\dashboard\\MeetingsPage.tsx",
+      "line": 113,
+      "content": "<p className=\"text-sm font-semibold text-zinc-900 dark:text-white font-semibold drop-shadow-md\">{meeting.title}</p>"
+    },
+    {
+      "file": "src\\pages\\dashboard\\ModulePage.tsx",
+      "line": 9,
+      "content": "<h1 className=\"text-2xl font-semibold tracking-tight text-zinc-900 dark:text-white font-semibold drop-shadow-md\">{title}</h1>"
+    },
+    {
+      "file": "src\\pages\\dashboard\\NotificationsPage.tsx",
+      "line": 55,
+      "content": "<h1 className=\"text-2xl font-semibold text-zinc-900 dark:text-white font-semibold drop-shadow-md\">Notifications</h1>"
+    },
+    {
+      "file": "src\\pages\\dashboard\\NotificationsPage.tsx",
+      "line": 117,
+      "content": "<p className=\"text-sm font-semibold text-zinc-900 dark:text-white font-semibold drop-shadow-md\">{item.title}</p>"
+    },
+    {
+      "file": "src\\pages\\dashboard\\SettingsPage.tsx",
+      "line": 350,
+      "content": "<h1 className=\"text-2xl font-semibold text-zinc-900 dark:text-white font-semibold drop-shadow-md\">Settings</h1>"
+    },
+    {
+      "file": "src\\pages\\dashboard\\SettingsPage.tsx",
+      "line": 376,
+      "content": "<p className=\"text-sm font-semibold text-zinc-900 dark:text-white font-semibold drop-shadow-md\">Profile picture</p>"
+    },
+    {
+      "file": "src\\pages\\dashboard\\SettingsPage.tsx",
+      "line": 488,
+      "content": "<p className=\"text-sm font-semibold text-zinc-900 dark:text-white font-semibold drop-shadow-md\">Recovery guidance</p>"
+    },
+    {
+      "file": "src\\pages\\dashboard\\SettingsPage.tsx",
+      "line": 507,
+      "content": "<p className=\"text-sm font-semibold text-zinc-900 dark:text-white font-semibold drop-shadow-md\">Change password</p>"
+    },
+    {
+      "file": "src\\pages\\dashboard\\SettingsPage.tsx",
+      "line": 532,
+      "content": "<p className=\"inline-flex items-center gap-2 text-sm font-semibold text-zinc-900 dark:text-white font-semibold drop-shadow-md\"><ShieldCheck size={16} />Security reminders</p>"
+    },
+    {
+      "file": "src\\pages\\dashboard\\SettingsPage.tsx",
+      "line": 552,
+      "content": "<p className=\"text-sm font-semibold text-zinc-900 dark:text-white font-semibold drop-shadow-md\">Theme</p>"
+    },
+    {
+      "file": "src\\pages\\dashboard\\SettingsPage.tsx",
+      "line": 571,
+      "content": "<p className=\"text-sm font-semibold text-zinc-900 dark:text-white font-semibold drop-shadow-md\">Workspace density</p>"
+    },
+    {
+      "file": "src\\pages\\dashboard\\SettingsPage.tsx",
+      "line": 604,
+      "content": "<p className=\"text-sm font-semibold text-zinc-900 dark:text-white font-semibold drop-shadow-md\">Danger zone</p>"
+    },
+    {
+      "file": "src\\pages\\dashboard\\TasksPage.tsx",
+      "line": 131,
+      "content": "<h1 className=\"text-2xl font-semibold text-zinc-900 dark:text-white font-semibold drop-shadow-md\">Tasks</h1>"
+    },
+    {
+      "file": "src\\pages\\dashboard\\TasksPage.tsx",
+      "line": 259,
+      "content": "<h2 className=\"font-semibold text-zinc-900 dark:text-white font-semibold drop-shadow-md\">{column.title}</h2>"
+    },
+    {
+      "file": "src\\pages\\dashboard\\TeamPage.tsx",
+      "line": 52,
+      "content": "<h1 className=\"text-2xl font-semibold text-zinc-900 dark:text-white font-semibold drop-shadow-md\">Team Directory</h1>"
+    },
+    {
+      "file": "src\\pages\\dashboard\\TeamPage.tsx",
+      "line": 92,
+      "content": "<p className=\"text-sm font-semibold text-zinc-900 dark:text-white font-semibold drop-shadow-md\">{member.fullName}</p>"
+    },
+    {
+      "file": "src\\pages\\dashboard\\WorkspacesPage.tsx",
+      "line": 82,
+      "content": "<h1 className=\"text-2xl font-semibold text-zinc-900 dark:text-white font-semibold drop-shadow-md\">Workspaces</h1>"
+    },
+    {
+      "file": "src\\pages\\dashboard\\WorkspacesPage.tsx",
+      "line": 147,
+      "content": "<h2 className=\"text-lg font-semibold text-zinc-900 dark:text-white font-semibold drop-shadow-md\">"
+    },
+    {
+      "file": "src\\pages\\DashboardPage.tsx",
+      "line": 249,
+      "content": "<p className=\"mt-3 text-3xl font-semibold text-white font-semibold drop-shadow-md\">"
+    },
+    {
+      "file": "src\\pages\\DashboardPage.tsx",
+      "line": 271,
+      "content": "<p className=\"mt-3 text-3xl font-semibold text-white font-semibold drop-shadow-md\">"
+    },
+    {
+      "file": "src\\pages\\DashboardPage.tsx",
+      "line": 325,
+      "content": "<p className=\"mt-4 text-3xl font-semibold text-white font-semibold drop-shadow-md\">{item.value}</p>"
+    },
+    {
+      "file": "src\\pages\\DashboardPage.tsx",
+      "line": 336,
+      "content": "<h2 className=\"mt-1 text-xl font-semibold text-white font-semibold drop-shadow-md\">Last 7 days of execution</h2>"
+    },
+    {
+      "file": "src\\pages\\DashboardPage.tsx",
+      "line": 373,
+      "content": "<h2 className=\"mt-1 text-xl font-semibold text-white font-semibold drop-shadow-md\">What needs attention next</h2>"
+    },
+    {
+      "file": "src\\pages\\DashboardPage.tsx",
+      "line": 388,
+      "content": "<p className=\"text-sm font-semibold text-white font-semibold drop-shadow-md\">{task.title}</p>"
+    },
+    {
+      "file": "src\\pages\\DashboardPage.tsx",
+      "line": 438,
+      "content": "<h2 className=\"mt-1 text-xl font-semibold text-white font-semibold drop-shadow-md\">Latest workspace movement</h2>"
+    },
+    {
+      "file": "src\\pages\\DashboardPage.tsx",
+      "line": 476,
+      "content": "<h2 className=\"mt-1 text-xl font-semibold text-white font-semibold drop-shadow-md\">Support the next decision</h2>"
+    },
+    {
+      "file": "src\\pages\\ForgotPasswordPage.tsx",
+      "line": 74,
+      "content": "<h2 className=\"mt-6 text-2xl font-semibold tracking-tight text-white font-semibold drop-shadow-md\">Forgot your password?</h2>"
+    },
+    {
+      "file": "src\\pages\\ResetPasswordPage.tsx",
+      "line": 103,
+      "content": "<h2 className=\"text-2xl font-semibold tracking-tight text-white font-semibold drop-shadow-md\">Reset your password</h2>"
+    }
+  ],
+  "iconButtons": [
+    {
+      "file": "src\\components\\common\\PlanUpgradeModal.tsx",
+      "line": 38,
+      "content": "<button className=\"rounded-xl border border-white/10 p-2 dark:border-zinc-700\" onClick={onClose} type=\"button\">\n            <X size={16} />\n          </button>"
+    },
+    {
+      "file": "src\\components\\navigation\\SearchModal.tsx",
+      "line": 109,
+      "content": "<button className=\"rounded-lg p-1 hover:glass-card/10 dark:hover:bg-zinc-800\" onClick={handleClose} type=\"button\">\r\n            <X size={14} />\r\n          </button>"
+    },
+    {
+      "file": "src\\pages\\dashboard\\ChatPage.tsx",
+      "line": 453,
+      "content": "<button\n            className=\"rounded-lg border border-white/10 p-1.5 dark:border-zinc-700\"\n            onClick={openChannelModal}\n            type=\"button\"\n          >\n            <Plus size={14} />\n          </button>"
+    },
+    {
+      "file": "src\\pages\\dashboard\\ChatPage.tsx",
+      "line": 543,
+      "content": "<button className=\"rounded-xl border border-white/10 p-2 dark:border-zinc-700\" type=\"button\">\n                <Phone size={15} />\n              </button>"
+    },
+    {
+      "file": "src\\pages\\dashboard\\WorkspacesPage.tsx",
+      "line": 153,
+      "content": "<button className=\"rounded-lg p-1.5 hover:glass-card/10 dark:hover:bg-zinc-800\" type=\"button\">\r\n                  <Ellipsis size={16} />\r\n                </button>"
+    }
+  ]
+}

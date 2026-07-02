@@ -69,7 +69,7 @@ const LoginPage = () => {
         <div className="hidden rounded-2xl glass-card border border-brand-500/20 p-10 text-white md:flex flex-col justify-between relative overflow-hidden">
           <div className="absolute top-[-50%] left-[-50%] w-[200%] h-[200%] bg-[radial-gradient(circle_at_center,rgba(16,185,129,0.15)_0%,transparent_60%)] pointer-events-none"></div>
           <div className="relative z-10">
-            <h2 className="text-4xl font-bold tracking-tight">Welcome to DsSync Hub</h2>
+            <h2 className="text-4xl font-bold tracking-tight text-white">Welcome to DsSync Hub</h2>
             <p className="mt-4 text-base text-brand-100 font-light leading-relaxed">
               Manage workspaces, tasks, notes, and collaboration in one beautifully connected flow.
             </p>
@@ -80,7 +80,7 @@ const LoginPage = () => {
         </div>
 
         <div>
-          <h1 className="text-3xl font-bold tracking-tight text-white">Login to your account</h1>
+          <h1 className="text-3xl font-bold tracking-tight text-zinc-900 dark:text-white">Login to your account</h1>
           <p className="mt-2 text-sm text-zinc-400">
             Continue where your team left off.
           </p>
@@ -97,7 +97,7 @@ const LoginPage = () => {
 
           <form className="mt-6 space-y-4" onSubmit={handleSubmit(onSubmit)}>
           <div>
-            <label className="mb-1.5 block text-sm font-medium text-zinc-300">Email, phone, or username</label>
+            <label className="mb-1.5 block text-sm font-medium text-zinc-600 dark:text-zinc-300">Email, phone, or username</label>
             <input
               className="w-full rounded-xl border border-white/10 bg-black/20 px-4 py-3 text-sm text-white outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500/50 transition-all placeholder-zinc-500"
               placeholder="you@company.com or @workspace-handle"
@@ -109,7 +109,7 @@ const LoginPage = () => {
           </div>
 
           <div>
-            <label className="mb-1.5 block text-sm font-medium text-zinc-300">Password</label>
+            <label className="mb-1.5 block text-sm font-medium text-zinc-600 dark:text-zinc-300">Password</label>
             <div className="relative">
               <input
                 className="w-full rounded-xl border border-white/10 bg-black/20 px-4 py-3 pr-11 text-sm text-white outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500/50 transition-all placeholder-zinc-500"
@@ -143,7 +143,7 @@ const LoginPage = () => {
           {apiError && <p className="text-sm text-red-500">{apiError}</p>}
 
           <button
-            className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-brand-500 px-4 py-3.5 text-sm font-bold text-dark-950 hover:bg-brand-400 shadow-[0_0_15px_rgba(16,185,129,0.3)] transition-all disabled:cursor-not-allowed disabled:opacity-60"
+            className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-brand-500 px-4 py-3.5 text-sm font-bold text-zinc-950 hover:bg-brand-400 shadow-[0_0_15px_rgba(16,185,129,0.3)] transition-all disabled:cursor-not-allowed disabled:opacity-60"
             disabled={loading}
             type="submit"
           >

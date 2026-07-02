@@ -49,7 +49,7 @@ const TeamPage = () => {
     <section className="space-y-4 pb-5">
       <div className="flex flex-col gap-3 rounded-[30px] border border-white/10 glass-panel p-5 lg:flex-row lg:items-center lg:justify-between">
         <div>
-          <h1 className="text-2xl font-semibold text-white font-semibold drop-shadow-md">Team Directory</h1>
+          <h1 className="text-2xl font-semibold text-zinc-900 dark:text-white drop-shadow-md">Team Directory</h1>
           <p className="text-sm text-zinc-400">Search teammates, filter by role, and jump into action fast.</p>
         </div>
         <div className="flex flex-wrap gap-2">
@@ -89,7 +89,7 @@ const TeamPage = () => {
               <div className="flex items-center gap-3">
                 <Avatar className="rounded-2xl" name={member.fullName} size="lg" src={member.avatarUrl} />
                 <div>
-                  <p className="text-sm font-semibold text-white font-semibold drop-shadow-md">{member.fullName}</p>
+                  <p className="text-sm font-semibold text-zinc-900 dark:text-white drop-shadow-md">{member.fullName}</p>
                   <p className="text-xs text-zinc-500">@{member.username}</p>
                 </div>
               </div>

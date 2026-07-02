@@ -67,7 +67,6 @@ export const googleRegisterThunk = createAsyncThunk(
 
 export const deleteMyAccountThunk = createAsyncThunk('auth/deleteMyAccount', async (_, { dispatch }) => {
   const response = await userApi.deleteMyAccount()
-  localStorage.removeItem('accessToken')
   dispatch(clearCredentials())
   window.location.href = '/login'
   return response
