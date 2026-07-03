@@ -93,9 +93,10 @@ const seedCoupons = async () => {
   if (existingCount > 0) return
   const list = buildCouponSeedList()
   for (const c of list) {
+    const expiresAt = c.type === 'owner' ? null : new Date(Date.now() + 365 * 24 * 60 * 60 * 1000)
     await Coupon.findOneAndUpdate(
       { code: c.code },
-      { ...c, isActive: true, expiresAt: null, maxUsesPerUser: 1, maxTotalUses: 0, usedCount: 0 },
+      { ...c, isActive: true, expiresAt, maxUsesPerUser: 1, maxTotalUses: 0, usedCount: 0 },
       { upsert: true, new: true, setDefaultsOnInsert: true },
     )
   }
@@ -454,14 +455,16 @@ const billingConfig = async (_req, res) => {
       hasRazorpayKeySecret: Boolean((process.env.RAZORPAY_KEY_SECRET || '').trim()),
       hasOwnerCoupon: Boolean((process.env.OWNER_COUPON_CODE || '').trim()),
       provider: razorpay ? 'razorpay' : 'none',
-      coupons: coupons.map((c) => ({
-        code: c.code,
-        type: c.type,
-        value: c.value,
-        durationMonths: c.durationMonths,
-        description: c.description,
-        applicablePlans: c.applicablePlans,
-      })),
+      coupons: coupons
+        .filter((c) => c.type !== 'owner')
+        .map((c) => ({
+          code: c.code,
+          type: c.type,
+          value: c.value,
+          durationMonths: c.durationMonths,
+          description: c.description,
+          applicablePlans: c.applicablePlans,
+        })),
     })
   } catch {
     res.json({
@@ -502,7 +505,7 @@ const applyCoupon = async (req, res, next) => {
     const existingRedemption = await CouponRedemption.findOne({ coupon: coupon._id, user: req.user._id, workspace })
     if (existingRedemption) {
       if (coupon.type === 'owner') {
-        const ownerCode = (process.env.OWNER_COUPON_CODE || '').trim()
+        const ownerCode = (process.env.OWNER_COUPON_CODE || '').trim().toUpperCase()
         if (ownerCode && coupon.code === ownerCode && existingRedemption.isActive) {
           return res.status(400).json({ success: false, message: 'This owner coupon is already applied to this workspace.' })
         }
@@ -531,45 +534,10 @@ const applyCoupon = async (req, res, next) => {
       if (!coupon.applicablePlans.includes(targetPlan)) {
         targetPlan = coupon.applicablePlans[0]
       }
-      const periodDays = targetPlan === 'pro_yearly' ? 365 : 30
-      const benefitEnd = new Date(now.getTime() + (coupon.durationMonths || 1) * 30 * 24 * 60 * 60 * 1000)
-
-      const subscription = await Subscription.findOneAndUpdate(
-        { workspace },
-        {
-          user: req.user._id,
-          workspace,
-          plan: targetPlan,
-          status: 'active',
-          provider: 'manual',
-          currentPeriodStart: now,
-          currentPeriodEnd: benefitEnd,
-          cancelAtPeriodEnd: false,
-          couponCode: coupon.code,
-          couponType: coupon.type,
-        },
-        { upsert: true, new: true, setDefaultsOnInsert: true },
-      )
-
-      await Workspace.findByIdAndUpdate(workspace, { plan: 'pro' })
-
-      await CouponRedemption.create({
-        coupon: coupon._id,
-        code: coupon.code,
-        user: req.user._id,
-        workspace,
-        subscription: subscription._id,
-        benefitExpiresAt: benefitEnd,
-        isActive: true,
-      })
-
-      coupon.usedCount = (coupon.usedCount || 0) + 1
-      await coupon.save()
 
       return res.status(200).json({
         success: true,
-        message: `Coupon "${coupon.code}" applied! ${coupon.value}% off for ${coupon.durationMonths} month(s) on the ${targetPlan} plan. Your plan is now active.`,
-        subscription: toSubscription(subscription),
+        message: `Coupon "${coupon.code}" valid! ${coupon.value}% off for ${coupon.durationMonths} month(s) on the ${targetPlan} plan. Proceed with checkout to apply.`,
         requiresCheckout: true,
         discountedPlan: targetPlan,
       })
@@ -618,7 +586,7 @@ const applyCoupon = async (req, res, next) => {
     }
 
     if (coupon.type === 'owner') {
-      const ownerCode = (process.env.OWNER_COUPON_CODE || '').trim()
+      const ownerCode = (process.env.OWNER_COUPON_CODE || '').trim().toUpperCase()
       if (!ownerCode || coupon.code !== ownerCode) {
         return res.status(400).json({ success: false, message: 'Owner coupon is not currently active.' })
       }
@@ -672,7 +640,7 @@ const applyCoupon = async (req, res, next) => {
 
 const listCoupons = async (_req, res, next) => {
   try {
-    const coupons = await Coupon.find({ isActive: true }).select('code type value durationMonths description applicablePlans').lean()
+    const coupons = await Coupon.find({ isActive: true, type: { $ne: 'owner' } }).select('code type value durationMonths description applicablePlans').lean()
     return res.status(200).json({ success: true, coupons })
   } catch (error) {
     return next(error)
@@ -685,9 +653,10 @@ const seedCouponsEndpoint = async (_req, res, next) => {
     const list = buildCouponSeedList()
     const results = []
     for (const c of list) {
+      const expiresAt = c.type === 'owner' ? null : new Date(Date.now() + 365 * 24 * 60 * 60 * 1000)
       const coupon = await Coupon.findOneAndUpdate(
         { code: c.code },
-        { ...c, isActive: true, expiresAt: null, maxUsesPerUser: 1, maxTotalUses: 0 },
+        { ...c, isActive: true, expiresAt, maxUsesPerUser: 1, maxTotalUses: 0 },
         { upsert: true, new: true, setDefaultsOnInsert: true },
       )
       const ownerMsg = c.type === 'owner' ? ` (env: ${ownerCode ? 'set' : 'not set'})` : ''

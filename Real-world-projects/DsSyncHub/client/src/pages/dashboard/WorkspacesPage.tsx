@@ -64,10 +64,10 @@ const WorkspacesPage = () => {
         tone: 'success',
       }))
       navigate(`/workspaces/${response.workspace.id}`)
-    } catch {
-      const message = 'Double-check the code and try again.'
+    } catch (error) {
+      const message = getApiErrorMessage(error, 'Double-check the code and try again.')
       dispatch(pushToast({
-        title: 'Invite code not recognized',
+        title: 'Failed to join workspace',
         description: message,
         tone: 'error',
       }))

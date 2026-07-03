@@ -16,12 +16,27 @@ const getErrorStatusCode = (err) => {
   return 500
 }
 
+const MULTER_MESSAGES = {
+  LIMIT_FILE_SIZE: 'File is too large. Maximum allowed size is 50 MB.',
+  LIMIT_FILE_COUNT: 'Too many files uploaded at once.',
+  LIMIT_UNEXPECTED_FILE: 'Unexpected file field name.',
+  LIMIT_FIELD_KEY: 'Field name too long.',
+  LIMIT_FIELD_VALUE: 'Field value too long.',
+  LIMIT_FIELD_COUNT: 'Too many fields.',
+  LIMIT_PART_COUNT: 'Too many parts.',
+}
+
+const getMulterMessage = (err) => {
+  if (err?.code && MULTER_MESSAGES[err.code]) return MULTER_MESSAGES[err.code]
+  return 'File upload failed. Please check the file size and type.'
+}
+
 const errorHandler = (err, _req, res, _next) => {
   const statusCode = getErrorStatusCode(err)
   const isProduction = process.env.NODE_ENV === 'production'
   const message =
     err?.name === 'MulterError'
-      ? 'File upload failed. Please check the file size and type.'
+      ? getMulterMessage(err)
       : statusCode === 500 && isProduction
         ? 'Internal server error'
         : err.message || 'Internal server error'

@@ -22,6 +22,7 @@ export type AuthResponse = {
   success: boolean
   message: string
   user: AuthUser
+  accessToken?: string
 }
 
 export type PasswordResetRequestResponse = {

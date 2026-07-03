@@ -110,8 +110,9 @@ const NoteEditor = ({ note, onPatchNote, onSavingState }: NoteEditorProps) => {
         </div>
       </div>
       <div
-        className="min-h-[420px] flex-1 overflow-y-auto p-4 text-sm leading-7 outline-none"
+        className="min-h-[420px] flex-1 overflow-y-auto p-4 text-left text-sm leading-7 outline-none"
         contentEditable
+        dir="ltr"
         dangerouslySetInnerHTML={{ __html: content }}
         onInput={(event) => {
           const nextContent = sanitize((event.target as HTMLDivElement).innerHTML)

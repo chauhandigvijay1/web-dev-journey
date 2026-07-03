@@ -1,4 +1,7 @@
-# DsSync Hub - Testing Guide 🧪
+<div align="center">
+  <img alt="DsSync Hub" src="../client/public/logo_icon.svg" width="80" height="80">
+  <h1>Testing Guide 🧪</h1>
+</div>
 
 This document explains how to test DsSync Hub during development and before deployment.
 
@@ -399,3 +402,9 @@ Before deployment, app should feel:
 # 📌 Summary
 
 Testing DsSync Hub properly ensures a portfolio-grade production-quality project ready for interviews, demos, and deployment.
+
+---
+
+<div align="center">
+  <a href="../README.md">🏠 Home</a>
+</div>

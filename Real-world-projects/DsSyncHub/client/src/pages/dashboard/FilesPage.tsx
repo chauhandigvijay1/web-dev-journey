@@ -20,7 +20,8 @@ import { useDebouncedValue } from '../../hooks/useDebouncedValue'
 import { apiBaseUrl } from '../../services/api'
 import { deleteFileThunk, fetchFilesThunk, fetchRecentFilesThunk, uploadFileThunk } from '../../store/fileSlice'
 import { fetchBillingCurrentThunk } from '../../store/billingSlice'
-import { getApiErrorCode } from '../../utils/errors'
+import { pushToast } from '../../store/toastSlice'
+import { getApiErrorCode, getApiErrorMessage } from '../../utils/errors'
 
 const fileTypeOptions = [
   { key: 'all', label: 'All files' },
@@ -98,6 +99,12 @@ const FilesPage = () => {
     } catch (error) {
       if (getApiErrorCode(error) === 'storage_limit_exceeded') {
         setUpgradeOpen(true)
+      } else {
+        dispatch(pushToast({
+          title: 'Upload failed',
+          description: getApiErrorMessage(error, 'The file could not be uploaded.'),
+          tone: 'error',
+        }))
       }
     }
   }

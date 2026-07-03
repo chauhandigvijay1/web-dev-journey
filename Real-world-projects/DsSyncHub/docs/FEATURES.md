@@ -1,342 +1,134 @@
-# DsSync Hub - Features Documentation
-
-This document explains all major features available in DsSync Hub.
+<div align="center">
+  <img alt="DsSync Hub" src="../client/public/logo_icon.svg" width="80" height="80">
+  <h1>Features & Capabilities</h1>
+  <p><strong>A comprehensive overview of the platform's core functional domains and underlying engineering.</strong></p>
+</div>
 
 ---
 
 ## Product Overview
 
-DsSync Hub is a modern collaboration platform designed for teams, freelancers, startups, and productivity-focused users.
+DsSync Hub is a modern, enterprise-grade collaboration platform designed for fast-moving teams, startups, and productivity-focused users.
 
-It combines task management, notes, real-time communication, video meetings, AI assistance, workspace management, payments, and secure authentication in one application.
-
----
-
-## Authentication System
-
-Secure and user-friendly authentication flows.
-
-### Features Included
-
-- Email/password registration (bcrypt 12 rounds)
-- Email/username/phone login
-- Google OAuth 2.0 (Google Identity Services)
-- Forgot/reset password flow (SHA-256 tokens, 60-min expiry)
-- Email verification flow with dedicated VerifyEmailPage
-- JWT authentication with token versioning (session invalidation)
-- httpOnly cookies (sameSite=none in production)
-- Rate-limited login (8 attempts per 15 minutes)
-- Protected routes via ProtectedRoute/GuestRoute
-- Logout all sessions (tokenVersion increment)
+It merges task tracking, rich-text documentation, real-time messaging, video conferencing, generative AI assistance, and Razorpay monetization into a single, cohesive ecosystem.
 
 ---
 
-## Workspace Management
+## 🔒 Enterprise Authentication
 
-Multi-tenant workspace architecture with full CRUD.
+A robust, defense-in-depth authentication pipeline designed for seamless onboarding and maximum security.
 
-### Features Included
-
-- Create, rename, delete, archive workspaces
-- Unique slug + inviteCode per workspace
-- Plan enforcement: Free=1 workspace, Pro=unlimited
-- Member management with 4 roles: owner, admin, member, viewer
-- Invite by email (real HTML email with secure 7-day token)
-- Join by invite code or invite token link
-- Duplicate prevention
-- Owner-only archive
-- Pending member display with amber/green badges and Cancel button
+- **Dual-Strategy Login**: Support for traditional Email/Password (hashed via bcrypt 12 rounds) alongside **Google OAuth 2.0** Identity integration.
+- **Secure Sessions**: JWT authentication utilizing strict token versioning to allow instant "Logout All Sessions" functionality.
+- **Recovery & Verification**: Automated Email Verification flows and Forgot/Reset Password flows powered by SHA-256 tokens with strict 60-minute expiries.
+- **Hardened Defenses**: Rate-limited login (8 attempts per 15 minutes), httpOnly secure cookies, and strict Protected/Guest route guarding.
 
 ---
 
-## Dashboard
+## 🏢 Multi-Tenant Workspaces
 
-Central productivity dashboard after login.
+The core architectural boundary of the platform. Data is strictly segregated via multi-tenancy.
 
-### Includes
-
-- Welcome section with workspace name
-- Quick stats cards (tasks, members, storage)
-- Tasks summary by status
-- Recent activity feed
-- Quick action buttons
+- **Full Lifecycle Management**: Create, rename, delete, and archive workspaces (Archive restricted to Owners).
+- **Plan Enforcement**: Dynamic quota enforcement (Free tier = 1 workspace, Pro tier = Unlimited).
+- **Granular RBAC**: Four distinct member roles (Owner, Admin, Member, Viewer) dictating access across the entire platform.
+- **Seamless Onboarding**: Invite users via rich HTML emails containing secure 7-day tokens, or utilize shareable Workspace Invite Codes.
 
 ---
 
-## Task Management
+## 💬 Real-Time Communication
 
-Full Kanban-style task system for team productivity.
+A high-performance WebSocket messaging system ensuring zero-latency team communication.
 
-### Features Included
-
-- Create, edit, delete tasks
-- Title, description, status, priority, due date
-- Status flow: todo, in-progress, review, done
-- Priority levels: low, medium, high, critical
-- Assignee assignment with notifications
-- Up to 8 labels per task
-- Task comments with mentions and notifications
-- File attachments on tasks
-- Move task (drag-drop status changes)
-- Complete and archive (soft-delete)
-- Filters and search
-- Real-time sync via Socket.io (create, update, move, delete)
+- **Singleton Architecture**: Engineered using `socket.io` to ensure stable, single-instance connectivity.
+- **Channel Dynamics**: Support for public `#general` channels and private 1-on-1 Direct Messaging.
+- **Rich Messaging**: Messages support file attachments (images, PDFs), mentions (`@username`), and threaded replies.
+- **Live UI Indicators**: Real-time "Typing..." indicators and online/offline presence tracking.
 
 ---
 
-## Notes Module
+## 📊 Agile Task Management
 
-Rich content documentation with sharing.
+A Kanban-style productivity engine for tracking deliverables.
 
-### Features Included
-
-- Create, edit, delete notes
-- Rich text content with XSS sanitization
-- Tags, folders, cover image, icon
-- Pin/unpin, archive/unarchive, duplicate
-- Public sharing via unique sharedToken (no auth required)
-- Version tracking (+1 per update)
-- Text search index on title + plainText
-- Real-time sync via Socket.io (create, update, delete)
+- **Lifecycle Tracking**: Tasks flow through To Do, In Progress, Review, and Done.
+- **Contextual Data**: Tasks support priorities (Low, Medium, High, Urgent), due dates, assignees, and rich markdown descriptions.
+- **Real-Time Sync**: Task updates broadcast instantly to all workspace members via websockets, ensuring the board is never stale.
 
 ---
 
-## Team Chat
+## 📝 Knowledge Base (Notes)
 
-Real-time messaging with channels and direct messages.
+A collaborative documentation center.
 
-### Features Included
-
-- Channel-based messaging with unique slug per workspace
-- Direct messaging between workspace members
-- Real-time message sending with Socket.io
-- Typing indicators
-- Message edit and soft-delete
-- Emoji reactions with user array tracking
-- Reply-to threading
-- SeenBy tracking
-- File attachments (drag-and-drop upload)
-- Mentions detection with notifications
-- Online presence tracking
+- **Rich Text Editor**: Integrated WYSIWYG editor supporting deep Markdown formatting.
+- **Organization**: Pin important notes, categorize with tags, and track authorship.
+- **Security**: Aggressive XSS sanitization applied to all note content, strictly stripping malicious scripts or iframes.
 
 ---
 
-## Calendar
+## 🤖 AI Productivity Suite (Groq)
 
-Persisted calendar with multiple views.
+Generative AI integrated directly into the team workflow, powered by the blazing-fast Groq API (`llama-3.1-8b-instant`).
 
-### Includes
-
-- Event CRUD (title, description, date range, all-day, color)
-- Date-range queries for efficient loading
-- Month, week, and agenda views
-- Task due dates merged with calendar events
-- Color coding per event
-- Linked entity tracking (source + linkedEntityId)
-- Real-time sync via Socket.io (create, update, delete)
-- All events survive page refresh (MongoDB persisted)
+- **Smart Functions**:
+  - Summarize long chat threads or complex notes.
+  - Convert meeting notes directly into actionable tasks.
+  - Sprint planning and priority suggestion algorithms.
+  - Tone and writing improvement tools.
+- **Resilient Engineering**: The AI service implements multi-key fallback rotation, strict 12-second timeouts, and daily usage limits tied to subscription tiers (Free = 10/day, Pro = 500/day).
 
 ---
 
-## Meetings (Jitsi Meet)
+## 🎥 Video Conferencing (Jitsi)
 
-Real video meetings with no account required.
+Zero-infrastructure video meetings integrated directly into the workspace.
 
-### Features Included
-
-- Room CRUD with unique 8-character roomId
-- Status tracking: upcoming, live, ended
-- Participant tracking
-- Full Jitsi Meet iframe integration (meet.jit.si)
-- HD video/audio, screen sharing, in-call chat
-- Raise hand, background blur
-- Role-based access: owner/admin/member can create, all can join
+- **Embedded Experience**: Full Jitsi Meet iframe integration (`meet.jit.si`) requiring no external desktop apps.
+- **Room Lifecycle**: Track meetings via status (Upcoming, Live, Ended) and monitor active participants.
+- **Rich Features**: HD Video/Audio, screen sharing, background blur, and in-call chat.
 
 ---
 
-## Billing & Subscription
+## 💳 Monetization & Billing
 
-Monetization with Razorpay payment gateway.
+A production-ready SaaS billing pipeline powered by Razorpay.
 
-### Features Included
-
-- Free / Pro Monthly (Rs. 999) / Pro Yearly (Rs. 9,999) tiers
-- 9-row feature comparison table (workspaces, members, storage, AI/day, upload, channels, support, branding, API)
-- Razorpay checkout with HMAC SHA-256 signature verification
-- Subscription lifecycle: create, cancel, resume
-- Coupon code system (direct Pro upgrade, bypasses Razorpay)
-- Razorpay config endpoint + UI status badges
-- Role-aware billing UI (non-admin warning + disabled checkout)
-- Usage display: members, AI calls, storage vs. plan limits
-- Invoice tracking with downloadable URLs
+- **Subscription Tiers**: Enforced boundaries for Free, Pro Monthly (Rs. 999), and Pro Yearly (Rs. 9,999) plans.
+- **Secure Checkout**: Razorpay checkout modal with strict backend HMAC SHA-256 webhook signature verification.
+- **Coupon Engine**: Direct Pro upgrade coupon codes bypassing Razorpay for promotional growth.
+- **Usage Dashboards**: Real-time UI badges tracking member limits, AI calls, and storage quotas against plan limits.
 
 ---
 
-## AI Assistant (Groq)
+## 📁 File Management & Media
 
-AI-powered productivity features.
+Secure, scalable asset handling.
 
-### Features Included
-
-- Groq API (llama-3.1-8b-instant, 0.4 temperature)
-- 6 functions:
-  - Summarize notes
-  - Improve writing
-  - Convert text to tasks
-  - Summarize chat messages
-  - Sprint planning
-  - Task prioritization
-- Daily usage limits: Free=10, Pro Monthly=300, Pro Yearly=500
-- 12-second timeout with silent fallback on failure
+- **Hybrid Storage**: Uploads flow through `multer` memory storage (25MB limit) before syncing securely to **Cloudinary** (with a local fallback).
+- **Validation**: Strict validation against 29 specific MIME types.
+- **Profile Customization**: Users can upload and crop custom avatars.
 
 ---
 
-## File Management
+## 🛡️ Administrative & Platform Features
 
-Upload and manage files.
+Tools for scaling and auditing the ecosystem.
 
-### Features Included
-
-- Multer memoryStorage (25MB limit, 29 MIME types)
-- Local storage: `uploads/{workspaceId}/{filename}`
-- Cloudinary storage with automatic fallback
-- Per-plan storage quotas with enforcement
-- File listing, streaming/download, delete
-- Drag-and-drop file upload in chat
-
----
-
-## Search
-
-Global search across modules.
-
-### Features Included
-
-- Workspace-scoped regex search
-- Searches tasks, notes, messages, members, files
-- Debounced search support
-
----
-
-## Notifications
-
-Central notification system.
-
-### Features Included
-
-- Types: task_assigned, mention, invite, due_reminder, note_shared, payment, system
-- List (latest 100)
-- Mark read, mark all read, delete
-- Unread count badge
-
----
-
-## Activity Log
-
-Track all workspace changes.
-
-### Features Included
-
-- Entity types: task, note, message, workspace, member, billing, file, meeting
-- Timeline view with actor population
-- Last 150 entries
-
----
-
-## Admin Panel
-
-Platform-wide administration.
-
-### Features Included
-
-- Statistics dashboard (users, workspaces, active subscriptions)
-- User management: search, pagination, role promote/demote, delete
-- Workspace list with member counts and plan badges
-- Admin-only access (role check middleware)
-
----
-
-## Data Export
-
-GDPR-compliant data export.
-
-### Features Included
-
-- One-click ZIP download of all workspace data
-- Includes: workspace.json, tasks.json, notes.json, messages.json, calendar.json, files.json
-- Uses adm-zip streaming with Content-Disposition header
-
----
-
-## Settings & Account
-
-Profile and preferences management.
-
-### Profile
-
-- Full name, username, bio
-- Avatar upload (local or Cloudinary)
-
-### Security
-
-- Change password
-- Session management (logout all)
-
-### Appearance
-
-- Theme: light, dark, system
-- Accent color picker
-- Compact mode toggle
-
----
-
-## Security Features
-
-- Password hashing (bcrypt, 12 rounds)
-- JWT token auth with tokenVersion
-- Input sanitization (strips `<>{}&$` across all inputs)
-- Note content XSS sanitization (strips scripts/styles/iframes/event handlers)
-- Rate limiting: global (500/15min) + auth (8/15min)
-- Helmet security headers
-- CORS whitelist
-- httpOnly cookies with sameSite
-- No stack traces in production errors
-- Parameterized queries via Mongoose
-
----
-
-## Infrastructure Features
-
-- Pino structured logging (configurable levels, redaction, serializers)
-- Redis: rate limiting + Socket.io adapter + Bull queue (all guarded)
-- Sentry error monitoring (guarded when DSN unset)
-- Cloudinary media storage (falls back to local)
-- Bull email queue with 3 retries (falls back to direct send)
-- Cron: expired token cleanup every 6 hours
-- CI/CD: GitHub Actions (92 tests + frontend build on push/PR)
-- API versioning: all routes at `/api` and `/api/v1`
-- Socket.io: 4 modules (chat, task, note, calendar) with JWT auth
-
----
-
-## Responsive Design
-
-Built for all screen sizes: mobile, tablet, laptop, desktop.
-
----
-
-## Use Cases
-
-- Startups
-- Small teams
-- Student teams
-- Freelancers
-- Portfolio showcase
-- Productivity management
-- Internal collaboration
+- **Global Search**: Workspace-scoped, debounced regex search across tasks, notes, messages, and files.
+- **Central Notifications**: 100-item inbox for mentions, due dates, payments, and invites.
+- **Activity Logging**: An immutable timeline tracking the last 150 workspace events (who changed what, and when).
+- **Data Export**: GDPR-compliant, one-click ZIP download streaming all workspace JSON data.
+- **Super Admin Panel**: A protected, global dashboard for monitoring total platform users, active subscriptions, and manually promoting/demoting users.
 
 ---
 
 ## Summary
 
-DsSync Hub is more than a CRUD project. It is a full-stack SaaS collaboration product demonstrating real engineering, product design thinking, integrations, and scalable architecture.
+DsSync Hub is substantially more than a standard portfolio project. It is a full-stack SaaS ecosystem demonstrating deep architectural thinking, real-world third-party integrations, and scalable product design.
+
+---
+
+<div align="center">
+  <a href="../README.md">🏠 Home</a> | <a href="frontend.md">Next: Frontend Architecture →</a>
+</div>

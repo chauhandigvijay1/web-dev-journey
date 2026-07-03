@@ -21,6 +21,7 @@ const sanitizeNoteContent = (htmlContent = '') =>
     .replace(/\son\w+=(?:"[^"]*"|'[^']*'|[^\s>]+)/gi, '')
     .replace(/\s(href|src)=["']javascript:[^"']*["']/gi, '')
     .replace(/\s(srcdoc|formaction)=["'][^"']*["']/gi, '')
+    .replace(/\sdir=["'][^"']*["']/gi, '')
 
 const toNote = (note) => ({
   id: note._id,

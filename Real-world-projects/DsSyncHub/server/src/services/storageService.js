@@ -12,11 +12,17 @@ const allowedMimeTypes = new Set([
   'image/png',
   'image/webp',
   'image/gif',
+  'image/svg+xml',
   'application/pdf',
   'text/plain',
   'text/csv',
+  'text/html',
+  'text/javascript',
+  'application/json',
   'application/zip',
   'application/x-zip-compressed',
+  'application/gzip',
+  'application/x-tar',
   'application/msword',
   'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
   'application/vnd.ms-excel',
@@ -25,7 +31,10 @@ const allowedMimeTypes = new Set([
   'application/vnd.openxmlformats-officedocument.presentationml.presentation',
   'audio/mpeg',
   'audio/wav',
+  'audio/ogg',
   'video/mp4',
+  'video/webm',
+  'video/ogg',
 ])
 
 const maxUploadBytes = 50 * 1024 * 1024
@@ -35,10 +44,16 @@ const allowedExtensions = new Set([
   '.png',
   '.webp',
   '.gif',
+  '.svg',
   '.pdf',
   '.txt',
   '.csv',
+  '.html',
+  '.js',
+  '.json',
   '.zip',
+  '.gz',
+  '.tar',
   '.doc',
   '.docx',
   '.xls',
@@ -47,7 +62,9 @@ const allowedExtensions = new Set([
   '.pptx',
   '.mp3',
   '.wav',
+  '.ogg',
   '.mp4',
+  '.webm',
 ])
 
 const safeBaseName = (value = '') =>
@@ -104,32 +121,36 @@ const storeRemotely = async (file, workspaceId) => {
   const storedName = `${Date.now()}-${token}-${baseName}${extension}`
 
   if (process.env.CLOUDINARY_CLOUD_NAME && process.env.CLOUDINARY_API_KEY && process.env.CLOUDINARY_API_SECRET) {
-    const cloudinary = require('cloudinary').v2
-    cloudinary.config({
-      cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-      api_key: process.env.CLOUDINARY_API_KEY,
-      api_secret: process.env.CLOUDINARY_API_SECRET,
-    })
-    const folder = workspaceId ? `dssync/${workspaceId}` : 'dssync'
-    const result = await new Promise((resolve, reject) => {
-      const uploadStream = cloudinary.uploader.upload_stream(
-        { folder, public_id: storedName.replace(/\.[^.]+$/, ''), resource_type: 'auto' },
-        (error, result) => {
-          if (error) reject(error)
-          else resolve(result)
-        },
-      )
-      uploadStream.end(file.buffer)
-    })
-    return {
-      name: storedName,
-      url: result.secure_url,
-      storagePath: result.public_id,
-      provider: 'cloudinary',
+    try {
+      const cloudinary = require('cloudinary').v2
+      cloudinary.config({
+        cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+        api_key: process.env.CLOUDINARY_API_KEY,
+        api_secret: process.env.CLOUDINARY_API_SECRET,
+      })
+      const folder = workspaceId ? `dssync/${workspaceId}` : 'dssync'
+      const result = await new Promise((resolve, reject) => {
+        const uploadStream = cloudinary.uploader.upload_stream(
+          { folder, public_id: storedName.replace(/\.[^.]+$/, ''), resource_type: 'auto' },
+          (error, result) => {
+            if (error) reject(error)
+            else resolve(result)
+          },
+        )
+        uploadStream.end(file.buffer)
+      })
+      return {
+        name: storedName,
+        url: result.secure_url,
+        storagePath: result.public_id,
+        provider: 'cloudinary',
+      }
+    } catch (cloudinaryError) {
+      console.warn(`Cloudinary upload failed, falling back to local storage: ${cloudinaryError.message}`)
     }
   }
 
-  // Fallback to local if no cloud storage configured
+  // Fallback to local if no cloud storage configured or cloud upload failed
   return storeLocally(file, workspaceId)
 }
 

@@ -368,9 +368,14 @@ const joinWorkspaceByCode = async (req, res, next) => {
       return res.status(400).json({ success: false, message: 'Invite code is required.' })
     }
 
+    // Check user authentication first
+    if (!req.user) {
+      return res.status(401).json({ success: false, message: 'Unauthorized. Please sign in to join a workspace.' })
+    }
+
     const workspace = await Workspace.findOne({ inviteCode, isArchived: false })
     if (!workspace) {
-      return res.status(404).json({ success: false, message: 'Invite code was not recognized.' })
+      return res.status(404).json({ success: false, message: 'Invite code was not recognized. Double-check the code and try again.' })
     }
 
     const result = await joinWorkspaceRecord({ workspace, user: req.user })

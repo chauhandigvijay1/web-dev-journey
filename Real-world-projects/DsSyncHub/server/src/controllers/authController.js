@@ -72,6 +72,7 @@ const registerUser = async (req, res, next) => {
       success: true,
       message: 'Account created successfully.',
       user: toPublicUser(user),
+      accessToken,
     })
   } catch (error) {
     return next(error)
@@ -113,6 +114,7 @@ const loginUser = async (req, res, next) => {
       success: true,
       message: 'Login successful.',
       user: toPublicUser(user),
+      accessToken,
     })
   } catch (error) {
     return next(error)
@@ -271,6 +273,7 @@ const googleAuth = async (req, res, next) => {
       success: true,
       message: 'Google auth successful.',
       user: toPublicUser(user),
+      accessToken,
     })
   } catch (error) {
     return next(error)

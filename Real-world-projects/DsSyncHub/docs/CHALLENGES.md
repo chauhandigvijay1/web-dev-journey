@@ -1,4 +1,7 @@
-# Technical Challenges & Solutions
+<div align="center">
+  <img alt="DsSync Hub" src="../client/public/logo_icon.svg" width="80" height="80">
+  <h1>Technical Challenges & Solutions</h1>
+</div>
 
 > The engineering problems we encountered building DsSync Hub, how we solved them, and what we learned.
 
@@ -332,7 +335,7 @@ Route through `stored.url` which dynamically provides the correct URL:
 ```javascript
 const stored = await storeFile(req.file, null)
 user.avatarUrl = stored.url.startsWith('http')
-  ? stored.url        // Cloudinary URL → serve from CDN
+  - stored.url        // Cloudinary URL → serve from CDN
   : `/api/users/avatar/${stored.name}`  // Local path → serve via Express
 ```
 
@@ -407,7 +410,7 @@ Socket.io events bypass the Express middleware chain. A malicious client could l
 ```javascript
 // OLD — trusts client-sent workspaceId
 socket.on('chat:message', (data) => {
-  io.to(`workspace:${data.workspaceId}`).emit('chat:message', data)
+  i*to(`workspace:${data.workspaceId}`).emit('chat:message', data)
 })
 ```
 
@@ -423,7 +426,7 @@ socket.on('chat:message', async (data) => {
   if (!membership) return
 
   const message = await Message.create({ ...data, sender: socket.userId })
-  io.to(`workspace:${data.workspaceId}`).emit('chat:message', message)
+  i*to(`workspace:${data.workspaceId}`).emit('chat:message', message)
 })
 ```
 
@@ -758,7 +761,7 @@ async applyCoupon(req, res) {
   workspace.plan = 'pro'
   await workspace.save()
   
-  return res.json({ message: 'Coupon applied! Workspace upgraded to Pro.', plan: 'pro' })
+  return res.json({ message: 'Coupon applied! Workspace upgraded to Pr*', plan: 'pro' })
 }
 ```
 
@@ -766,3 +769,9 @@ async applyCoupon(req, res) {
 - Razorpay errors from trailing whitespace and load-order are eliminated
 - Users see clear status indicators for billing configuration
 - Coupon codes enable direct Pro upgrades without payment, useful for testing and promotions
+
+---
+
+<div align="center">
+  <a href="../README.md">🏠 Home</a>
+</div>

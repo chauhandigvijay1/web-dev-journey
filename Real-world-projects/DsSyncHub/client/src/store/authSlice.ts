@@ -8,6 +8,7 @@ type AuthState = {
   isAuthenticated: boolean
   loading: boolean
   initialized: boolean
+  token: string | null
 }
 
 const initialState: AuthState = {
@@ -15,18 +16,19 @@ const initialState: AuthState = {
   isAuthenticated: false,
   loading: false,
   initialized: false,
+  token: localStorage.getItem('dssync-token'),
 }
 
 export const initializeAuth = createAsyncThunk('auth/initialize', async () => {
   const response = await authApi.getMe()
-  return response.user
+  return { user: response.user, accessToken: response.accessToken }
 })
 
 export const loginThunk = createAsyncThunk(
   'auth/login',
   async (payload: { identifier: string; password: string; rememberMe?: boolean }) => {
     const response = await authApi.login(payload)
-    return response.user
+    return { user: response.user, accessToken: response.accessToken }
   },
 )
 
@@ -41,7 +43,7 @@ export const registerThunk = createAsyncThunk(
     confirmPassword: string
   }) => {
     const response = await authApi.register(payload)
-    return response.user
+    return { user: response.user, accessToken: response.accessToken }
   },
 )
 
@@ -53,7 +55,7 @@ export const googleLoginThunk = createAsyncThunk(
   'auth/googleLogin',
   async (payload: { idToken: string }) => {
     const response = await authApi.googleLogin(payload)
-    return response.user
+    return { user: response.user, accessToken: response.accessToken }
   },
 )
 
@@ -61,7 +63,7 @@ export const googleRegisterThunk = createAsyncThunk(
   'auth/googleRegister',
   async (payload: { idToken: string }) => {
     const response = await authApi.googleLogin(payload)
-    return response.user
+    return { user: response.user, accessToken: response.accessToken }
   },
 )
 
@@ -83,6 +85,8 @@ const authSlice = createSlice({
     clearCredentials: (state) => {
       state.user = null
       state.isAuthenticated = false
+      state.token = null
+      localStorage.removeItem('dssync-token')
     },
     setLoading: (state, action: PayloadAction<boolean>) => {
       state.loading = action.payload
@@ -99,8 +103,12 @@ const authSlice = createSlice({
       .addCase(initializeAuth.fulfilled, (state, action) => {
         state.loading = false
         state.initialized = true
-        state.user = action.payload
+        state.user = action.payload.user
         state.isAuthenticated = true
+        const savedToken = localStorage.getItem('dssync-token')
+        if (savedToken) {
+          state.token = savedToken
+        }
       })
       .addCase(initializeAuth.rejected, (state) => {
         state.loading = false
@@ -114,8 +122,12 @@ const authSlice = createSlice({
       .addCase(loginThunk.fulfilled, (state, action) => {
         state.loading = false
         state.initialized = true
-        state.user = action.payload
+        state.user = action.payload.user
         state.isAuthenticated = true
+        if (action.payload.accessToken) {
+          state.token = action.payload.accessToken
+          localStorage.setItem('dssync-token', action.payload.accessToken)
+        }
       })
       .addCase(loginThunk.rejected, (state) => {
         state.loading = false
@@ -127,8 +139,12 @@ const authSlice = createSlice({
       .addCase(registerThunk.fulfilled, (state, action) => {
         state.loading = false
         state.initialized = true
-        state.user = action.payload
+        state.user = action.payload.user
         state.isAuthenticated = true
+        if (action.payload.accessToken) {
+          state.token = action.payload.accessToken
+          localStorage.setItem('dssync-token', action.payload.accessToken)
+        }
       })
       .addCase(registerThunk.rejected, (state) => {
         state.loading = false
@@ -138,11 +154,15 @@ const authSlice = createSlice({
         state.initialized = true
         state.user = null
         state.isAuthenticated = false
+        state.token = null
+        localStorage.removeItem('dssync-token')
       })
       .addCase(logoutThunk.rejected, (state) => {
         state.initialized = true
         state.user = null
         state.isAuthenticated = false
+        state.token = null
+        localStorage.removeItem('dssync-token')
       })
       .addCase(googleLoginThunk.pending, (state) => {
         state.loading = true
@@ -150,8 +170,12 @@ const authSlice = createSlice({
       .addCase(googleLoginThunk.fulfilled, (state, action) => {
         state.loading = false
         state.initialized = true
-        state.user = action.payload
+        state.user = action.payload.user
         state.isAuthenticated = true
+        if (action.payload.accessToken) {
+          state.token = action.payload.accessToken
+          localStorage.setItem('dssync-token', action.payload.accessToken)
+        }
       })
       .addCase(googleLoginThunk.rejected, (state) => {
         state.loading = false
@@ -163,8 +187,12 @@ const authSlice = createSlice({
       .addCase(googleRegisterThunk.fulfilled, (state, action) => {
         state.loading = false
         state.initialized = true
-        state.user = action.payload
+        state.user = action.payload.user
         state.isAuthenticated = true
+        if (action.payload.accessToken) {
+          state.token = action.payload.accessToken
+          localStorage.setItem('dssync-token', action.payload.accessToken)
+        }
       })
       .addCase(googleRegisterThunk.rejected, (state) => {
         state.loading = false

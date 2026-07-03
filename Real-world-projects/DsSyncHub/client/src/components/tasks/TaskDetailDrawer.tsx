@@ -241,6 +241,12 @@ const TaskDetailDrawer = ({ task, open, onClose }: TaskDetailDrawerProps) => {
                   } catch (error) {
                     if (getApiErrorCode(error) === 'storage_limit_exceeded') {
                       setUpgradeOpen(true)
+                    } else {
+                      dispatch(pushToast({
+                        title: 'Upload failed',
+                        description: 'The file could not be attached to this task.',
+                        tone: 'error',
+                      }))
                     }
                   } finally {
                     event.target.value = ''

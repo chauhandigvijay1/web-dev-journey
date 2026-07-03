@@ -124,7 +124,7 @@ const BillingPage = () => {
 
   const availableCoupons = useMemo(() => {
     if (!billingConfig?.coupons) return []
-    return billingConfig.coupons.filter((c) => c.type !== 'owner' || billingConfig.hasOwnerCoupon)
+    return billingConfig.coupons
   }, [billingConfig])
 
   const handleCopyCode = useCallback(async (code: string) => {

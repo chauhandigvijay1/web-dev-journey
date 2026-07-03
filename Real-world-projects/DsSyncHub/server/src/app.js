@@ -71,7 +71,9 @@ app.use(express.json({ limit: '1mb' }))
 app.use(express.urlencoded({ extended: true, limit: '1mb' }))
 app.use(sanitizeInput)
 
-if (Sentry) {
+if (Sentry && typeof Sentry.expressRequestHandler === 'function') {
+  app.use(Sentry.expressRequestHandler())
+} else if (Sentry && Sentry.Handlers && typeof Sentry.Handlers.requestHandler === 'function') {
   app.use(Sentry.Handlers.requestHandler())
 }
 
@@ -101,7 +103,9 @@ const mountRoutes = (prefix) => {
 mountRoutes('/api')
 mountRoutes('/api/v1')
 
-if (Sentry) {
+if (Sentry && typeof Sentry.setupExpressErrorHandler === 'function') {
+  Sentry.setupExpressErrorHandler(app)
+} else if (Sentry && Sentry.Handlers && typeof Sentry.Handlers.errorHandler === 'function') {
   app.use(Sentry.Handlers.errorHandler())
 }
 
