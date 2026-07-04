@@ -3,9 +3,9 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import axios from "axios";
 import { defaultStoredUserSettings } from "@/lib/authStorage";
 import { serializeFollowUpDate } from "@/lib/follow-up-date";
+import { getApiErrorMessage } from "@/lib/httpError";
 import { api } from "@/services/api";
 import { useAppSelector } from "@/store/hooks";
 import { Button } from "@/components/ui/button";
@@ -116,6 +116,7 @@ export default function AddJobPage() {
   }, [userSettings]);
 
   function startManualEntry() {
+    const currentUrl = jobUrl.trim();
     setExtractError(null);
     setExtractNotice(null);
     setBasic((current) => ({
@@ -131,8 +132,8 @@ export default function AddJobPage() {
       qualification: current.qualification,
       applyDeadline: current.applyDeadline,
       descriptionSummary: current.descriptionSummary,
-      originalApplyLink: current.originalApplyLink || jobUrl.trim(),
-      source: current.source || sourceFromUrl(jobUrl.trim()),
+      originalApplyLink: current.originalApplyLink || currentUrl,
+      source: current.source || sourceFromUrl(currentUrl),
       warning: current.warning,
     }));
     setExpectedSalary((current) => current || userSettings.jobPreferences.expectedSalaryRange);
@@ -141,9 +142,9 @@ export default function AddJobPage() {
   }
 
   async function handleExtract() {
+    const url = jobUrl.trim();
     setExtractError(null);
     setExtractNotice(null);
-    const url = jobUrl.trim();
     if (!url) {
       setExtractError("Enter a job URL");
       return;
@@ -187,19 +188,14 @@ export default function AddJobPage() {
       }
       setShowForm(true);
     } catch (error) {
-      const message =
-        axios.isAxiosError(error) &&
-        error.response?.data &&
-        typeof (error.response.data as { message?: string }).message === "string"
-          ? (error.response.data as { message: string }).message
-          : null;
-      setExtractError(message ?? "Could not fetch job details");
+      setExtractError(getApiErrorMessage(error, "Could not fetch job details"));
     } finally {
       setExtractLoading(false);
     }
   }
 
   async function handleSave() {
+    const currentUrl = jobUrl.trim();
     setSaveError(null);
     if (!basic.title.trim()) {
       setSaveError("Title is required");
@@ -222,14 +218,14 @@ export default function AddJobPage() {
         qualification: basic.qualification,
         applyDeadline: serializeFollowUpDate(basic.applyDeadline),
         descriptionSummary: basic.descriptionSummary,
-        originalApplyLink: basic.originalApplyLink || jobUrl.trim() || undefined,
+        originalApplyLink: basic.originalApplyLink || currentUrl || undefined,
         expectedSalary,
         offeredSalary,
         companyType,
         confidenceScore: Number.isFinite(score) ? score : 0,
         notes,
         followUpDate: serializeFollowUpDate(followUpDate),
-        source: basic.source || sourceFromUrl(jobUrl.trim()) || undefined,
+        source: basic.source || sourceFromUrl(currentUrl) || undefined,
       });
       if (!data.success) {
         setSaveError(data.message ?? "Could not save job");
@@ -237,13 +233,7 @@ export default function AddJobPage() {
       }
       router.push("/dashboard?jobSaved=1");
     } catch (error) {
-      const message =
-        axios.isAxiosError(error) &&
-        error.response?.data &&
-        typeof (error.response.data as { message?: string }).message === "string"
-          ? (error.response.data as { message: string }).message
-          : null;
-      setSaveError(message ?? "Could not save job");
+      setSaveError(getApiErrorMessage(error, "Could not save job"));
     } finally {
       setSaveLoading(false);
     }

@@ -9,10 +9,14 @@ function safeGetItem(key: string): string | null {
 }
 
 function safeSetItem(key: string, value: string): void {
+  const old = safeGetItem(key);
   try {
     localStorage.setItem(key, value);
   } catch {
     memoryStorage.set(key, value);
+  }
+  if (value !== old && typeof window !== "undefined") {
+    window.dispatchEvent(new Event("jobpilot:auth-updated"));
   }
 }
 

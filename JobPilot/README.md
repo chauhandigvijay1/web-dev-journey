@@ -1,462 +1,524 @@
 <p align="center">
-  <img src="./screenshots/logo.svg" alt="JobPilot" width="400" />
+  <img src="./docs/assets/screenshots/logo.svg" alt="JobPilot" width="420" />
 </p>
 
 <p align="center">
-  <strong>Track every application. Land every opportunity.</strong>
+  <strong>Your AI Career Operating System — Track every application, land every opportunity.</strong>
 </p>
 
 <p align="center">
-  <a href="#features">Features</a> •
-  <a href="#screenshots">Screenshots</a> •
-  <a href="#local-setup">Setup</a> •
-  <a href="#architecture">Architecture</a> •
-  <a href="#deployment">Deploy</a> •
-  <a href="#docs">Docs</a>
+  JobPilot replaces spreadsheets, sticky notes, and scattered browser tabs with a unified,
+  AI-powered workspace to manage your entire job search from one place.
 </p>
+
+<br/>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/tests-162%20passing-brightgreen" alt="Tests" />
-  <img src="https://img.shields.io/badge/build-passing-brightgreen" alt="Build" />
-  <img src="https://img.shields.io/badge/SaaS%20readiness-8.2%2F10-blue" alt="SaaS Readiness" />
-  <img src="https://img.shields.io/badge/license-MIT-blue" alt="License" />
-  <img src="https://img.shields.io/badge/Next.js-14-black" alt="Next.js" />
-  <img src="https://img.shields.io/badge/Express-5-green" alt="Express" />
-  <img src="https://img.shields.io/badge/AI-Groq%20Llama%203-orange" alt="AI" />
+  <a href="https://jobpilot-client-chi.vercel.app" target="_blank">
+    <img src="https://img.shields.io/badge/LIVE_DEMO-→_Web_App-18181b?style=for-the-badge&logo=vercel&logoColor=white" alt="Live Demo" />
+  </a>
+  <a href="./docs/index.md" target="_blank">
+    <img src="https://img.shields.io/badge/DOCUMENTATION-→_Read_the_Docs-2563eb?style=for-the-badge&logo=gitbook&logoColor=white" alt="Documentation" />
+  </a>
+  <a href="https://github.com/chauhandigvijay1/web-dev-journey" target="_blank">
+    <img src="https://img.shields.io/badge/SOURCE-→_GitHub-18181b?style=for-the-badge&logo=github&logoColor=white" alt="GitHub" />
+  </a>
+  <a href="https://web-dev-journey-cnee.onrender.com/api/health" target="_blank">
+    <img src="https://img.shields.io/badge/API-→_Health_Check-22c55e?style=for-the-badge&logo=render&logoColor=white" alt="API Health" />
+  </a>
 </p>
 
----
+<br/>
 
-**JobPilot** is a full-stack, AI-powered job application management platform that replaces spreadsheets, sticky notes, and scattered browser tabs with a unified workspace. Track applications through a Kanban pipeline, generate cover letters with AI, save jobs from 50+ portals via a Chrome extension, and never miss a follow-up again.
+<p align="center">
+  <img src="https://img.shields.io/badge/Tests-162_passing-brightgreen?style=flat-square&logo=vitest" alt="Tests" />
+  <img src="https://img.shields.io/badge/Version-1.0.2-blue?style=flat-square" alt="Version" />
+  <img src="https://img.shields.io/badge/License-MIT-blue?style=flat-square" alt="License" />
+  <img src="https://img.shields.io/badge/Framework-Next.js_14-black?style=flat-square&logo=next.js" alt="Next.js" />
+  <img src="https://img.shields.io/badge/API-Express_5-green?style=flat-square&logo=express" alt="Express" />
+  <img src="https://img.shields.io/badge/Database-MongoDB_Atlas-47A248?style=flat-square&logo=mongodb" alt="MongoDB" />
+  <img src="https://img.shields.io/badge/AI-Groq_Llama_3-orange?style=flat-square&logo=groq" alt="Groq" />
+  <img src="https://img.shields.io/badge/Extension-Chrome_MV3-4285F4?style=flat-square&logo=google-chrome" alt="Chrome Extension" />
+  <img src="https://img.shields.io/badge/SaaS_Readiness-8.2/10-blue?style=flat-square" alt="SaaS Readiness" />
+</p>
 
-| Layer | Stack |
-|-------|-------|
-| **Frontend** | Next.js 14 (App Router), TypeScript, TailwindCSS, shadcn/ui, Redux Toolkit |
-| **Backend** | Node.js, Express 5, Mongoose, JWT + bcrypt, structured logging |
-| **Database** | MongoDB Atlas with compound indexes and pagination |
-| **AI** | Groq API (Llama 3 70B) — resume parsing, ATS scoring, cover letters, skill gaps |
-| **Extension** | Chrome MV3 — 50+ job boards, LD+JSON @graph, AbortController retry |
-| **Infra** | Vercel (frontend), Render (backend), Cloudinary (uploads) |
-
----
-
-## Live URLs
-
-| Service | URL |
-|---------|-----|
-| Web App | [https://jobpilot-client-chi.vercel.app](https://jobpilot-client-chi.vercel.app) |
-| API | [https://web-dev-journey-cnee.onrender.com](https://web-dev-journey-cnee.onrender.com) |
-| Extension | `cd extension && zip -r ../extension.zip .` (load unpacked in Chrome) |
+<br/>
 
 ---
 
-## Features
+## 🎬 Motion Video Tour
 
-### 📋 Kanban Pipeline
-Drag jobs through **Saved → Applied → Interview → Offer → Rejected** with a visual board that keeps your entire search organized. Edit, filter, and bulk-manage applications in seconds.
+<p align="center">
+  <a href="https://jobpilot-client-chi.vercel.app" target="_blank">
+    <img src="./docs/assets/gifs/demo-thumbnail.gif" alt="JobPilot Motion Video" width="720" style="border-radius: 12px; border: 1px solid #e2e8f0; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);" />
+  </a>
+  <br/>
+  <em>Click above to watch the official JobPilot motion video. Replace <code>demo-thumbnail.gif</code> with the actual cover image for your motion video.</em>
+</p>
 
-### 🤖 AI-Powered Tools
-- **Cover letters** — tailored to the job + your resume in one click
-- **Resume parsing** — upload PDF/DOCX, AI extracts name, skills, experience, education, projects, links, and contact info with high accuracy
-- **ATS scoring** — analyze how well your resume matches any specific job
-- **Skill gap analysis** — paste a job description and see exactly what's missing
-- **Career recommendations** — suggested roles, career paths, and skill development plans
-- **Interview prep** — company-specific questions with candidate-tailored answer strategies
-- **Resume tailoring** — ATS-optimized rewrite suggestions per job
-
-### 🔌 Browser Extension
-Save jobs from **LinkedIn, Indeed, Naukri, Glassdoor, Wellfound, ZipRecruiter**, and 45+ other boards with one click. Press `Alt+Shift+J` to open from any tab. Auto-detects title, company, location, salary, and description via LD+JSON and board-specific selectors.
-
-### 🔔 Smart Reminders
-Automated follow-up email reminders with configurable timing, paginated batch processing, and per-job delay settings. Never lose track of a recruiter connection.
-
-### 📊 Analytics Dashboard
-Pipeline funnel view, status distribution charts, weekly application trends, and follow-up queue to spot momentum and blockers at a glance.
-
-### 🧠 Career Brain
-Upload your resume once and unlock: parsed profile viewer, ATS match scoring against your saved jobs, job recommendations based on your skills, and skill gap analysis — all in one place.
-
----
-
-## Screenshots
+<br/>
 
 <details>
-<summary>Click to expand — 14 screenshots</summary>
+<summary><strong>📑 Table of Contents</strong></summary>
 
-| Landing Page | Dashboard |
-|--------------|-----------|
-| <img src="./screenshots/LandingPage.png" width="320" style="border-radius:8px"> | <img src="./screenshots/Dashboard.png" width="320" style="border-radius:8px"> |
-| **Login** | **Sign Up** |
-| <img src="./screenshots/Login.png" width="320" style="border-radius:8px"> | <img src="./screenshots/Signup.png" width="320" style="border-radius:8px"> |
-| **Jobs** | **Add Job** |
-| <img src="./screenshots/Jobs.png" width="320" style="border-radius:8px"> | <img src="./screenshots/AddJob.png" width="320" style="border-radius:8px"> |
-| **Analytics** | **ATS & Skill Gap** |
-| <img src="./screenshots/Analytics.png" width="320" style="border-radius:8px"> | <img src="./screenshots/ATS%26SkillGap.png" width="320" style="border-radius:8px"> |
-| **Career Brain** | **Reminders** |
-| <img src="./screenshots/Career%20brain.png" width="320" style="border-radius:8px"> | <img src="./screenshots/Reminder.png" width="320" style="border-radius:8px"> |
-| **Profile & Theme** | **Change Password** |
-| <img src="./screenshots/Profile%26Theme.png" width="320" style="border-radius:8px"> | <img src="./screenshots/ChangePassword.png" width="320" style="border-radius:8px"> |
-| **Account & Job Export** | |
-| <img src="./screenshots/Account%26JobExport.png" width="320" style="border-radius:8px"> | |
+- [Overview](#overview)
+- [Feature Showcase (GIFs & UI)](#feature-showcase-gifs--ui)
+- [Architecture](#architecture)
+- [Tech Stack](#tech-stack)
+- [Getting Started](#getting-started)
+- [Environment Variables](#environment-variables)
+- [API Reference](#api-reference)
+- [Database Schema](#database-schema)
+- [Testing](#testing)
+- [Deployment](#deployment)
+- [Security](#security)
+- [Performance](#performance)
+- [Roadmap](#roadmap)
+- [Known Limitations](#known-limitations)
+- [Contributing](#contributing)
+- [License](#license)
+- [Author](#author)
+- [Support](#support)
 
 </details>
 
+<br/>
+
 ---
 
-## Local Setup
+## 🌍 Overview
+
+### The Problem
+
+Job seekers juggle spreadsheets, browser tabs, email drafts, and sticky notes to track applications. Follow-ups slip through the cracks. Cover letters are written from scratch every time. Resumes need manual tailoring per job. There is no single source of truth — and every missed follow-up is a missed opportunity.
+
+### The Solution
+
+**JobPilot** is a full-stack, AI-powered job application management platform that consolidates your entire job search into a unified workspace. It replaces chaos with structure: a Kanban pipeline visualizes your progress, AI generates cover letters and interview prep in seconds, a Chrome extension captures jobs from 50+ portals with one click, and smart reminders ensure you never miss a follow-up again.
+
+<br/>
+
+---
+
+## 🌟 Feature Showcase (GIFs & UI)
+
+Rather than scattering images, explore the core modules of JobPilot below. **Interactive Workflows** are captured as GIFs, while **Static Interfaces** are presented as high-resolution screenshots.
+
+### 🔄 Interactive Workflows
+
+<details open>
+  <summary><strong>1. The Kanban Pipeline</strong></summary>
+  <p><em>Drag jobs through Saved → Applied → OA → Interview → Offer. Filter, edit, and bulk-manage applications with instant state updates.</em></p>
+  <p align="center">
+    <img src="./docs/assets/gifs/kanban-workflow.gif" width="720" style="border-radius: 8px; border: 1px solid #e2e8f0;" alt="Kanban Pipeline" />
+  </p>
+</details>
+
+<details>
+  <summary><strong>2. Edge Scraping (Chrome Extension)</strong></summary>
+  <p><em>Save jobs from LinkedIn, Indeed, Naukri, Glassdoor, and 50+ other boards with one click using <kbd>Alt</kbd>+<kbd>Shift</kbd>+<kbd>J</kbd>.</em></p>
+  <p align="center">
+    <img src="./docs/assets/gifs/extension-save.gif" width="720" style="border-radius: 8px; border: 1px solid #e2e8f0;" alt="Edge Scraping" />
+  </p>
+</details>
+
+<details>
+  <summary><strong>3. AI-Powered Tools (Cover Letters & ATS)</strong></summary>
+  <p><em>Generate personalized cover letters, interview questions, and ATS scores via Groq Llama 3 in real-time.</em></p>
+  <p align="center">
+    <img src="./docs/assets/gifs/ai-interview-question.gif" width="720" style="border-radius: 8px; border: 1px solid #e2e8f0;" alt="AI Streaming" />
+  </p>
+</details>
+
+<details>
+  <summary><strong>4. AI Career Brain (Resume Parsing)</strong></summary>
+  <p><em>Upload your PDF resume once. The AI extracts skills, experience, and education to map against jobs.</em></p>
+  <p align="center">
+    <img src="./docs/assets/gifs/resume-upload.gif" width="720" style="border-radius: 8px; border: 1px solid #e2e8f0;" alt="Resume Extraction" />
+  </p>
+</details>
+
+<br/>
+
+### 🖥️ Core Interfaces
+
+<details open>
+  <summary><strong>1. Analytics Dashboard</strong></summary>
+  <p><em>Pipeline funnel views, status distribution, and weekly application trends to measure your momentum.</em></p>
+  <p align="center">
+    <img src="./docs/assets/screenshots/Analytics.png" width="720" style="border-radius: 8px; border: 1px solid #e2e8f0;" alt="Analytics Dashboard" />
+  </p>
+</details>
+
+<details>
+  <summary><strong>2. Global Applications Dashboard</strong></summary>
+  <p><em>The macro-level table view of your entire job search dataset.</em></p>
+  <p align="center">
+    <img src="./docs/assets/screenshots/Dashboard.png" width="720" style="border-radius: 8px; border: 1px solid #e2e8f0;" alt="Global Dashboard" />
+  </p>
+</details>
+
+<details>
+  <summary><strong>3. Reminders Engine</strong></summary>
+  <p><em>Automated follow-up emails with configurable timing and paginated batch processing.</em></p>
+  <p align="center">
+    <img src="./docs/assets/screenshots/Reminder.png" width="720" style="border-radius: 8px; border: 1px solid #e2e8f0;" alt="Reminders Engine" />
+  </p>
+</details>
+
+<details>
+  <summary><strong>4. Profile, Settings, & Theming</strong></summary>
+  <p><em>Fully customizable workspace featuring 7 distinct themes and 6 accent colors.</em></p>
+  <p align="center">
+    <img src="./docs/assets/screenshots/Profile%26Theme.png" width="720" style="border-radius: 8px; border: 1px solid #e2e8f0;" alt="Settings and Themes" />
+  </p>
+</details>
+
+<details>
+  <summary><strong>5. Landing Page</strong></summary>
+  <p><em>The authenticated entry point and value proposition.</em></p>
+  <p align="center">
+    <img src="./docs/assets/screenshots/LandingPage.png" width="720" style="border-radius: 8px; border: 1px solid #e2e8f0;" alt="Landing Page" />
+  </p>
+</details>
+
+<br/>
+
+---
+
+## 🏛️ Architecture
+
+### System Overview
+
+```mermaid
+graph TB
+    subgraph Client["Client Layer"]
+        Browser["Next.js 14 App<br/>Vercel (SSR + Static)"]
+        Extension["Chrome MV3 Extension<br/>popup ↔ content ↔ background"]
+    end
+
+    subgraph API["API Layer"]
+        Express["Express 5 Server<br/>Port 5051"]
+        Auth["Auth Service<br/>JWT + bcrypt + Google OAuth"]
+        JobSvc["Job Service<br/>CRUD + Extraction + SSRF Protection"]
+        AISvc["AI Service<br/>Groq Llama 3 — 8 Endpoints"]
+        ReminderSvc["Reminder Service<br/>node-cron + nodemailer (batched)"]
+        CareerSvc["Career Brain<br/>Resume Parsing + ATS Scoring"]
+    end
+
+    subgraph Storage["Storage Layer"]
+        MongoDB["MongoDB Atlas<br/>4 Collections, Compound Indexes"]
+        Cloudinary["Cloudinary<br/>Resume PDFs + Profile Images"]
+        Cache["In-Memory Cache<br/>SMTP Transporter + Token Map"]
+    end
+
+    subgraph External["External Services"]
+        Groq["Groq API<br/>llama-3.3-70b-versatile"]
+        Google["Google OAuth<br/>One Tap + Sign-In"]
+        SMTP["SMTP Provider<br/>SendGrid / Gmail"]
+    end
+
+    Browser --> Express
+    Extension --> Express
+    Express --> Auth
+    Express --> JobSvc
+    Express --> AISvc
+    Express --> ReminderSvc
+    Express --> CareerSvc
+    Auth --> MongoDB
+    Auth --> Google
+    JobSvc --> MongoDB
+    AISvc --> Groq
+    ReminderSvc --> SMTP
+    ReminderSvc --> MongoDB
+    CareerSvc --> Cloudinary
+    CareerSvc --> MongoDB
+    Express --> Cache
+
+    style Client fill:#e1f5fe,stroke:#0288d1,color:#01579b
+    style API fill:#e8f5e9,stroke:#388e3c,color:#1b5e20
+    style Storage fill:#fff3e0,stroke:#f57c00,color:#e65100
+    style External fill:#f3e5f5,stroke:#7b1fa2,color:#4a148c
+```
+
+### Extension Auth Flow
+
+```mermaid
+sequenceDiagram
+    actor User
+    participant Web as Next.js Web App
+    participant Ext as Chrome Extension
+    participant API as Express API
+
+    User->>Web: Log in
+    Web->>Web: Store JWT in localStorage
+    Note over Ext: Content script reads token
+    Ext->>Ext: Dispatch SYNC_AUTH_TOKEN to background
+    Ext->>API: POST /api/jobs (Bearer)
+    API->>API: Verify JWT + tokenVersion
+    API-->>Ext: 200 / 401
+
+    alt 401 Unauthorized
+        Ext->>Ext: Remove stale token
+        Ext->>Web: Request re-sync from open tab
+        Web-->>Ext: Fresh token
+        Ext->>API: Retry with new token
+    end
+```
+
+<br/>
+
+---
+
+## 💻 Tech Stack
+
+| Layer | Technology | Purpose |
+|-------|-----------|---------|
+| **Frontend** | Next.js 14 (App Router), TypeScript, TailwindCSS 3, shadcn/ui, Redux Toolkit, `@dnd-kit`, Lucide Icons | UI rendering, state management, drag-and-drop Kanban |
+| **Backend** | Node.js, Express 5, Mongoose 8, JWT + `bcrypt` | REST API, authentication, business logic |
+| **Database** | MongoDB Atlas (4 collections, compound indexes, paginated queries) | Persistent storage |
+| **AI** | Groq API — Llama 3.3 70B (8 endpoints) | Cover letters, interview prep, ATS scoring, skill gaps, resume parsing |
+| **Extension** | Chrome MV3 — Scripting API, Storage API, AbortController + exponential backoff | One-click job saving from 50+ boards |
+| **Files** | Multer (memory storage) → Cloudinary (raw + image), pdf-parse + mammoth | Resume and profile image uploads |
+| **Email** | `nodemailer` (cached SMTP), `node-cron` (paginated batch reminders) | Automated follow-ups and notifications |
+| **Auth** | Dual JWT (access 15m + refresh 30d httpOnly), Google OAuth, `bcrypt` (cost 12), `tokenVersion` invalidation | Secure authentication |
+| **Security** | `helmet`, `cors`, `hpp`, `express-rate-limit` (3 tiers), SSRF IP blocklist, input sanitization | OWASP Top 10 protection |
+| **Testing** | Vitest, Supertest, `@testing-library/react`, Playwright (E2E) | 162 tests across all layers |
+| **Deployment** | Vercel (frontend), Render (backend) | CI/CD with environment variable injection |
+
+<br/>
+
+---
+
+## 🚀 Getting Started
 
 ### Prerequisites
-- Node.js 18+
-- MongoDB (local or Atlas)
-- Git
-- A [Groq API key](https://console.groq.com) (free tier works)
 
-### 1. Clone
+- [Node.js](https://nodejs.org) 18+
+- [MongoDB Atlas](https://www.mongodb.com/atlas) cluster (free tier works) or local MongoDB
+- [Groq API key](https://console.groq.com) (free tier — sufficient for development)
+- [Git](https://git-scm.com)
+
+### 1. Clone the Repository
 
 ```bash
 git clone https://github.com/chauhandigvijay1/web-dev-journey.git
 cd web-dev-journey/JobPilot
 ```
 
-### 2. Backend
+### 2. Backend Setup
 
 ```bash
 cd backend
 npm install
-cp .env.example .env   # edit MONGO_URI, JWT_SECRET, JWT_REFRESH_SECRET, GROQ_API_KEY
-npm run dev            # → http://localhost:5051
+cp .env.example .env
 ```
 
-### 3. Frontend
+### 3. Frontend Setup
 
 ```bash
-cd frontend
+cd ../frontend
 npm install
-cp .env.local.example .env.local   # set NEXT_PUBLIC_API_URL=http://localhost:5051/api
-npm run dev                        # → http://localhost:3000
+cp .env.local.example .env.local
 ```
 
-### 4. Extension (development)
+### 4. Run Locally
 
-1. Open `chrome://extensions`
-2. Enable **Developer mode**
-3. Click **Load unpacked** → select the `extension/` folder
-4. Pin the JobPilot icon to the toolbar
-
-### 5. Verify
+Run the backend and frontend concurrently in separate terminal instances:
 
 ```bash
-# Backend tests (21)
+# Terminal 1 (Backend - Port 5051)
+cd backend && npm run dev
+
+# Terminal 2 (Frontend - Port 3000)
+cd frontend && npm run dev
+```
+
+### 5. Chrome Extension (Development)
+
+1. Open `chrome://extensions` in your browser.
+2. Enable **Developer mode** (toggle top-right).
+3. Click **Load unpacked**.
+4. Select the `extension/` folder from this repository.
+5. Pin JobPilot to the toolbar. Press <kbd>Alt</kbd>+<kbd>Shift</kbd>+<kbd>J</kbd> to open the popup from any tab.
+
+### 6. Verify Tests
+
+```bash
+# Backend tests (21 passing)
 cd backend && npm test
 
-# Frontend unit + component tests (125)
+# Frontend unit + component tests (125 passing)
 cd frontend && npm test
 
-# E2E tests (16) — requires both servers running
+# End-to-end tests (16 passing) — requires both servers running
 cd frontend && npx playwright test
-
-# Build
-cd frontend && npm run build
-
-# Total: 162 tests, all passing ✓
 ```
+
+<br/>
 
 ---
 
-## Architecture
+## 🔐 Environment Variables
 
-```
-                    ┌─────────────────────────────────────┐
-                    │         Chrome Extension             │
-                    │  popup ↔ content ←→ background.js    │
-                    │  chrome.storage + safe in-memory Map  │
-                    └──────────────┬──────────────────────┘
-                                   │ SYNC_AUTH_TOKEN / SAVE_JOB
-                                   ▼
-┌──────────────────────────────────────────────────────────────┐
-│                   Next.js Frontend (Vercel)                   │
-│                                                              │
-│  ┌──────────┐  ┌───────────┐  ┌──────────┐  ┌───────────┐  │
-│  │ App      │  │ Components│  │ Redux    │  │ Theme     │  │
-│  │ Router   │  │ (shadcn)  │  │ Store    │  │ System    │  │
-│  │ 13 pages │  │ + UI kit  │  │ (auth)   │  │ 7 themes  │  │
-│  └──────────┘  └───────────┘  └──────────┘  │ 6 accents │  │
-│                                              └───────────┘  │
-│  ┌──────────┐  ┌───────────┐  ┌──────────────────────────┐  │
-│  │ Services │  │ Hooks     │  │ middleware.ts             │  │
-│  │ (axios,  │  │ (useJobs  │  │ (server-side auth guard)  │  │
-│  │ 30s TO)  │  │ LRU cache)│  │ + security headers        │  │
-│  └──────────┘  └───────────┘  └──────────────────────────┘  │
-└──────────────────────────┬───────────────────────────────────┘
-                           │ REST API (JWT Bearer)
-                           ▼
-┌──────────────────────────────────────────────────────────────┐
-│                  Express Backend (Render)                     │
-│                                                              │
-│  ┌──────────┐  ┌───────────┐  ┌──────────┐  ┌───────────┐  │
-│  │ Auth     │  │ Job CRUD  │  │ AI       │  │ Reminders │  │
-│  │ bcrypt   │  │ Pagination│  │ Groq API │  │ node-cron │  │
-│  │ JWT      │  │ SSRF      │  │ Rate     │  │ nodemailer│  │
-│  │ OAuth    │  │ protect   │  │ limited  │  │ batch     │  │
-│  └──────────┘  └───────────┘  └──────────┘  └───────────┘  │
-│                                                              │
-│  ┌──────────┐  ┌───────────┐  ┌──────────────────────────┐  │
-│  │ Career   │  │ Uploads   │  │ Middleware                │  │
-│  │ Brain    │  │ Cloudinary│  │ helmet / compression /    │  │
-│  │ (resume  │  │ Multer    │  │ hpp / rate-limit /        │  │
-│  │ parsing) │  │ 10 MB max│  │ sanitize / requestId      │  │
-│  └──────────┘  └───────────┘  └──────────────────────────┘  │
-│                                                              │
-│  ┌──────────────────────────────────────────────────────┐   │
-│  │  MongoDB Atlas                                        │   │
-│  │  ┌──────────┐  ┌──────────────┐  ┌─────────────────┐ │   │
-│  │  │ Users    │  │ Jobs         │  │ ResumeProfiles   │ │   │
-│  │  │tokenVer- │  │ compound idx │  │ parsedData with  │ │   │
-│  │  │sion, hash│  │ pagination   │  │ skills, projects │ │   │
-│  │  └──────────┘  └──────────────┘  │ links, contact   │ │   │
-│  │  ┌──────────────────────────┐    └─────────────────┘ │   │
-│  │  │ ReminderQueue             │                         │   │
-│  │  │ (paginated batch sweep)   │                         │   │
-│  │  └──────────────────────────┘                         │   │
-│  └──────────────────────────────────────────────────────┘   │
-└──────────────────────────────────────────────────────────────┘
-```
-
----
-
-## Security
-
-| Category | Measures |
-|----------|----------|
-| **Authentication** | bcrypt with salt rounds, JWT access (7d) + refresh (30d), separate secrets ≥32 chars, `tokenVersion` session invalidation on password change |
-| **OWASP Top 10** | SSRF private IP blocklist, XSS via URL validation, CSP (extension), parameter pollution (hpp), input sanitization (`$`, `.`, `__proto__`) |
-| **Transport** | HSTS (2 years, preload), X-Frame-Options DENY, X-Content-Type-Options nosniff, Referrer-Policy strict-origin |
-| **Rate Limiting** | Auth (12/10min), API (250/15min), AI (20/15min) — all configurable via env |
-| **Storage** | All `localStorage`/`chrome.storage` calls wrapped in try-catch with in-memory Map fallback (private browsing safe) |
-| **API** | CORS whitelist (no null origin), compression, request IDs for audit trail, structured error logging |
-| **Data Isolation** | All user-data queries scoped by `req.user._id` — no cross-tenant leakage |
-
----
-
-## Environment Variables
+> **Note:** Never commit your `.env` files. Below are the required configurations; refer to the [Environment Documentation](./docs/environment.md) for the full list of 37 optional parameters.
 
 ### Backend (`backend/.env`)
 
-| Variable | Required | Default | Description |
-|----------|----------|---------|-------------|
-| `MONGO_URI` | Yes | — | MongoDB connection string |
-| `JWT_SECRET` | Yes | — | Access token signing secret (≥32 chars) |
-| `JWT_REFRESH_SECRET` | Yes | — | Refresh token signing secret (≥32 chars) |
-| `GROQ_API_KEY` | Yes | — | Groq API key for all AI features |
-| `SMTP_HOST` | For reminders | — | SMTP server hostname |
-| `SMTP_PORT` | For reminders | `587` | SMTP port |
-| `SMTP_USER` | For reminders | — | SMTP username |
-| `SMTP_PASS` | For reminders | — | SMTP password |
-| `FROM_EMAIL` | For reminders | — | Sender address for reminder emails |
-| `CLIENT_URL` | For CORS | `http://localhost:3000` | Allowed CORS origin |
-| `NODE_ENV` | No | `development` | Environment mode |
-| `AI_RATE_LIMIT_WINDOW_MINUTES` | No | `1` | AI rate limit window |
-| `AI_RATE_LIMIT_MAX` | No | `10` | Max AI requests per window |
+| Variable | Status | Description | Example Placeholder |
+|----------|--------|-------------|---------------------|
+| `MONGO_URI` | **Required** | MongoDB Atlas connection string | `mongodb+srv://user:pass@cluster.mongodb.net/test` |
+| `JWT_SECRET` | **Required** | Access token secret (≥32 chars) | `your_secure_32_character_secret_string` |
+| `JWT_REFRESH_SECRET`| **Required** | Refresh token secret (≥32 chars) | `another_secure_32_character_secret` |
+| `GROQ_API_KEY` | **Required** | Groq API key for AI features | `gsk_your_api_key_here` |
+| `PORT` | Optional | HTTP listen port | `5051` |
 
 ### Frontend (`frontend/.env.local`)
 
-| Variable | Required | Description |
-|----------|----------|-------------|
-| `NEXT_PUBLIC_API_URL` | Yes | Backend API base URL (e.g. `http://localhost:5051/api`) |
-| `NEXT_PUBLIC_GOOGLE_CLIENT_ID` | For Google auth | Google OAuth client ID |
+| Variable | Status | Description | Example Placeholder |
+|----------|--------|-------------|---------------------|
+| `NEXT_PUBLIC_API_URL`| **Required** | Backend API base URL | `http://localhost:5051/api` |
+
+<br/>
 
 ---
 
-## Extension Auth Flow
+## 📡 API Reference
 
-```
-User logs in (web app)
-       │
-       ▼
-Token stored in localStorage.jobpilot_token
-       │
-       ▼
-Content script detects token → sends SYNC_AUTH_TOKEN to background worker
-       │
-       ▼
-Background stores token + expiry in chrome.storage.local (with in-memory fallback)
-       │
-       ▼
-Popup checks storage:
-  ├─ Token exists + not expired → authenticated ✓
-  │       │
-  │       ▼
-  │   Save button → SAVE_JOB → POST /api/jobs (Bearer token)
-  │       │
-  │       └─ 401? → remove token → request re-sync from open tab → retry
-  │
-  └─ No token → "Sign in to JobPilot" button → opens web app login
-```
+All API routes are mounted under `/api` on the Express backend. Authentication is handled via the `Authorization: Bearer <token>` header. For exhaustive schemas, refer to the [API Documentation](./docs/api.md).
+
+| Domain | Route | Method | Rate Limited | Description |
+|--------|-------|--------|--------------|-------------|
+| **Auth** | `/api/auth/login` | `POST` | Yes (12/10m) | Authenticate user & issue dual JWT |
+| **Auth** | `/api/auth/refresh` | `POST` | No | Refresh token pair via Cookie |
+| **Jobs** | `/api/jobs/extract` | `POST` | No | Extract data from URL (SSRF protected) |
+| **AI** | `/api/ai/cover-letter` | `POST` | Yes (20/15m) | Generate personalized cover letter |
+| **Brain**| `/api/career-brain/resume`| `POST` | No | Upload and parse PDF resume |
+| **Cron** | `/api/system/reminders/sweep`| `POST` | No | Trigger manual SMTP digest (Secret Header) |
+
+<br/>
 
 ---
 
-## Deployment
+## 🗄️ Database Schema
 
-### Frontend → Vercel
+JobPilot relies on **MongoDB Atlas** running 4 highly-indexed collections. For exact indexing logic, see the [Database Docs](./docs/database.md).
 
-| Setting | Value |
-|---------|-------|
-| Root directory | `JobPilot/frontend` |
-| Framework | Next.js (auto-detected) |
-| Environment | `NEXT_PUBLIC_API_URL` = production backend URL |
+1. **`users`**: Core identity, `bcrypt` password hashes, and `tokenVersion` security integers.
+2. **`jobs`**: Polymorphic schema covering 50+ board variations, arrays of required skills, embedded contacts, and Kanban status enums.
+3. **`resumeprofiles`**: Extracted JSON blobs covering Education, Projects, and Certifications, mapped to Cloudinary CDN URLs.
+4. **`reminderqueues`**: High-throughput cron state tracking with exponential backoff timers.
 
-### Backend → Render
-
-| Setting | Value |
-|---------|-------|
-| Root directory | `JobPilot/backend` |
-| Start command | `npm start` |
-| Environment | All vars from `backend/.env` |
-
-### Extension → Chrome Web Store
-
-```bash
-cd extension
-zip -r ../extension.zip .
-# Upload to Chrome Developer Dashboard
-```
+<br/>
 
 ---
 
-## Manual Verification Checklist
+## 🧪 Testing
 
-<details>
-<summary><strong>Web App</strong> (8 checks)</summary>
+A strict 162-Test Quality Assurance Matrix guards JobPilot against regressions.
 
-- [ ] Register a new account → redirected to dashboard
-- [ ] Login with email/username → dashboard loads with 0 jobs
-- [ ] Google OAuth login works
-- [ ] Add a job manually (title, company, location, status) → appears in Kanban
-- [ ] Drag a job card to a different status column → status updates
-- [ ] Navigate to Analytics → charts show data (or empty state)
-- [ ] Navigate to Settings → update preferences, save
-- [ ] Visit `/login` while already logged in → redirected to dashboard
-</details>
+| Layer | Tool | Count | Coverage Focus |
+|-------|------|-------|----------------|
+| **Backend Unit** | Vitest + Supertest | 21 | Auth pipelines, job extraction logic, SMTP sweeps. |
+| **Frontend Unit** | Vitest + RTL | 125 | React components, Kanban drag-and-drop state, Redux slices. |
+| **End-to-End** | Playwright | 16 | Browser extension interactions, OAuth, full pipeline flows. |
+| **Total** | — | **162** | **100% Passing ✓** |
 
-<details>
-<summary><strong>Backend API</strong> (5 checks)</summary>
-
-- [ ] `GET /api/health` → `{ success: true, data: { db: "connected" } }`
-- [ ] `GET /api/jobs?page=1&limit=10` → paginated results
-- [ ] `POST /api/jobs/extract` with valid URL → extracted fields
-- [ ] `POST /api/jobs/extract` with `http://localhost:27017/` → SSRF warning
-- [ ] AI routes return 429 after 20 requests in 15 minutes
-</details>
-
-<details>
-<summary><strong>Chrome Extension</strong> (9 checks)</summary>
-
-- [ ] Load unpacked → icon appears in toolbar
-- [ ] `Alt+Shift+J` opens popup from any tab
-- [ ] LinkedIn job posting → popup shows title/company + "Save"
-- [ ] Click "Save" → success with "View on Dashboard"
-- [ ] Click "View on Dashboard" → opens JobPilot
-- [ ] Save same job again → "Already saved"
-- [ ] Sign out of web app → extension shows "Sign in to JobPilot"
-- [ ] Click "Sign in" → opens web app login
-- [ ] Non-job page (e.g. Google) → "No job detected"
-</details>
-
-<details>
-<summary><strong>Tests</strong> (6 checks)</summary>
-
-- [ ] `cd backend && npm test` → 21 pass
-- [ ] `GET /api/jobs/count` → `{ data: { count: N } }`
-- [ ] `cd frontend && npm test` → 125 pass
-- [ ] `cd frontend && npx playwright test` → 16 e2e pass
-- [ ] `cd frontend && npm run build` → 0 errors
-- [ ] **Total**: 162 passing tests ✓
-</details>
+<br/>
 
 ---
 
-## Tech Stack
+## 🚀 Deployment
 
-| Category | Technologies |
-|----------|-------------|
-| **Frontend** | Next.js 14, TypeScript, TailwindCSS 3, shadcn/ui, Redux Toolkit, Lucide Icons |
-| **Backend** | Node.js, Express 5, Mongoose, JWT, bcrypt, helmet, compression, hpp |
-| **Database** | MongoDB Atlas (compound indexes, paginated queries) |
-| **AI** | Groq API (Llama 3 70B), structured JSON prompts with fallback parsers |
-| **Extension** | Chrome MV3, Scripting API, Storage API, AbortController + exponential backoff |
-| **File Uploads** | Multer (memory storage), Cloudinary (raw + image), pdf-parse + mammoth |
-| **Email** | nodemailer (cached SMTP transporter), node-cron (paginated batch reminders) |
-| **Testing** | Vitest, Supertest, @testing-library/react, @testing-library/jest-dom, Playwright |
-| **CI/CD** | Vercel (frontend auto-deploy), Render (backend) |
+- **Next.js Frontend**: Deployed seamlessly on **Vercel** via automatic Git push triggers.
+- **Express Backend**: Deployed as a Dockerized Node.js Web Service on **Render**.
+- **MV3 Extension**: Uploaded manually to the **Chrome Web Store** Dashboard.
+
+*(Step-by-step instructions available in the [Deployment Guide](./docs/deployment.md))*
+
+<br/>
 
 ---
 
-## Project Structure
+## 🛡️ Security
 
-```
-JobPilot/
-├── backend/                  # Express API (port 5051)
-│   ├── src/
-│   │   ├── config/           # env validation, database, cloudinary
-│   │   ├── controllers/      # auth, jobs, AI, career-brain, upload, health
-│   │   ├── middleware/        # auth guard, upload, security, rate-limits
-│   │   ├── models/           # User, Job, ResumeProfile, ReminderQueue
-│   │   ├── routes/           # Express routers (7 modules)
-│   │   ├── services/         # auth, job, mail, reminder, job-extraction
-│   │   └── utils/            # JWT, groq, cloudinary upload, async handler, logger
-│   └── tests/                # 21 tests (5 files)
-├── frontend/                 # Next.js 14 (13 routes)
-│   ├── app/                  # App Router — landing, auth, dashboard/*
-│   ├── components/           # Dashboard shell, job views, UI kit (14 primitives)
-│   ├── hooks/                # useJobs (AbortController + LRU eviction)
-│   ├── lib/                  # Analytics, auth, theme, reminders, filters
-│   ├── store/                # Redux Toolkit (auth slice)
-│   ├── services/             # Axios client (30s timeout, safe localStorage)
-│   ├── public/               # favicon.svg, manifest.json, og-image.svg
-│   └── tests/                # 125 unit + component + 16 e2e Playwright
-├── extension/                # Chrome MV3 (50+ job boards)
-│   ├── icons/                # SVG + PNG (16/48/128)
-│   ├── popup.html / popup.js # Connection status, save states
-│   ├── content.js            # LD+JSON @graph + 50+ board selectors
-│   ├── background.js         # Auth sync, JWT enforcement, retry logic
-│   └── manifest.json         # CSP, keyboard shortcut, 37 host permissions
-├── docs/                     # 10 professional documentation files
-│   ├── API.md                # 30+ endpoints with request/response schemas
-│   ├── ARCHITECTURE.md       # Full architecture with ASCII diagram
-│   ├── DATABASE.md           # Complete schema reference
-│   ├── SECURITY.md           # Defense-in-depth documentation
-│   ├── DEPLOYMENT.md         # Vercel + Render step-by-step
-│   ├── TESTING.md            # Test strategy and coverage
-│   ├── ENVIRONMENT.md        # All 40+ env vars documented
-│   ├── EXTENSION.md          # 451-line extension reference
-│   ├── CONTRIBUTING.md       # Contribution guidelines
-│   └── CHALLENGES.md         # 350-line challenge log
-├── screenshots/              # 14 PNG screenshots
-├── README.md
-└── LICENSE
-```
+Security is foundational. JobPilot enforces a Zero-Trust architecture.
+
+- **Dual JWTs & Revocation**: Short-lived Access Tokens (15m) and `HttpOnly` Refresh Cookies. Modifying a password instantly increments a `tokenVersion` integer, terminating all outstanding sessions globally without Redis blocklists.
+- **SSRF Defenses**: The URL Extractor utilizes Node's `net.isIP()` to actively reject attempts to scan local AWS VPC IP ranges (e.g., `10.x.x.x`).
+- **DDoS Mitigation**: 3-tiered independent rate limiting separating Auth endpoints from expensive Groq AI Inference routes.
+- **Data Sanitization**: Mongoose guarantees parameterized queries, while Express middleware actively strips `$`, `.`, and `__proto__` characters to prevent NoSQL injection and Prototype Pollution.
+
+<br/>
 
 ---
 
-## Documentation
+## ⚡ Performance
 
-The `docs/` directory contains 10 professional documentation files (2,993+ lines total):
+- **O(N) Database Reduction**: Username generation utilizes an optimized `$regex` match to reduce potential database queries from 10,000 down to exactly 2.
+- **Caching**: SMTP transporters are cached in-memory using Singleton pooling to prevent TLS handshake overhead. The frontend uses a strict 50-item LRU cache for heavy React Data hooks.
+- **Optimized Scraping**: The MV3 Extension relies fundamentally on `LD+JSON` schemas instead of brittle CSS DOM selectors, guaranteeing instant and accurate data extraction.
 
-| File | Lines | Covers |
-|------|-------|--------|
-| [API.md](./docs/API.md) | 810 | All 30+ endpoints, request/response examples, auth headers |
-| [ARCHITECTURE.md](./docs/ARCHITECTURE.md) | 454 | ASCII architecture diagram, data flows, component interactions |
-| [DATABASE.md](./docs/DATABASE.md) | 202 | Full Mongoose schema, indexes, relationships |
-| [SECURITY.md](./docs/SECURITY.md) | 207 | All security measures, threat model, hardening details |
-| [DEPLOYMENT.md](./docs/DEPLOYMENT.md) | 144 | Vercel + Render step-by-step guides |
-| [ENVIRONMENT.md](./docs/ENVIRONMENT.md) | 129 | Every environment variable with defaults and descriptions |
-| [TESTING.md](./docs/TESTING.md) | 245 | Test architecture, how to run, coverage goals |
-| [EXTENSION.md](./docs/EXTENSION.md) | 451 | Full extension reference (auth flow, scraping architecture, board list) |
-| [CONTRIBUTING.md](./docs/CONTRIBUTING.md) | 351 | Code style, PR workflow, development setup |
-| [CHALLENGES.md](./docs/CHALLENGES.md) | 350 | All resolved challenges across 8 categories |
+<br/>
 
 ---
 
-## License
+## 🛣️ Roadmap
 
-MIT — built by [Digvijay Kumar Singh](https://github.com/chauhandigvijay1)
+### Implemented ✓
+- [x] Drag-and-drop Kanban Pipeline.
+- [x] 8 Distinct Groq AI Integrations (Cover Letters, ATS Scoring).
+- [x] Chrome MV3 Extension targeting 50+ portals.
+- [x] Dual-Token Authentication + Google OAuth.
+- [x] Paginated `node-cron` Reminders via SMTP.
+- [x] Comprehensive 162-Test Matrix.
+
+### Planned ⏳
+- [ ] Transitioning to Double-Submit CSRF tokens.
+- [ ] Integrating exponential backoff for Auth brute-force lockouts.
+- [ ] Admin Dashboard for analytics oversight.
+- [ ] React Native Mobile Wrapper.
+
+<br/>
+
+---
+
+## ⚠️ Known Limitations
+
+- AI capabilities rely strictly on Groq API uptime.
+- The Job Extractor operates best on job boards providing `LD+JSON` `@graph` schemas. Non-compliant bespoke job boards may require manual data adjustments.
+- The Chrome Extension requires a Desktop Browser and is not available natively on mobile Chrome.
+
+<br/>
+
+---
+
+## 🤝 Contributing
+
+We welcome world-class engineers to the project! Please review our comprehensive [Contributing Guidelines](./CONTRIBUTING.md) to understand our Conventional Commits workflow, PR testing matrix requirements, and our Code of Conduct.
+
+<br/>
+
+---
+
+## 📄 License
+
+JobPilot is open-source software licensed under the **[MIT License](./LICENSE)**.
+
+---
+
+## 🧑‍💻 Author
+
+**Digvijay Kumar Singh**  
+*Creator, Lead Architect, and Maintainer*  
+- 🐙 [GitHub Profile](https://github.com/chauhandigvijay1)
+
+---
+
+## 📞 Support
+
+If you encounter a replicable runtime error, please review the [Troubleshooting Guide](./docs/troubleshooting.md) or open an issue on our [GitHub Tracker](https://github.com/chauhandigvijay1/web-dev-journey/issues).
+
+<div align="center">
+  <em>Thank you for exploring JobPilot. If you find this project valuable, please consider giving it a ⭐ on GitHub!</em>
+</div>

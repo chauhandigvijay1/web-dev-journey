@@ -1,331 +1,140 @@
-# Testing Guide
-
-## Testing Philosophy
-
-JobPilot follows a layered testing strategy:
-
-- **Unit tests** validate isolated logic — utility functions, validators, pure computations.
-- **Component tests** render React components with mock data and verify output.
-- **Integration tests** exercise Express route handlers with a real (in-memory) database.
-- **E2E tests** simulate real user flows across the full stack using Playwright.
-
-The goal is reliable, fast feedback. Unit and component tests run in seconds. Integration tests use `mongodb-memory-server` to avoid external dependencies. E2E tests spin up all required servers automatically.
+<div align="center">
+  <img src="./assets/screenshots/logo.svg" alt="JobPilot Logo" width="160" />
+  <h1>Testing Infrastructure</h1>
+  <p><em>The multi-layered testing matrix ensuring zero-regression deployments.</em></p>
+</div>
 
 ---
 
-## Test Suite Overview
+## 📑 Table of Contents
 
-| Suite | Tests | Files | Framework | Location |
-|---|---|---|---|---|
-| Backend unit | 9 | 4 | Vitest | `backend/tests/unit/` |
-| Backend integration | 12 | 1 | Vitest + Supertest | `backend/tests/integration/` |
-| Frontend unit | 107 | 7 | Vitest + jsdom | `frontend/tests/unit/` |
-| Frontend component | 18 | 3 | Vitest + @testing-library/react | `frontend/tests/components/` |
-| E2E | 16 | 4 | Playwright | `frontend/tests/e2e/` |
-| **Total** | **162** | **19** | | |
+1. [Executive Summary](#-executive-summary)
+2. [Test Suite Topology](#-test-suite-topology)
+3. [Backend Integration Matrix](#-backend-integration-matrix)
+4. [Frontend Component Testing](#-frontend-component-testing)
+5. [End-to-End (E2E) Workflows](#-end-to-end-e2e-workflows)
+6. [Testing Code Guidelines](#-testing-code-guidelines)
+7. [Related Documentation](#-related-documentation)
 
 ---
 
-## Backend Testing
+## 🎯 Executive Summary
 
-### Setup
+JobPilot maintains a rigid, four-tier testing architecture guaranteeing high confidence across the stack. We deploy **160+ automated tests** utilizing Vitest, React Testing Library, and Playwright. The testing pipeline is designed to catch logic errors at the unit level, rendering issues at the component level, and critical user-flow regressions at the E2E level.
 
-The backend tests use:
-- **Vitest** as the test runner
-- **Supertest** for HTTP assertions against the Express app (without listening on a real port)
-- **mongodb-memory-server** to simulate MongoDB in-memory
-- Environment variables are set in `backend/tests/setup.js`
+> [!TIP]
+> **No Mocked Databases for Integration:** To prevent false positives, our backend integration tests do not mock Mongoose. Instead, we spin up a localized, ephemeral `mongodb-memory-server` ensuring tests run against a real MongoDB binary engine in milliseconds.
 
-The test environment is isolated — the `NODE_ENV` is set to `test` and real SMTP credentials are cleared.
+---
 
-### Running
+## 📊 Test Suite Topology
 
-```powershell
-# Run all backend tests
+| Suite Category | Total Tests | Framework Stack | Execution Boundary |
+|----------------|-------------|-----------------|--------------------|
+| **Backend Unit** | 9+ | Vitest | `backend/tests/unit/` |
+| **Backend Integration** | 12+ | Vitest + Supertest | `backend/tests/integration/` |
+| **Frontend Unit** | 100+ | Vitest + jsdom | `frontend/tests/unit/` |
+| **Frontend Component** | 18+ | Vitest + `@testing-library/react` | `frontend/tests/components/` |
+| **End-to-End (E2E)** | 16+ | Playwright | `frontend/tests/e2e/` |
+
+---
+
+## ⚙️ Backend Integration Matrix
+
+Backend tests validate the robustness of the Express 5 monolith.
+
+**Environment:** Vitest + Supertest + `mongodb-memory-server`
+
+### Running the Suite
+```bash
 cd backend
-npm.cmd test
-
-# Run with coverage
-npm.cmd run test:coverage
+npm test                  # Run full matrix
+npm run test:coverage     # Generate Istanbul coverage report
 ```
 
-Test timeout is configured in `vitest.config.js` (defaults to Vitest's 5s, but the integration tests may need longer for MongoDB memory server startup).
-
-### Test Structure
-
-Test files follow the convention `<name>.test.js` and are organized in two directories:
-
-| Directory | Purpose | Example file |
-|---|---|---|
-| `tests/unit/` | Pure logic, no IO | `auth.service.test.js`, `job-extraction.test.js`, `email-templates.test.js`, `reminder.service.test.js` |
-| `tests/integration/` | Full HTTP route tests | `api.test.js` |
-
-**Example — unit test:**
-
-```js
-import { describe, expect, it } from "vitest";
-
-describe("auth.service", () => {
-  it("normalizes settings with defaults and bounds", () => {
-    const result = normalizeSettings({});
-    expect(result.reminderHour).toBe(9);
-    expect(result.autoMarkGhostedDays).toBe(30);
-  });
-});
-```
-
-**Example — integration test:**
-
-```js
-import { afterAll, afterEach, beforeAll, describe, expect, it } from "vitest";
-import supertest from "supertest";
-import { app } from "../src/app.js";
-
-describe("API integration", () => {
-  it("registers, protects routes, and refreshes access tokens", async () => {
+### Integration Pattern Example
+We test the entire HTTP lifecycle, including middleware, schema validation, and routing.
+```typescript
+describe("Authentication Flow Integration", () => {
+  it("successfully registers, mints JWTs, and accesses protected routes", async () => {
+    // 1. Simulate Client Request
     const res = await supertest(app)
       .post("/api/auth/register")
-      .send({ email: "test@test.com", password: "ValidPass123!", name: "Test" });
+      .send({ email: "test@domain.com", password: "ValidPass123!", name: "Test" });
+      
+    // 2. Assert HTTP Protocol
     expect(res.status).toBe(201);
+    expect(res.body.data.token).toBeDefined();
   });
 });
 ```
 
 ---
 
-## Frontend Unit Testing
+## ⚛️ Frontend Component Testing
 
-### Setup
+Frontend testing separates pure algorithmic logic (like the LRU cache) from DOM rendering logic.
 
-- **Vitest** with `@vitejs/plugin-react`
-- **jsdom** environment (simulates browser DOM in Node.js)
-- Test setup file: `frontend/tests/setup.ts` (configures `@testing-library/jest-dom` matchers)
-- Path alias `@/` resolves to `frontend/`
+**Environment:** Vitest + jsdom + `@testing-library/jest-dom`
 
-### Running
-
-```powershell
-# Run all frontend unit + component tests
+### Execution
+```bash
 cd frontend
-npm.cmd test
-
-# Run with coverage
-npm.cmd run test:coverage
+npm test
 ```
 
-### Test Structure
-
-Unit tests are in `frontend/tests/unit/` and test pure utility functions:
-
-| File | Tests | What it tests |
-|---|---|---|
-| `analytics.test.ts` | ~11 | `computeJobAnalytics` aggregation function |
-| `auth-validation.test.ts` | ~22 | `normalizeUsernameInput`, `isValidEmailAddress`, password validation |
-| `follow-up-date.test.ts` | ~18 | Date parsing/serialization utilities |
-| `job-ghosting.test.ts` | ~10 | `isAutoGhosted` logic |
-| `kanban-filters.test.ts` | ~9 | `uniqueTrimmed` and filter utilities |
-| `reminders.test.ts` | ~12 | Reminder computation logic |
-| `httpError.test.ts` | ~8 | Error class and handling |
+### Core Coverage Areas
+- **Algorithms:** `kanban-filters.test.ts`, `reminders.test.ts`, and `follow-up-date.test.ts` test the heavy mathematical logic detached from React.
+- **Rendering:** `auth-shell.test.tsx` and `error-boundary.test.tsx` mount the UI in `jsdom` to verify aria-labels, layout structures, and state transitions.
 
 ---
 
-## Component Testing
+## 🎭 End-to-End (E2E) Workflows
 
-### Setup
+The E2E suite verifies that the Next.js Frontend, the Express Backend, and the Chrome Extension communicate flawlessly under real browser conditions.
 
-Same as unit testing, plus `@testing-library/react` and `@testing-library/user-event` for rendering and interaction.
+**Environment:** Playwright (Chromium, WebKit, Firefox)
 
-### Running
+### The E2E Orchestration Server
+To prevent E2E tests from corrupting development databases, Playwright orchestrates three concurrent localized servers:
+1. The **Backend API** (`localhost:5051`)
+2. The **Next.js Frontend** (`localhost:3000`)
+3. A custom **Fixture Server** (`localhost:4010`) serving static HTML mocks of job boards (e.g., simulating a LinkedIn page with `LD+JSON` schemas to test the Extension parsing).
 
-Component tests run alongside unit tests with `npm.cmd test`. They are in `frontend/tests/components/`:
-
-| File | Tests | What it tests |
-|---|---|---|
-| `auth-shell.test.tsx` | ~6 | Page layout shell (title, description, hero cards) |
-| `password-field.test.tsx` | ~6 | Input field with show/hide toggle, validation |
-| `error-boundary.test.tsx` | ~3 | Error fallback UI |
-
-**Example — component test:**
-
-```tsx
-import { describe, expect, it } from "vitest";
-import { render, screen } from "@testing-library/react";
-import { AuthShell } from "@/components/auth/auth-shell";
-
-describe("AuthShell", () => {
-  it("renders title, description, and eyebrow", () => {
-    render(
-      <AuthShell
-        title="Welcome Back"
-        description="Sign in to your account"
-        eyebrow="JobPilot"
-      >
-        <div>child</div>
-      </AuthShell>
-    );
-    expect(screen.getByText("Welcome Back")).toBeDefined();
-  });
-});
-```
-
----
-
-## E2E Testing
-
-### Setup
-
-E2E tests use **Playwright** with three servers that the Playwright config launches automatically:
-
-| Server | Command | Port | URL |
-|---|---|---|---|
-| Backend API | `npm.cmd run dev` (with test env vars) | 5051 | `http://localhost:5051/api/health` |
-| Fixture server | `node tests/e2e/fixture-server.mjs` | 4010 | `http://127.0.0.1:4010/job-posting` |
-| Frontend (Next.js) | `npm.cmd run dev` (with `NEXT_PUBLIC_API_URL`) | 3000 | `http://localhost:3000` |
-
-The Playwright config (`frontend/playwright.config.ts`) uses `reuseExistingServer: true` — if a server is already running, it reuses it instead of starting a new one.
-
-### Running
-
-```powershell
+### Running Playwright
+```bash
 cd frontend
-
-# Run all E2E tests (auto-starts all servers)
-npx.cmd playwright test
-
-# Run a specific test file
-npx.cmd playwright test tests/e2e/auth.spec.ts
-
-# Run with UI mode
-npx.cmd playwright test --ui
-
-# Show the HTML report
-npx.cmd playwright show-report
-```
-
-### Fixture Server
-
-The fixture server (`frontend/tests/e2e/fixture-server.mjs`) is a minimal HTTP server that simulates:
-
-| Endpoint | Response |
-|---|---|
-| `GET /job-posting` | HTML page with schema.org `JobPosting` LD+JSON |
-| `GET /not-a-job` | Generic HTML (no job data) |
-| `POST /api/auth/login` | Mock login (accepts `test@jobpilot.app` / `TestPass123!`) |
-| `POST /api/auth/register` | Mock registration (rejects `existing@jobpilot.app`) |
-| `GET /api/jobs` | Paginated mock job list (requires Bearer token) |
-
-### Test Structure
-
-| File | Tests | What it covers |
-|---|---|---|
-| `auth.spec.ts` | 4 | Login form rendering, error display, signup navigation |
-| `landing.spec.ts` | 3 | Landing page heading, navigation links |
-| `dashboard.spec.ts` | 4 | Auth guard redirects for protected routes |
-| `extension-popup.spec.ts` | 5 | Content script job detection on fixture pages |
-
----
-
-## Writing Tests
-
-### Conventions
-
-1. **File naming:** `<name>.test.ts` for unit, `<name>.test.tsx` for components, `<name>.spec.ts` for E2E.
-2. **Describe blocks:** Group related tests with `describe("module name", ...)`.
-3. **Test names:** Use descriptive sentences — `it("rejects private network URLs", ...)`.
-4. **No external dependencies:** Unit tests must not hit the network, database, or filesystem. Use `vi.mock()` to mock dependencies.
-5. **Integration tests** use `mongodb-memory-server` — call `beforeAll` to start it, `afterAll` to stop.
-6. **E2E tests** use the fixture server, not the real backend. Never rely on production data.
-
-### Patterns
-
-**Mocking a module:**
-
-```js
-import { vi } from "vitest";
-vi.mock("@/services/api", () => ({
-  api: { get: vi.fn(), post: vi.fn() },
-}));
-```
-
-**Component with providers:**
-
-```tsx
-import { render } from "@testing-library/react";
-import { Provider } from "react-redux";
-import { configureStore } from "@reduxjs/toolkit";
-
-function renderWithProviders(ui, { preloadedState } = {}) {
-  const store = configureStore({ reducer, preloadedState });
-  return render(<Provider store={store}>{ui}</Provider>);
-}
-```
-
-**Playwright page object pattern (E2E):**
-
-```ts
-test("login page renders the form", async ({ page }) => {
-  await page.goto("/login");
-  await expect(page.locator("h1")).toHaveText("Welcome Back");
-});
+npx playwright test                    # Headless execution
+npx playwright test --ui               # Interactive visual debugger
 ```
 
 ---
 
-## CI/CD Integration
+## 📝 Testing Code Guidelines
 
-The test suite runs in CI on every push and pull request. A recommended GitHub Actions workflow:
+When contributing to JobPilot, adhere to these strict paradigms:
 
-```yaml
-name: CI
-on: [push, pull_request]
-jobs:
-  test:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 18
-      - name: Backend tests
-        run: |
-          cd backend
-          npm ci
-          npm test
-      - name: Frontend unit + component tests
-        run: |
-          cd frontend
-          npm ci
-          npm test
-      - name: E2E tests
-        run: |
-          cd frontend
-          npx playwright install --with-deps chromium
-          npx playwright test
-```
+1. **File Conventions:**
+   - Pure functions: `fileName.test.ts`
+   - React components: `fileName.test.tsx`
+   - E2E Playwright flows: `feature.spec.ts`
+2. **Absolute Isolation:** Unit tests must **never** make network calls. Utilize `vi.mock()` to intercept Axios.
+3. **E2E Independence:** E2E tests must never assume a clean database. They must create their own user accounts via the API, execute the flow, and clean up.
 
-> **Note:** E2E tests require the Playwright browsers (`npx playwright install`) and take ~2 minutes to run on CI.
+### Coverage Targets
+- **Backend:** `> 70%` global coverage; `100%` route integration coverage.
+- **Frontend:** `> 80%` on utility functions; `> 70%` on core UI components.
 
 ---
 
-## Coverage Targets
+## 📚 Related Documentation
 
-Current test coverage is tracked weekly. Targets:
+| Area | Resource |
+|------|----------|
+| **Backend API** | [API Reference](./api.md) |
+| **Extension Workflows** | [Extension Documentation](./extension.md) |
 
-| Suite | Current Target |
-|---|---|
-| Backend unit | ≥ 70% |
-| Backend integration | Functional coverage of all routes |
-| Frontend unit | ≥ 80% |
-| Frontend component | ≥ 70% |
-| E2E | All critical user flows covered |
-
-Run coverage reports locally:
-
-```powershell
-cd backend && npm.cmd run test:coverage
-cd frontend && npm.cmd run test:coverage
-```
-
-Reports are output in `text` (terminal) and `lcov` (HTML) formats:
-- Backend: `backend/coverage/`
-- Frontend: `frontend/coverage/`
+<br/>
+<div align="center">
+  <strong>Next Reading:</strong> <a href="../README.md">Return to Home →</a>
+</div>

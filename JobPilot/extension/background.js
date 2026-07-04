@@ -1,25 +1,35 @@
 'use strict';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
-var API_BASE_URL_DEFAULT = 'https://web-dev-journey-cnee.onrender.com/api';
-var AUTH_TOKEN_KEY = 'jobpilot_token';
-var API_BASE_URL_KEY = 'jobpilot_api_base_url';
-var TOKEN_EXPIRY_KEY = 'jobpilot_token_exp';
-var FETCH_TIMEOUT_MS = 10000;
-var FETCH_RETRIES = 3;
-var MAX_TOKEN_TTL_DAYS = 7;
+const API_BASE_URL_DEFAULT = 'https://web-dev-journey-cnee.onrender.com/api';
+const AUTH_TOKEN_KEY = 'jobpilot_token';
+const API_BASE_URL_KEY = 'jobpilot_api_base_url';
+const TOKEN_EXPIRY_KEY = 'jobpilot_token_exp';
+const FETCH_TIMEOUT_MS = 10000;
+const FETCH_RETRIES = 3;
+const MAX_TOKEN_TTL_DAYS = 7;
+const STORAGE_TIMEOUT = 10000;
 
 // ─── In-Memory Storage Fallback ──────────────────────────────────────────────
-var memoryStore = new Map();
+const memoryStore = new Map();
+
+// Prime memoryStore from persistent storage on cold start (MV3 service worker)
+chrome.storage.local.get(null, function (items) {
+  for (const key in items) {
+    if (Object.prototype.hasOwnProperty.call(items, key)) {
+      memoryStore.set(key, items[key]);
+    }
+  }
+});
 
 function tryStorageGet(keys) {
   try {
     return Promise.resolve(chrome.storage.local.get(keys));
   } catch (e) {
-    var result = {};
-    var keyArr = Array.isArray(keys) ? keys : [keys];
-    for (var i = 0; i < keyArr.length; i++) {
-      var k = keyArr[i];
+    const result = {};
+    const keyArr = Array.isArray(keys) ? keys : [keys];
+    for (let i = 0; i < keyArr.length; i++) {
+      const k = keyArr[i];
       if (typeof k === 'string') result[k] = memoryStore.get(k);
     }
     return Promise.resolve(result);
@@ -27,53 +37,81 @@ function tryStorageGet(keys) {
 }
 
 function tryStorageSet(items) {
-  for (var key in items) {
-    if (Object.prototype.hasOwnProperty.call(items, key)) {
-      memoryStore.set(key, items[key]);
-    }
-  }
-  try {
-    return new Promise(function (resolve) {
-      chrome.storage.local.set(items, resolve);
+  return new Promise(function (resolve) {
+    let timedOut = false;
+    const timer = setTimeout(function () { timedOut = true; resolve(); }, STORAGE_TIMEOUT);
+    chrome.storage.local.set(items, function () {
+      if (timedOut) return;
+      clearTimeout(timer);
+      if (!chrome.runtime.lastError) {
+        for (const key in items) {
+          if (Object.prototype.hasOwnProperty.call(items, key)) {
+            memoryStore.set(key, items[key]);
+          }
+        }
+      }
+      resolve();
     });
-  } catch (e) {
-    return Promise.resolve();
-  }
+  });
 }
 
 function tryStorageRemove(keys) {
-  var keyArr = Array.isArray(keys) ? keys : [keys];
-  for (var i = 0; i < keyArr.length; i++) {
-      memoryStore.delete(keyArr[i]);
-  }
-  try {
-    return new Promise(function (resolve) {
-      chrome.storage.local.remove(keys, resolve);
+  return new Promise(function (resolve) {
+    let timedOut = false;
+    const timer = setTimeout(function () { timedOut = true; resolve(); }, STORAGE_TIMEOUT);
+    chrome.storage.local.remove(keys, function () {
+      if (timedOut) return;
+      clearTimeout(timer);
+      if (!chrome.runtime.lastError) {
+        const keyArr = Array.isArray(keys) ? keys : [keys];
+        for (let i = 0; i < keyArr.length; i++) {
+          memoryStore.delete(keyArr[i]);
+        }
+      }
+      resolve();
     });
-  } catch (e) {
-    return Promise.resolve();
-  }
+  });
 }
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
 function cleanText(value, maxLength) {
   maxLength = maxLength || 1000;
-  return String(value || '').trim().replace(/\s+/g, ' ').slice(0, maxLength);
+  let str = String(value || '').trim().replace(/\s+/g, ' ');
+  let segments = [];
+  try {
+    segments = [...new Intl.Segmenter().segment(str)];
+  } catch (e) {
+    segments = Array.from(str).map(function (c) { return { segment: c }; });
+  }
+  return segments.slice(0, maxLength).map(function (s) { return s.segment; }).join('');
+}
+
+function base64UrlDecode(str) {
+  str = str.replace(/-/g, '+').replace(/_/g, '/');
+  while (str.length % 4) str += '=';
+  try {
+    return atob(str);
+  } catch (e) {
+    return null;
+  }
 }
 
 function decodeJwt(token) {
   try {
-    return JSON.parse(atob(token.split('.')[1]));
+    const encoded = token.split('.')[1];
+    if (!encoded) return null;
+    const decoded = base64UrlDecode(encoded);
+    return decoded ? JSON.parse(decoded) : null;
   } catch (e) {
     return null;
   }
 }
 
 function isTokenExpired(token) {
-  var payload = decodeJwt(token);
+  const payload = decodeJwt(token);
   if (!payload || !payload.exp) return true;
-  var expMs = payload.exp * 1000;
+  const expMs = payload.exp * 1000;
   // Also enforce hard 7d TTL from issued at
   if (payload.iat && Date.now() > (payload.iat + MAX_TOKEN_TTL_DAYS * 86400) * 1000) {
     return true;
@@ -82,22 +120,22 @@ function isTokenExpired(token) {
 }
 
 function getTokenExpiry(token) {
-  var payload = decodeJwt(token);
+  const payload = decodeJwt(token);
   return payload && payload.exp ? payload.exp * 1000 : null;
 }
 
 function normalizeJobPayload(payload) {
   payload = payload || {};
-  var title = cleanText(payload.title, 200);
-  var company = cleanText(payload.company, 200);
-  var location = cleanText(payload.location, 240);
-  var description = cleanText(payload.description, 4000);
-  var pageUrl = cleanText(payload.originalUrl, 1000);
-  var applyLink = cleanText(payload.originalApplyLink, 1000);
-  var source = cleanText(payload.source, 240);
-  var salary = cleanText(payload.salary, 200);
-  var jobType = cleanText(payload.jobType, 100);
-  var workMode = cleanText(payload.workMode, 100);
+  const title = cleanText(payload.title, 200);
+  const company = cleanText(payload.company, 200);
+  const location = cleanText(payload.location, 240);
+  const description = cleanText(payload.description, 4000);
+  const pageUrl = cleanText(payload.originalUrl, 1000);
+  const applyLink = cleanText(payload.originalApplyLink, 1000);
+  const source = cleanText(payload.source, 240);
+  const salary = cleanText(payload.salary, 200);
+  const jobType = cleanText(payload.jobType, 100);
+  const workMode = cleanText(payload.workMode, 100);
 
   return {
     title: title,
@@ -126,10 +164,10 @@ function fetchWithRetry(url, options, retries, timeoutMs) {
   options = options || {};
   retries = retries || FETCH_RETRIES;
   timeoutMs = timeoutMs || FETCH_TIMEOUT_MS;
-  var attempt = 0;
+  let attempt = 0;
   function doFetch() {
-    var controller = new AbortController();
-    var timeoutId = setTimeout(function () { controller.abort(); }, timeoutMs);
+    const controller = new AbortController();
+    const timeoutId = setTimeout(function () { controller.abort(); }, timeoutMs);
     return fetch(url, Object.assign({}, options, { signal: controller.signal }))
       .then(function (response) {
         clearTimeout(timeoutId);
@@ -137,9 +175,9 @@ function fetchWithRetry(url, options, retries, timeoutMs) {
       })
       .catch(function (err) {
         clearTimeout(timeoutId);
-        if (attempt < retries - 1) {
-          attempt++;
-          var delay = Math.pow(2, attempt - 1) * 1000;
+          if (attempt < retries - 1) {
+            attempt++;
+            const delay = Math.pow(2, attempt - 1) * 1000;
           return new Promise(function (resolve) { setTimeout(resolve, delay); }).then(doFetch);
         }
         throw err;
@@ -152,8 +190,8 @@ function fetchWithRetry(url, options, retries, timeoutMs) {
 
 function getStoredToken() {
   return tryStorageGet([AUTH_TOKEN_KEY, TOKEN_EXPIRY_KEY]).then(function (result) {
-    var token = cleanText(result[AUTH_TOKEN_KEY], 5000);
-    var exp = result[TOKEN_EXPIRY_KEY];
+    const token = cleanText(result[AUTH_TOKEN_KEY], 5000);
+    const exp = result[TOKEN_EXPIRY_KEY];
     if (token && exp && Date.now() >= exp) {
       return tryStorageRemove([AUTH_TOKEN_KEY, TOKEN_EXPIRY_KEY, API_BASE_URL_KEY]).then(function () {
         return '';
@@ -175,11 +213,11 @@ function getApiBaseUrl() {
 }
 
 function saveToken(token, apiBaseUrl) {
-  var items = {};
+  const items = {};
   items[AUTH_TOKEN_KEY] = token;
-  var exp = getTokenExpiry(token);
+  const exp = getTokenExpiry(token);
   if (exp) items[TOKEN_EXPIRY_KEY] = exp;
-  if (apiBaseUrl) items[API_BASE_URL_KEY] = apiBaseUrl;
+  items[API_BASE_URL_KEY] = apiBaseUrl || API_BASE_URL_DEFAULT;
   return tryStorageSet(items);
 }
 
@@ -189,10 +227,10 @@ function removeToken() {
 
 function requestTokenSync() {
   return chrome.tabs
-    .query({ url: ['https://jobpilot-client-chi.vercel.app/*', 'https://*.vercel.app/*', 'http://localhost:*/*', 'https://localhost:*/*'] })
+    .query({ url: ['https://jobpilot-client-chi.vercel.app/*', 'http://localhost:*/*', 'https://localhost:*/*'] })
     .then(function (tabs) {
-      var promises = [];
-      for (var i = 0; i < tabs.length; i++) {
+      const promises = [];
+      for (let i = 0; i < tabs.length; i++) {
         promises.push(
           chrome.tabs
             .sendMessage(tabs[i].id, { action: 'REQUEST_TOKEN_SYNC' })
@@ -244,18 +282,6 @@ function saveJob(payload) {
     })
     .then(function (ctx) {
       if (!ctx._ctx) return ctx; // passthrough error
-      if (!ctx.body.originalApplyLink) {
-        return ctx;
-      }
-      return checkDuplicate(ctx.token, ctx.apiBaseUrl, ctx.body.originalApplyLink).then(function (dup) {
-        if (dup) {
-          return { success: true, duplicate: true };
-        }
-        return ctx;
-      });
-    })
-    .then(function (ctx) {
-      if (!ctx._ctx) return ctx; // duplicate or error case
       return doSaveJob(ctx.token, ctx.body, ctx.apiBaseUrl);
     });
 }
@@ -344,42 +370,54 @@ var inflightSaves = {};
 // ─── Message Listener ────────────────────────────────────────────────────────
 
 chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
-  if (request.action === 'SYNC_AUTH_TOKEN') {
-    var token = cleanText(request.token, 5000);
-    var apiBaseUrl = cleanText(request.apiBaseUrl, 1000);
-    if (token && !isTokenExpired(token)) {
-      saveToken(token, apiBaseUrl);
-      sendResponse({ success: true });
-    } else if (token) {
-      // Token expired, don't save
-      sendResponse({ success: false, message: 'Token expired' });
-    } else {
-      sendResponse({ success: false });
-    }
+  // Validate sender — only accept messages from our own extension
+  if (sender.id !== chrome.runtime.id) {
+    try { sendResponse({ success: false, message: 'Unknown sender' }); } catch (e) { /* Port closed */ }
     return false;
+  }
+  if (request.action === 'SYNC_AUTH_TOKEN') {
+    (async function () {
+      const token = cleanText(request.token, 5000);
+      const apiBaseUrl = cleanText(request.apiBaseUrl, 1000);
+      if (token && !isTokenExpired(token)) {
+        await saveToken(token, apiBaseUrl);
+        try { sendResponse({ success: true }); } catch (e) { /* Port closed */ }
+      } else if (token) {
+        try { sendResponse({ success: false, message: 'Token expired' }); } catch (e) { /* Port closed */ }
+      } else {
+        await removeToken();
+        try { sendResponse({ success: true }); } catch (e) { /* Port closed */ }
+      }
+    })();
+    return true;
   }
 
   if (request.action === 'SAVE_JOB') {
-    var dedupKey = (request.payload && (request.payload.originalApplyLink || request.payload.originalUrl || '')) || '';
+    const dedupKey = (request.payload && (request.payload.originalApplyLink || request.payload.originalUrl || '')) || '';
     if (dedupKey && inflightSaves[dedupKey]) {
       // Duplicate in-flight request — return pending promise result
-      inflightSaves[dedupKey].then(function (result) { sendResponse(result); });
+      inflightSaves[dedupKey].then(function (result) {
+        try { sendResponse(result); } catch (e) { /* Port closed */ }
+      });
       return true;
     }
-    var savePromise = saveJob(request.payload)
+    const savePromise = saveJob(request.payload)
       .then(function (result) {
         if (dedupKey) delete inflightSaves[dedupKey];
-        sendResponse(result);
+        try { sendResponse(result); } catch (e) { /* Port closed */ }
         return result;
       })
       .catch(function (err) {
         if (dedupKey) delete inflightSaves[dedupKey];
-        sendResponse({
-          success: false,
-          message: (err && err.message) || 'Could not save job.',
-        });
+        try {
+          sendResponse({
+            success: false,
+            message: (err && err.message) || 'Could not save job.',
+          });
+        } catch (e) { /* Port closed */ }
       });
-    if (dedupKey) inflightSaves[dedupKey] = savePromise;
+    // Assign sentinel synchronously before any async work completes
+    if (dedupKey && !inflightSaves[dedupKey]) inflightSaves[dedupKey] = savePromise;
     return true;
   }
 
@@ -392,63 +430,54 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
               headers: { Authorization: 'Bearer ' + token },
             })
               .then(function (res) {
-                // Try to get total count from response
                 return res.json().catch(function () { return null; });
               })
               .then(function (data) {
-                var count = 0;
+                let count = 0;
                 if (data && data.data && typeof data.data.total !== 'undefined') {
                   count = data.data.total;
                 } else if (data && data.data && Array.isArray(data.data.jobs)) {
                   count = data.data.jobs.length;
                 }
-                sendResponse({
-                  authenticated: true,
-                  jobCount: count,
-                  apiBaseUrl: apiBaseUrl,
-                });
+                try {
+                  sendResponse({
+                    authenticated: true,
+                    jobCount: count,
+                    apiBaseUrl: apiBaseUrl,
+                  });
+                } catch (e) { /* Port closed */ }
               })
               .catch(function () {
-                sendResponse({
-                  authenticated: true,
-                  jobCount: -1,
-                  apiBaseUrl: apiBaseUrl,
-                });
+                try {
+                  sendResponse({
+                    authenticated: true,
+                    jobCount: -1,
+                    apiBaseUrl: apiBaseUrl,
+                  });
+                } catch (e) { /* Port closed */ }
               });
           }
-          sendResponse({ authenticated: false, jobCount: 0, apiBaseUrl: apiBaseUrl });
+          try { sendResponse({ authenticated: false, jobCount: 0, apiBaseUrl: apiBaseUrl }); } catch (e) { /* Port closed */ }
         });
       })
       .catch(function () {
-        sendResponse({ authenticated: false, jobCount: 0 });
+        try { sendResponse({ authenticated: false, jobCount: 0 }); } catch (e) { /* Port closed */ }
       });
     return true;
   }
 
+  try { sendResponse({ success: false, message: 'Unknown action' }); } catch (e) { /* Port closed */ }
   return false;
-});
-
-// ─── Periodic Token Cleanup ──────────────────────────────────────────────────
-
-// Use chrome.alarms for reliable periodic cleanup (service worker safe)
-chrome.alarms.create('tokenCleanup', { periodInMinutes: 60 });
-
-chrome.alarms.onAlarm.addListener(function (alarm) {
-  if (alarm.name === 'tokenCleanup') {
-    getStoredToken().then(function (token) {
-      if (!token) {
-        // Already cleaned up
-      }
-    });
-  }
 });
 
 // ─── Storage Change Sync ─────────────────────────────────────────────────────
 
+// Tokens validated on each request — no periodic cleanup needed
+
 chrome.storage.onChanged.addListener(function (changes, areaName) {
   if (areaName !== 'local') return;
   if (changes[AUTH_TOKEN_KEY]) {
-    var newValue = changes[AUTH_TOKEN_KEY].newValue;
+    const newValue = changes[AUTH_TOKEN_KEY].newValue;
     if (newValue) {
       memoryStore.set(AUTH_TOKEN_KEY, newValue);
     } else {
@@ -456,7 +485,7 @@ chrome.storage.onChanged.addListener(function (changes, areaName) {
     }
   }
   if (changes[API_BASE_URL_KEY]) {
-    var newVal = changes[API_BASE_URL_KEY].newValue;
+    const newVal = changes[API_BASE_URL_KEY].newValue;
     if (newVal) {
       memoryStore.set(API_BASE_URL_KEY, newVal);
     } else {
@@ -464,7 +493,7 @@ chrome.storage.onChanged.addListener(function (changes, areaName) {
     }
   }
   if (changes[TOKEN_EXPIRY_KEY]) {
-    var expVal = changes[TOKEN_EXPIRY_KEY].newValue;
+    const expVal = changes[TOKEN_EXPIRY_KEY].newValue;
     if (expVal) {
       memoryStore.set(TOKEN_EXPIRY_KEY, expVal);
     } else {

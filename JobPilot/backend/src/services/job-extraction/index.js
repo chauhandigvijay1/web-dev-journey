@@ -1,4 +1,6 @@
 import axios from "axios";
+import * as dns from "node:dns";
+import * as net from "node:net";
 import {
   attrFromSelectors,
   buildFallbackExtraction,
@@ -16,6 +18,35 @@ import {
   textsFromSelectors,
   uniqueStrings,
 } from "./helpers.js";
+
+const PRIVATE_RANGES = [
+  { start: ipToLong("10.0.0.0"), end: ipToLong("10.255.255.255") },
+  { start: ipToLong("127.0.0.0"), end: ipToLong("127.255.255.255") },
+  { start: ipToLong("169.254.0.0"), end: ipToLong("169.254.255.255") },
+  { start: ipToLong("172.16.0.0"), end: ipToLong("172.31.255.255") },
+  { start: ipToLong("192.168.0.0"), end: ipToLong("192.168.255.255") },
+];
+
+const MAX_REDIRECTS = 0;
+const MAX_CONTENT_LENGTH = 5 * 1024 * 1024;
+
+function ipToLong(ip) {
+  return ip.split(".").reduce((acc, octet) => (acc << 8) + parseInt(octet, 10), 0) >>> 0;
+}
+
+function isPrivateIP(ip) {
+  const long = ipToLong(ip);
+  return PRIVATE_RANGES.some((r) => long >= r.start && long <= r.end);
+}
+
+function resolveHostname(hostname) {
+  return new Promise((resolve) => {
+    dns.lookup(hostname, { family: 4 }, (err, address) => {
+      if (err) resolve(null);
+      else resolve(address);
+    });
+  });
+}
 
 function mergeExtraction(...parts) {
   return parts.reduce(
@@ -170,11 +201,31 @@ export function extractJobFieldsFromHtml(html, urlString) {
   };
 }
 
+function isNumericIp(hostname) {
+  if (net.isIP(hostname)) return false;
+  const num = Number(hostname);
+  return Number.isFinite(num) && !/^0[box]/i.test(hostname);
+}
+
 function isPrivateHostname(hostname) {
   const normalized = hostname.replace(/^www\./, "").toLowerCase();
-  if (normalized === "localhost" || normalized === "127.0.0.1" || normalized === "::1") return true;
-  if (/^(127\.\d+\.\d+\.\d+|10\.\d+\.\d+\.\d+|172\.(1[6-9]|2\d|3[01])\.\d+\.\d+|192\.168\.\d+\.\d+|169\.254\.\d+\.\d+|0\.0\.0\.0)$/.test(normalized)) return true;
-  return false;
+  if (isNumericIp(normalized)) return true;
+  if (/^0x[0-9a-f]+$/i.test(normalized) || /^0[0-7]+$/.test(normalized)) return true;
+  return (
+    normalized === "localhost" ||
+    normalized === "127.0.0.1" ||
+    normalized === "::1" ||
+    normalized === "0.0.0.0" ||
+    /^127\.\d+\.\d+\.\d+$/.test(normalized) ||
+    /^10\.\d+\.\d+\.\d+$/.test(normalized) ||
+    /^172\.(1[6-9]|2\d|3[01])\.\d+\.\d+$/.test(normalized) ||
+    /^192\.168\.\d+\.\d+$/.test(normalized) ||
+    /^169\.254\.\d+\.\d+$/.test(normalized)
+  );
+}
+
+function isIpv6Hostname(hostname) {
+  return hostname.startsWith("[") && hostname.endsWith("]");
 }
 
 export async function extractJobFieldsFromUrl(urlString) {
@@ -221,7 +272,47 @@ export async function extractJobFieldsFromUrl(urlString) {
     };
   }
 
-  if (isPrivateHostname(url.hostname)) {
+  if (isPrivateHostname(url.hostname) || isIpv6Hostname(url.hostname)) {
+    return {
+      title: "",
+      company: "",
+      location: "",
+      locations: [],
+      salary: "",
+      jobType: "",
+      experience: "",
+      skills: [],
+      qualification: "",
+      applyDeadline: "",
+      workMode: "",
+      descriptionSummary: "",
+      originalApplyLink: url.href,
+      source: hostnameLabel(url.href),
+      warning: "Cannot fetch URLs from private networks.",
+    };
+  }
+
+  const resolvedIP = await resolveHostname(url.hostname);
+  if (!resolvedIP) {
+    return {
+      title: "",
+      company: "",
+      location: "",
+      locations: [],
+      salary: "",
+      jobType: "",
+      experience: "",
+      skills: [],
+      qualification: "",
+      applyDeadline: "",
+      workMode: "",
+      descriptionSummary: "",
+      originalApplyLink: url.href,
+      source: hostnameLabel(url.href),
+      warning: "Cannot fetch URLs from private networks.",
+    };
+  }
+  if (isPrivateIP(resolvedIP)) {
     return {
       title: "",
       company: "",
@@ -244,7 +335,9 @@ export async function extractJobFieldsFromUrl(urlString) {
   try {
     const response = await axios.get(url.href, {
       timeout: 15000,
-      maxRedirects: 5,
+      maxRedirects: MAX_REDIRECTS,
+      maxContentLength: MAX_CONTENT_LENGTH,
+      maxBodyLength: MAX_CONTENT_LENGTH,
       headers: {
         "User-Agent": "Mozilla/5.0 (compatible; JobPilotBot/2.0; +https://jobpilot.local)",
         Accept: "text/html,application/xhtml+xml;q=0.9,*/*;q=0.8",
@@ -298,7 +391,7 @@ export async function extractJobFieldsFromUrl(urlString) {
       descriptionSummary: "",
       originalApplyLink: url.href,
       source: hostnameLabel(url.href),
-      warning: error?.message ? `Could not fetch the job page: ${error.message}` : "Could not fetch the job page.",
+      warning: "Could not fetch the job page. The URL might be unreachable or returned too much data.",
     };
   }
 }

@@ -19,6 +19,11 @@ app.use(hpp());
 
 const allowedOrigins = new Set(env.corsOrigins);
 
+function isAllowedExtensionOrigin(origin) {
+  if (!origin || !env.extensionId) return false;
+  return origin.replace(/\/+$/, "") === env.extensionId;
+}
+
 function isLoopbackOrigin(origin) {
   try {
     const url = new URL(origin);
@@ -34,7 +39,7 @@ app.use(
       const normalizedOrigin = origin?.replace(/\/+$/, "");
       if (
         !origin ||
-        normalizedOrigin?.startsWith("chrome-extension://") ||
+        isAllowedExtensionOrigin(normalizedOrigin) ||
         isLoopbackOrigin(normalizedOrigin) ||
         allowedOrigins.has(normalizedOrigin)
       ) {
@@ -67,17 +72,23 @@ app.use((req, res) => {
   });
 });
 
+const GENERIC_ERROR = "Internal server error";
+
 app.use((err, req, res, _next) => {
-  logger.error(err.message || "Unhandled error", {
-    reqId: req.id,
+  const safeMessage = env.isProduction ? GENERIC_ERROR : err.message || GENERIC_ERROR;
+
+  logger.error(err.message || GENERIC_ERROR, {
+    message: err.message,
     stack: env.isProduction ? undefined : err.stack,
+    reqId: req.id,
     method: req.method,
     url: req.originalUrl,
   });
 
-  const status = err?.statusCode || (err.message === "Not allowed by CORS" ? 403 : 500);
+  const status =
+    err?.statusCode || (err.message === "Not allowed by CORS" ? 403 : 500);
   res.status(status).json({
     success: false,
-    message: err?.message || "Internal server error",
+    message: safeMessage,
   });
 });

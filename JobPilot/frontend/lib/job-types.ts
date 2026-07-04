@@ -1,3 +1,14 @@
+export function safeUrl(url: string | undefined | null): string | undefined {
+  if (!url) return undefined;
+  try {
+    const parsed = new URL(url);
+    if (parsed.protocol === "http:" || parsed.protocol === "https:") return url;
+  } catch {
+    // Invalid URL
+  }
+  return undefined;
+}
+
 export const JOB_STATUSES = ["saved", "applied", "oa", "interview", "offer", "rejected"] as const;
 export type JobStatus = (typeof JOB_STATUSES)[number];
 
@@ -44,7 +55,6 @@ export type Job = {
   workMode?: string;
   descriptionSummary?: string;
   originalApplyLink?: string;
-  priorityScore?: number;
   contacts?: Array<{
     _id?: string;
     name: string;

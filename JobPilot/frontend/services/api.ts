@@ -61,36 +61,37 @@ let refreshPromise: Promise<string | null> | null = null;
 async function refreshAccessToken(): Promise<string | null> {
   if (typeof window === "undefined") return null;
 
-  if (!refreshPromise) {
-    refreshPromise = api
-      .post<{ success: boolean; data?: { token: string; user?: StoredUser } }>("/auth/refresh")
-      .then(({ data }) => {
-        if (!data.success || !data.data?.token) {
-          clearStoredAuth();
-          return null;
-        }
+  if (refreshPromise) return refreshPromise;
 
-        const existing = readStoredAuth();
-        const nextUser = data.data.user ?? existing.user;
-        if (nextUser) {
-          writeStoredAuth(data.data.token, nextUser);
-        } else {
-          safeSetItem(AUTH_TOKEN_KEY, data.data.token);
-        }
-
-        window.dispatchEvent(new Event("jobpilot:auth-updated"));
-        return data.data.token;
-      })
-      .catch(() => {
+  refreshPromise = (async () => {
+    try {
+      const { data } = await api.post<{ success: boolean; data?: { token: string; user?: StoredUser } }>(
+        "/auth/refresh"
+      );
+      if (!data.success || !data.data?.token) {
         clearStoredAuth();
         return null;
-      })
-      .finally(() => {
-        refreshPromise = null;
-      });
-  }
+      }
 
-  return refreshPromise;
+      const existing = readStoredAuth();
+      const nextUser = data.data.user ?? existing.user;
+      if (nextUser) {
+        writeStoredAuth(data.data.token, nextUser);
+      } else {
+        safeSetItem(AUTH_TOKEN_KEY, data.data.token);
+      }
+
+      window.dispatchEvent(new Event("jobpilot:auth-updated"));
+      return data.data.token;
+    } catch {
+      clearStoredAuth();
+      return null;
+    }
+  })();
+
+  const result = await refreshPromise;
+  refreshPromise = null;
+  return result;
 }
 
 api.interceptors.request.use((config) => {

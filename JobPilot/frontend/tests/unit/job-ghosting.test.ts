@@ -3,7 +3,7 @@ import { isAutoGhosted } from "@/lib/job-ghosting";
 import type { Job } from "@/lib/job-types";
 
 function ghostJob(overrides: Partial<Job> & { _id: string; title: string; company: string }): Job {
-  return { _id: overrides._id, title: overrides.title, company: overrides.company, salary: "", confidenceScore: 0, status: "saved", ...overrides } as Job;
+  return { salary: "", confidenceScore: 0, status: "saved", ...overrides } as Job;
 }
 
 beforeEach(() => {

@@ -190,7 +190,7 @@ export function sortJobsInColumn(jobs: Job[], sort: KanbanSort): Job[] {
       case "bestMatch":
         return (right.confidenceScore ?? 0) - (left.confidenceScore ?? 0);
       case "priority":
-        return (right.priorityScore ?? 50) - (left.priorityScore ?? 50);
+        return (right.confidenceScore ?? 50) - (left.confidenceScore ?? 50);
       case "salaryHighToLow": {
         const leftSalary = salarySortValue(left);
         const rightSalary = salarySortValue(right);

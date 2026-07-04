@@ -32,5 +32,7 @@ const reminderQueueSchema = new mongoose.Schema(
 );
 
 reminderQueueSchema.index({ status: 1, nextAttemptAt: 1 });
+reminderQueueSchema.index({ job: 1, status: 1 });
+reminderQueueSchema.index({ createdAt: 1 }, { expireAfterSeconds: 90 * 24 * 3600 });
 
 export const ReminderQueue = mongoose.model("ReminderQueue", reminderQueueSchema);

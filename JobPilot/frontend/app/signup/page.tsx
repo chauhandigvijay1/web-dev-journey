@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { ErrorBoundary } from "@/components/ui/error-boundary";
 import type { StoredUser } from "@/lib/authStorage";
 import {
   getPasswordValidationMessage,
@@ -117,10 +118,13 @@ export default function SignupPage() {
       );
 
       if (!data.success || !data.data) {
-        throw new Error(data.message ?? "Could not continue with Google");
+        setError(data.message ?? "Could not continue with Google");
+        return;
       }
 
       await completeAuth(data.data);
+    } catch (err) {
+      setError(getApiErrorMessage(err, "Could not continue with Google"));
     } finally {
       setPending(false);
     }
@@ -135,6 +139,7 @@ export default function SignupPage() {
   }
 
   return (
+    <ErrorBoundary>
     <AuthShell
       eyebrow="Get started"
       title="Create your account"
@@ -217,7 +222,7 @@ export default function SignupPage() {
             minLength={8}
             value={password}
             onChange={setPassword}
-            description={passwordMessage}
+            showChecklist={true}
             error={password && getPasswordValidationMessage(password) ? passwordMessage : null}
           />
 
@@ -243,5 +248,6 @@ export default function SignupPage() {
         </form>
       </div>
     </AuthShell>
+    </ErrorBoundary>
   );
 }

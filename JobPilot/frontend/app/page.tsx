@@ -44,7 +44,7 @@ const stats = [
 
 export default function HomePage() {
   return (
-    <div className="relative min-h-dvh overflow-hidden">
+    <main className="relative min-h-dvh overflow-hidden">
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,hsl(var(--primary)/0.15),transparent_35%),radial-gradient(circle_at_bottom_right,hsl(var(--primary)/0.08),transparent_35%)]" />
 
       <nav className="relative flex items-center justify-between px-6 py-5 sm:px-10 lg:px-16">
@@ -148,6 +148,6 @@ export default function HomePage() {
       <footer className="relative border-t border-border/70 px-6 py-8 text-center text-sm text-muted-foreground">
         <p>JobPilot — MIT License. Built by Digvijay Kumar Singh.</p>
       </footer>
-    </div>
+    </main>
   );
 }

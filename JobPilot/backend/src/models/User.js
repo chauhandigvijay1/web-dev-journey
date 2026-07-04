@@ -51,7 +51,7 @@ const userSchema = new mongoose.Schema(
     refreshSessionId: { type: String, select: false, default: "" },
     refreshTokenExpiresAt: { type: Date, select: false, default: null },
   },
-  { timestamps: { createdAt: true, updatedAt: false } }
+  { timestamps: { createdAt: true, updatedAt: true } }
 );
 
 userSchema.pre("save", async function hashPassword() {

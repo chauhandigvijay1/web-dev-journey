@@ -60,7 +60,7 @@ function escapeCsv(value: unknown): string {
 }
 
 function createJobsCsv(rows: Array<Record<string, unknown>>): string {
-  const headers = ["_id","title","company","location","jobType","salary","status","expectedSalary","offeredSalary","companyType","confidenceScore","notes","locations","skills","qualification","applyDeadline","workMode","descriptionSummary","originalApplyLink","source","followUpDate","resumeUrl","createdAt","updatedAt"];
+  const headers = rows.length > 0 ? Object.keys(rows[0]) : ["_id","title","company","location","jobType","salary","status","expectedSalary","offeredSalary","companyType","confidenceScore","notes","locations","skills","qualification","applyDeadline","workMode","descriptionSummary","originalApplyLink","source","followUpDate","resumeUrl","createdAt","updatedAt"];
   const lines = [headers.join(",")];
   for (const row of rows) lines.push(headers.map((header) => escapeCsv(row[header])).join(","));
   return lines.join("\n");

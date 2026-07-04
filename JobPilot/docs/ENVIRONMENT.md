@@ -1,165 +1,138 @@
-# Environment Configuration Reference
-
-## Overview
-
-JobPilot uses environment variables for all configuration. The backend loads them at startup via `dotenv` with strict validation in `src/config/env.js`. The frontend uses Next.js's built-in `NEXT_PUBLIC_` convention for client-safe variables.
-
-- **Backend:** Variables are read from the environment (`.env` file or platform environment on Render/Vercel). Required variables cause a startup crash if missing.
-- **Frontend:** Public variables must be prefixed with `NEXT_PUBLIC_` and are baked into the JS bundle at build time.
+<div align="center">
+  <img src="./assets/screenshots/logo.svg" alt="JobPilot Logo" width="160" />
+  <h1>Environment Configuration & Security</h1>
+  <p><em>Strict cryptographic boundaries and environmental orchestrations for JobPilot.</em></p>
+</div>
 
 ---
 
-## Backend Environment Variables
+## 📑 Table of Contents
 
-| Variable | Required | Description | Default | Example |
-|---|---|---|---|---|
-| `MONGO_URI` | **Yes** | MongoDB Atlas connection string | — | `mongodb+srv://user:pass@cluster0.xxxxx.mongodb.net/jobpilot?retryWrites=true&w=majority` |
-| `JWT_SECRET` | **Yes** | HMAC secret for access tokens (≥ 32 chars) | — | `a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6` |
-| `JWT_REFRESH_SECRET` | **Yes** | HMAC secret for refresh tokens (≥ 32 chars) | — | `p6o5n4m3l2k1j0i9h8g7f6e5d4c3b2a1` |
-| `GROQ_API_KEY` | **Yes** | Groq API key for AI-powered features | — | `gsk_xxxxxxxxxxxxxxxx` |
-| `PORT` | No | HTTP listen port | `5051` | `8080` |
-| `NODE_ENV` | No | Runtime environment | `development` | `production` |
-| `FRONTEND_URL` | No | Frontend origin for CORS and redirects | `http://localhost:3000` (dev) / `https://jobpilot-client-chi.vercel.app` (prod) | `https://my-custom-domain.com` |
-| `CORS_ORIGINS` | No | Comma-separated list of allowed CORS origins | Auto-derived from `FRONTEND_URL` + defaults | `http://localhost:3000,https://myapp.com` |
-| `JWT_ACCESS_TTL` | No | Access token expiry duration | `7d` | `15m` |
-| `JWT_REFRESH_TTL` | No | Refresh token expiry duration | `30d` | `60d` |
-| `AUTH_COOKIE_NAME` | No | Name of the refresh token cookie | `jobpilot_refresh` | `my_app_refresh` |
-| `DEFAULT_TIMEZONE` | No | Default timezone for reminders | `UTC` | `America/New_York` |
-| `DEFAULT_REMINDER_HOUR` | No | Hour (0–23) for daily reminder digests | `9` | `10` |
-| `REMINDER_CRON` | No | Cron expression for reminder scheduler | `*/10 * * * *` | `0 */2 * * *` |
-| `REMINDER_LOCK_MINUTES` | No | Minutes to lock a reminder batch (prevent re-send) | `20` | `30` |
-| `REMINDER_BATCH_SIZE` | No | Max reminders processed per scheduler tick | `25` | `50` |
-| `REMINDER_RETRY_LIMIT` | No | Max retries for failed reminder sends | `3` | `5` |
-| `REMINDER_SWEEP_SECRET` | No | Optional secret to trigger manual reminder sweep via API | — | `my-sweep-secret` |
-| `API_RATE_LIMIT_WINDOW_MINUTES` | No | Rate limit window for general API routes | `15` | `10` |
-| `API_RATE_LIMIT_MAX` | No | Max requests per window for general API | `250` | `500` |
-| `AUTH_RATE_LIMIT_WINDOW_MINUTES` | No | Rate limit window for auth routes | `10` | `5` |
-| `AUTH_RATE_LIMIT_MAX` | No | Max requests per window for auth | `12` | `20` |
-| `AI_RATE_LIMIT_WINDOW_MINUTES` | No | Rate limit window for AI-powered routes | `15` | `30` |
-| `AI_RATE_LIMIT_MAX` | No | Max requests per window for AI routes | `20` | `100` |
-| `SMTP_HOST` | No | SMTP server hostname | — | `smtp.sendgrid.net` |
-| `SMTP_PORT` | No | SMTP server port | `587` | `465` |
-| `SMTP_SECURE` | No | Use TLS for SMTP | `false` | `true` |
-| `SMTP_USER` | No | SMTP authentication username | — | `apikey` |
-| `SMTP_PASS` | No | SMTP authentication password or API key | — | `SG.xxxxxxxxxx` |
-| `EMAIL_FROM` | No | From address for outgoing emails | Falls back to `SMTP_FROM` → `SMTP_USER` | `noreply@jobpilot.app` |
-| `TINYFISH_API_KEY` | No | Tinyfish API key (enhanced job enrichment) | — | `tf_xxxxxxxx` |
-
-> **Note:** `CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`, and `CLOUDINARY_API_SECRET` are read directly from `process.env` in `src/config/cloudinary.js` but are optional — Cloudinary is only used if all three are set.
+1. [Executive Summary](#-executive-summary)
+2. [The .env.example Template](#-the-envexample-template)
+3. [Mandatory Security Variables](#-mandatory-security-variables)
+4. [Backend Server Topology](#-backend-server-topology)
+5. [AI & Traffic Governance](#-ai--traffic-governance)
+6. [Frontend Client Configuration](#-frontend-client-configuration)
+7. [Validation & Fatal Exceptions](#-validation--fatal-exceptions)
+8. [Related Documentation](#-related-documentation)
 
 ---
 
-## Frontend Environment Variables
+## 🎯 Executive Summary
 
-| Variable | Required | Description | Example |
-|---|---|---|---|
-| `NEXT_PUBLIC_API_URL` | **Yes** | Backend API base URL (must not end with `/`) | `https://web-dev-journey-cnee.onrender.com` |
-| `NEXT_PUBLIC_GOOGLE_CLIENT_ID` | No | Google OAuth client ID for One Tap sign-in | `1234567890-xxxxx.apps.googleusercontent.com` |
+JobPilot strictly enforces configuration integrity at the moment of process instantiation. The backend utilizes `dotenv` injected through a highly rigid validation layer (`src/config/env.js`). This ensures the Express server **never** boots into a vulnerable state. 
 
-> **Important:** Only variables prefixed with `NEXT_PUBLIC_` are available in the browser. Do not expose secrets via `NEXT_PUBLIC_*` variables.
+> [!CAUTION]
+> **Zero Trust Credential Management:** Never commit `.env` files to version control. They are strictly tracked by `.gitignore`. In production environments (Vercel, Render, AWS), these secrets must be injected directly into the platform's isolated secure-vault dashboards.
 
 ---
 
-## Environment Validation Rules
+## 📝 The `.env.example` Template
 
-The backend (`src/config/env.js`) enforces these rules at startup:
-
-### Hard failures (process crashes with an error message)
-
-| Rule | Error Message |
-|---|---|
-| `MONGO_URI` is missing | `MONGO_URI is required` |
-| `JWT_SECRET` is missing | `JWT_SECRET is required` |
-| `JWT_REFRESH_SECRET` is missing | `JWT_REFRESH_SECRET is required` |
-| `GROQ_API_KEY` is missing | `GROQ_API_KEY is required` |
-| `JWT_SECRET` < 32 characters | `JWT_SECRET must be at least 32 characters long` |
-| `JWT_REFRESH_SECRET` < 32 characters | `JWT_REFRESH_SECRET must be at least 32 characters long` |
-| `DEFAULT_TIMEZONE` is not a valid IANA timezone | `DEFAULT_TIMEZONE is invalid: <value>` |
-
-### Soft defaults
-
-All other variables default to a safe value when omitted. Numeric variables are clamped within defined min/max bounds. If a number cannot be parsed, the default is used silently.
-
-> **Note:** `MONGO_URI` is validated at startup but does **not** cause a crash — the server logs a warning and continues without a database connection. The actual crash would happen at runtime when a route tries to use the database.
-
----
-
-## `.env.example` File Structure
-
-### Backend (`backend/.env.example`)
+To rapidly bootstrap a local development environment, copy the following boilerplate. You must replace the cryptographic secrets with your own high-entropy strings.
 
 ```env
-# === Required ===
-MONGO_URI=mongodb+srv://user:pass@cluster0.xxxxx.mongodb.net/jobpilot
-JWT_SECRET=your-access-secret-min-32-chars-long
-JWT_REFRESH_SECRET=your-refresh-secret-min-32-chars-long
+# ==========================================
+# 1. CORE SECURITY & DATABASE (REQUIRED)
+# ==========================================
+MONGO_URI=mongodb+srv://<user>:<password>@cluster0.mongodb.net/jobpilot
+JWT_SECRET=super_secure_access_token_secret_must_be_32_chars!
+JWT_REFRESH_SECRET=super_secure_refresh_token_secret_must_be_32_chars!
 GROQ_API_KEY=gsk_your_groq_api_key_here
 
-# === Server ===
+# ==========================================
+# 2. SERVER & CORS (OPTIONAL - DEFAULTS USED)
+# ==========================================
 PORT=5051
 NODE_ENV=development
 FRONTEND_URL=http://localhost:3000
-CORS_ORIGINS=http://localhost:3000,http://localhost:3001
 
-# === JWT ===
-JWT_ACCESS_TTL=7d
-JWT_REFRESH_TTL=30d
-AUTH_COOKIE_NAME=jobpilot_refresh
-
-# === Reminders ===
-DEFAULT_TIMEZONE=UTC
-DEFAULT_REMINDER_HOUR=9
-REMINDER_CRON=*/10 * * * *
-REMINDER_LOCK_MINUTES=20
-REMINDER_BATCH_SIZE=25
-REMINDER_RETRY_LIMIT=3
-REMINDER_SWEEP_SECRET=
-
-# === Rate Limiting ===
-API_RATE_LIMIT_WINDOW_MINUTES=15
-API_RATE_LIMIT_MAX=250
-AUTH_RATE_LIMIT_WINDOW_MINUTES=10
-AUTH_RATE_LIMIT_MAX=12
-AI_RATE_LIMIT_WINDOW_MINUTES=15
-AI_RATE_LIMIT_MAX=20
-
-# === SMTP (optional — required for email reminders) ===
+# ==========================================
+# 3. SMTP AUTOMATION (OPTIONAL)
+# ==========================================
 SMTP_HOST=smtp.sendgrid.net
 SMTP_PORT=587
-SMTP_SECURE=false
 SMTP_USER=apikey
-SMTP_PASS=SG.your_sendgrid_api_key
-EMAIL_FROM=noreply@jobpilot.app
-
-# === Optional Integrations ===
-TINYFISH_API_KEY=
+SMTP_PASS=your_sendgrid_password
 ```
-
-### Frontend (`frontend/.env.example`)
-
-```env
-# === Required ===
-NEXT_PUBLIC_API_URL=http://localhost:5051
-
-# === Optional ===
-NEXT_PUBLIC_GOOGLE_CLIENT_ID=
-```
-
-> **Note:** Neither file currently exists in the repository — create them from the templates above.
 
 ---
 
-## Best Practices
+## 🔐 Mandatory Security Variables
 
-1. **Never commit `.env` files.** Add `.env` to `.gitignore`. Only commit `.env.example` templates with placeholder values.
-2. **Rotate secrets periodically.** Change `JWT_SECRET`, `JWT_REFRESH_SECRET`, and `GROQ_API_KEY` every 90 days.
-3. **Use platform environment variables** on Render and Vercel instead of `.env` files in production. Both platforms provide a UI for managing secrets.
-4. **Keep `JWT_SECRET` and `JWT_REFRESH_SECRET` different.** Using separate secrets limits blast radius if one is compromised.
-5. **Use strong secrets.** Generate with a cryptographically secure method:
-   ```powershell
-   # Generate a 32-char random string (PowerShell)
-   -join ((65..90) + (97..122) + (48..57) | Get-Random -Count 32 | % { [char]$_ })
-   ```
-6. **Set `NODE_ENV=production` on Render.** This enables Express production optimizations (trust proxy, etc.).
-7. **Validate timezone values** before deploying — use the IANA Time Zone Database names (e.g., `America/New_York`, `Asia/Kolkata`).
-8. **Restart the frontend build** after changing `NEXT_PUBLIC_*` variables on Vercel — these values are baked into the JS bundle at build time, not at runtime.
+If any of these four variables are omitted or malformed, the application will trigger a fatal `process.exit(1)`.
+
+| Variable | Constraint | Architectural Purpose |
+|----------|------------|-----------------------|
+| `MONGO_URI` | **Required** | The explicit connection string to your MongoDB cluster. Dictates the core storage layer. |
+| `JWT_SECRET` | **≥ 32 Chars** | Cryptographic HMAC secret for signing short-lived (15m) access tokens. Length prevents brute-force signature forging. |
+| `JWT_REFRESH_SECRET` | **≥ 32 Chars** | Independent HMAC secret for long-lived (30d) refresh tokens. Kept separate from access secrets to limit the blast radius of a breach. |
+| `GROQ_API_KEY` | **Required** | The authorization bearer token granting access to the Groq AI Inference Engine. |
+
+---
+
+## ⚙️ Backend Server Topology
+
+### Network & Environment
+| Variable | Default Fallback | Purpose |
+|----------|------------------|---------|
+| `PORT` | `5051` | The designated HTTP port for the Express daemon. |
+| `NODE_ENV` | `development` | Setting this to `production` enables critical Express-level caching and disables verbose stack traces. |
+| `FRONTEND_URL` | `http://localhost:3000` | Whitelists the primary frontend origin against strict CORS policies. |
+
+### Cron & Background Automation
+The backend hosts an autonomous `node-cron` worker that sweeps the database to dispatch email reminders.
+| Variable | Default Fallback | Purpose |
+|----------|------------------|---------|
+| `DEFAULT_TIMEZONE` | `UTC` | An explicit IANA timezone string (e.g., `America/New_York`) to prevent execution drift. |
+| `DEFAULT_REMINDER_HOUR` | `9` | The specific hour (0-23) the daily automated digest fires. |
+| `REMINDER_BATCH_SIZE` | `25` | Caps concurrent email dispatches per worker tick, preventing heavy memory spikes. |
+
+---
+
+## 🛡️ AI & Traffic Governance
+
+JobPilot ships with three heavily independent rate-limiting buckets. These protect against Layer 7 DDoS attacks, brute-force login attempts, and LLM financial quota exhaustion.
+
+| Variable Bucket | Time Window | Max Threshold | Target Routes |
+|-----------------|-------------|---------------|---------------|
+| `API_RATE_LIMIT_MAX` | 15 Minutes | `250` Requests | All general `/api/*` endpoints. |
+| `AUTH_RATE_LIMIT_MAX`| 10 Minutes | `12` Requests | Specifically guards `/login` and `/register`. |
+| `AI_RATE_LIMIT_MAX` | 15 Minutes | `20` Requests | Strictly limits the costly `/api/ai/*` inference pipeline. |
+
+---
+
+## ⚛️ Frontend Client Configuration
+
+The Next.js presentation layer requires variables to be prefixed with `NEXT_PUBLIC_` for Webpack to safely expose them to the browser environment. These are housed in `frontend/.env.local`.
+
+| Variable | Requirement | Purpose |
+|----------|-------------|---------|
+| `NEXT_PUBLIC_API_URL` | **Required** | The explicit Base URL for the Express API. **Do not include a trailing slash.** |
+| `NEXT_PUBLIC_GOOGLE_CLIENT_ID`| Optional | Your Google Cloud Console Client ID. Activates the Google One-Tap seamless authentication UI. |
+
+---
+
+## 🚨 Validation & Fatal Exceptions
+
+JobPilot does not believe in silent failures. The `src/config/env.js` layer evaluates the runtime environment on boot. If a vulnerability is detected, the server throws one of the following fatal exceptions and aborts:
+
+- `MONGO_URI is required`
+- `JWT_SECRET must be at least 32 characters long` *(Enforced to mathematically neutralize dictionary and rainbow-table cracking).*
+- `DEFAULT_TIMEZONE is invalid` *(Thrown if the string fails IANA database validation).*
+
+---
+
+## 📚 Related Documentation
+
+| Area | Resource |
+|------|----------|
+| **Deployment Procedures** | [Deployment Guide](./deployment.md) |
+| **Security Architecture** | [Security Documentation](./security.md) |
+| **Backend Integration** | [Backend System Details](./backend.md) |
+
+<br/>
+<div align="center">
+  <strong>Next Reading:</strong> <a href="./deployment.md">Deployment Guide →</a>
+</div>

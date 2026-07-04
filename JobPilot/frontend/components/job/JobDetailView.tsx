@@ -53,16 +53,17 @@ export function JobDetailView({ jobId }: { jobId: string }) {
   const [newContactLinkedin, setNewContactLinkedin] = useState("");
   const [addingContact, setAddingContact] = useState(false);
 
-  const load = useCallback(async () => {
+  const load = useCallback(async (signal?: AbortSignal) => {
     setLoading(true);
     setError(null);
     try {
-      const { data } = await api.get<{ success: boolean; data?: { job: Job }; message?: string }>(`/jobs/${jobId}`);
+      const { data } = await api.get<{ success: boolean; data?: { job: Job }; message?: string }>(`/jobs/${jobId}`, { signal });
       if (!data.success || !data.data?.job) throw new Error(data.message ?? "Not found");
       setJob(data.data.job);
       setNotes(data.data.job.notes ?? "");
       setNotesDirty(false);
     } catch (e) {
+      if (axios.isCancel(e)) return;
       setError(
         axios.isAxiosError(e) && typeof e.response?.data?.message === "string"
           ? e.response.data.message
@@ -73,7 +74,11 @@ export function JobDetailView({ jobId }: { jobId: string }) {
     }
   }, [jobId]);
 
-  useEffect(() => { void load(); }, [load]);
+  useEffect(() => {
+    const controller = new AbortController();
+    void load(controller.signal);
+    return () => controller.abort();
+  }, [load]);
 
   const mergeJob = useCallback((patch: Partial<Job>) => {
     setJob((prev) => (prev ? { ...prev, ...patch } : null));
@@ -96,15 +101,21 @@ export function JobDetailView({ jobId }: { jobId: string }) {
     try {
       await patchJob({ contacts: [...(job.contacts || []), { name: newContactName, role: newContactRole, email: newContactEmail, linkedin: newContactLinkedin, status: "Contacted" }] });
       setNewContactName(""); setNewContactEmail(""); setNewContactLinkedin(""); setNewContactRole("Recruiter");
-    } catch (e) { console.error(e); }
+    } catch (e) {
+      if (axios.isAxiosError(e) && typeof e.response?.data?.message === "string") {
+        setError(e.response.data.message);
+      } else {
+        setError("Failed to add contact");
+      }
+    }
     finally { setAddingContact(false); }
   };
 
   const toggleFlag = async (key: "isPinned" | "isImportant" | "isGhosted", label: "pin" | "important" | "ghost") => {
     if (!job || flagSaving) return;
-    const next = !job[key];
+    const prev = { ...job };
+    const next = !prev[key];
     setFlagSaving(label);
-    const prev = job;
     mergeJob({ [key]: next });
     try { await patchJob({ [key]: next }); }
     catch { setJob(prev); }

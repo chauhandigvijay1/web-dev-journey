@@ -61,7 +61,7 @@ export const env = {
   corsOrigins: Array.from(new Set(readList("CORS_ORIGINS", defaultCorsOrigins).map((value) => value.replace(/\/+$/, "")))),
   jwtSecret: requiredString("JWT_SECRET"),
   jwtRefreshSecret: requiredString("JWT_REFRESH_SECRET"),
-  jwtAccessTtl: readString("JWT_ACCESS_TTL") || "7d",
+  jwtAccessTtl: readString("JWT_ACCESS_TTL") || "15m",
   jwtRefreshTtl: readString("JWT_REFRESH_TTL") || "30d",
   authCookieName: readString("AUTH_COOKIE_NAME") || "jobpilot_refresh",
   defaultTimezone: readString("DEFAULT_TIMEZONE") || "UTC",
@@ -85,6 +85,8 @@ export const env = {
   tinyfishApiKey: readString("TINYFISH_API_KEY"),
   aiRateLimitWindowMinutes: readNumber("AI_RATE_LIMIT_WINDOW_MINUTES", 15, { min: 1, max: 60 }),
   aiRateLimitMax: readNumber("AI_RATE_LIMIT_MAX", 20, { min: 1, max: 100 }),
+  extensionId: readString("EXTENSION_ID") ? `chrome-extension://${readString("EXTENSION_ID")}` : null,
+  groqModel: readString("GROQ_MODEL") || "llama-3.3-70b-versatile",
 };
 
 if (env.jwtSecret && env.jwtSecret.length < 32) {

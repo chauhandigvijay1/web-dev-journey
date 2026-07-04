@@ -46,8 +46,14 @@ export function partitionReminderJobs(jobs: Job[]): { overdue: Job[]; today: Job
     }
   }
 
-  const byFollowUp = (left: Job, right: Job) =>
-    parseFollowUpDate(left.followUpDate)!.getTime() - parseFollowUpDate(right.followUpDate)!.getTime();
+  const byFollowUp = (left: Job, right: Job) => {
+    const a = parseFollowUpDate(left.followUpDate);
+    const b = parseFollowUpDate(right.followUpDate);
+    if (!a && !b) return 0;
+    if (!a) return 1;
+    if (!b) return -1;
+    return a.getTime() - b.getTime();
+  };
 
   overdue.sort(byFollowUp);
   today.sort(byFollowUp);

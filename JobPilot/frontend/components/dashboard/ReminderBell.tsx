@@ -37,7 +37,9 @@ export function ReminderBell() {
 
   useEffect(() => {
     void load();
-  }, [pathname, load]);
+    var interval = setInterval(load, 60000);
+    return function () { clearInterval(interval); };
+  }, [load]);
 
   useEffect(() => {
     const onVisibilityChange = () => {

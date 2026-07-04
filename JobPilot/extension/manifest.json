@@ -17,8 +17,7 @@
   "permissions": [
     "activeTab",
     "storage",
-    "scripting",
-    "alarms"
+    "scripting"
   ],
   "host_permissions": [
     "*://*.linkedin.com/*",
@@ -109,7 +108,7 @@
     }
   ],
   "content_security_policy": {
-    "extension_pages": "script-src 'self'; object-src 'self'"
+    "extension_pages": "script-src 'self'; object-src 'none'; base-uri 'none'; form-action 'self'"
   },
   "action": {
     "default_popup": "popup.html",

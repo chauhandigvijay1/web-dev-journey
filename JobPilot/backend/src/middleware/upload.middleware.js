@@ -8,6 +8,22 @@ const allowedMime = new Set([
   "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
 ]);
 
+function checkMagicBytes(buffer, mime) {
+  if (!buffer || buffer.length < 8) return false;
+  const header = buffer.slice(0, 8).toString("hex").toLowerCase();
+  if (mime === "application/pdf") return header.startsWith("25504446");
+  if (mime === "application/msword") return header.startsWith("d0cf11e0") || header.startsWith("504b34");
+  if (mime === "application/vnd.openxmlformats-officedocument.wordprocessingml.document") return header.startsWith("504b34");
+  if (mime?.startsWith("image/")) {
+    return (
+      header.startsWith("ffd8ffe0") || header.startsWith("ffd8ffe1") ||
+      header.startsWith("ffd8ffe2") || header.startsWith("89504e47") ||
+      header.startsWith("52494646") || header.startsWith("0000001c66747970")
+    );
+  }
+  return false;
+}
+
 const multerResume = multer({
   storage,
   limits: { fileSize: 10 * 1024 * 1024 },
@@ -19,6 +35,18 @@ const multerResume = multer({
     }
   },
 });
+
+const originalResumeUpload = multerResume.single("resume");
+multerResume.single = (field) => (req, res, next) => {
+  originalResumeUpload(req, res, (err) => {
+    if (err) return next(err);
+    if (req.file && !checkMagicBytes(req.file.buffer, req.file.mimetype)) {
+      req.file = undefined;
+      return res.status(400).json({ success: false, message: "File content does not match the expected format" });
+    }
+    next();
+  });
+};
 
 export function uploadResumeMemory(req, res, next) {
   multerResume.single("resume")(req, res, (err) => {
@@ -48,6 +76,18 @@ const multerImage = multer({
     }
   },
 });
+
+const originalImageUpload = multerImage.single("image");
+multerImage.single = (field) => (req, res, next) => {
+  originalImageUpload(req, res, (err) => {
+    if (err) return next(err);
+    if (req.file && !checkMagicBytes(req.file.buffer, req.file.mimetype)) {
+      req.file = undefined;
+      return res.status(400).json({ success: false, message: "File content does not match the expected format" });
+    }
+    next();
+  });
+};
 
 export function uploadImageMemory(req, res, next) {
   multerImage.single("image")(req, res, (err) => {

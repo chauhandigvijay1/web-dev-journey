@@ -15,23 +15,36 @@ export function generateRefreshToken(userId, sessionId, tokenVersion = 0) {
 }
 
 export function verifyAccessToken(token) {
-  return jwt.verify(token, env.jwtSecret);
+  return jwt.verify(token, env.jwtSecret, { algorithms: ["HS256"] });
 }
 
 export function verifyRefreshToken(token) {
-  return jwt.verify(token, env.jwtRefreshSecret);
+  return jwt.verify(token, env.jwtRefreshSecret, { algorithms: ["HS256"] });
 }
 
 export function hashToken(value) {
   return crypto.createHash("sha256").update(String(value)).digest("hex");
 }
 
+function parseTtlMs(ttl) {
+  const match = String(ttl).match(/^(\d+)([smhd])$/);
+  if (!match) return 30 * 24 * 60 * 60 * 1000;
+  const num = parseInt(match[1], 10);
+  switch (match[2]) {
+    case "s": return num * 1000;
+    case "m": return num * 60 * 1000;
+    case "h": return num * 3600 * 1000;
+    case "d": return num * 86400 * 1000;
+    default: return 30 * 24 * 60 * 60 * 1000;
+  }
+}
+
 export function getRefreshCookieOptions() {
   return {
     httpOnly: true,
-    sameSite: "lax",
+    sameSite: "strict",
     secure: env.isProduction,
     path: "/",
-    maxAge: 30 * 24 * 60 * 60 * 1000,
+    maxAge: Math.floor(parseTtlMs(env.jwtRefreshTtl) / 1000),
   };
 }

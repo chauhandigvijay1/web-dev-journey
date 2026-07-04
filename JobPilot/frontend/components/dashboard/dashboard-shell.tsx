@@ -56,7 +56,7 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
   const user = useAppSelector((state) => state.auth.user);
 
   function handleLogout() {
-    void api.post("/auth/logout").catch(() => undefined);
+    void api.post("/auth/logout").catch((err) => console.warn("Logout API call failed", err));
     dispatch(logoutAndClear());
     router.replace("/login");
   }
@@ -112,8 +112,10 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
                       width={32}
                       height={32}
                       className="h-8 w-8 rounded-full border border-border/70 object-cover shadow-sm"
+                      onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
                     />
-                  ) : (
+                  ) : null}
+                  {user?.profilePic ? null : (
                     <span className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-xs font-medium text-primary-foreground">
                       {user?.name?.charAt(0)?.toUpperCase() ?? "?"}
                     </span>
@@ -150,12 +152,13 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
               <Link
                 key={href}
                 href={href}
+                aria-label={label}
                 className={cn(
                   "flex shrink-0 items-center gap-1.5 rounded-md px-2.5 py-1.5 text-xs font-medium",
                   active ? "bg-accent text-accent-foreground shadow-sm" : "text-muted-foreground"
                 )}
               >
-                <Icon className="h-3.5 w-3.5" />
+                <Icon className="h-3.5 w-3.5" aria-hidden="true" />
                 {label}
               </Link>
             );

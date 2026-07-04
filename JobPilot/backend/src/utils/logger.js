@@ -1,31 +1,27 @@
 import crypto from "node:crypto";
 
+const isProduction = process.env.NODE_ENV?.trim() === "production";
+
 export function requestId(req, _res, next) {
   req.id = crypto.randomUUID();
   next();
 }
 
-function serializeMeta(meta) {
-  if (!meta) return "";
-  try {
-    return ` ${JSON.stringify(meta)}`;
-  } catch {
-    return "";
-  }
-}
-
 function write(level, message, meta) {
-  const reqId = meta?.reqId || "";
-  const line = `[${new Date().toISOString()}] [${level}]${reqId ? ` [${reqId}]` : ""} ${message}${serializeMeta(meta)}`;
+  const entry = {
+    timestamp: new Date().toISOString(),
+    level,
+    message,
+    ...meta,
+  };
+  const output = isProduction ? JSON.stringify(entry) : `[${entry.timestamp}] [${level}]${meta?.reqId ? ` [${meta.reqId}]` : ""} ${message}`;
   if (level === "ERROR") {
-    console.error(line);
-    return;
+    console.error(output);
+  } else if (level === "WARN") {
+    console.warn(output);
+  } else {
+    console.log(output);
   }
-  if (level === "WARN") {
-    console.warn(line);
-    return;
-  }
-  console.log(line);
 }
 
 export const logger = {

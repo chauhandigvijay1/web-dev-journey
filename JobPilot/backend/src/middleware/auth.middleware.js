@@ -17,7 +17,7 @@ export async function protect(req, res, next) {
     if (!user) {
       return res.status(401).json({ success: false, message: "User not found" });
     }
-    if (decoded.tokenVersion !== undefined && decoded.tokenVersion < (user.tokenVersion || 0)) {
+    if ((decoded.tokenVersion ?? -1) < (user.tokenVersion ?? 0)) {
       return res.status(401).json({ success: false, message: "Session expired. Please sign in again." });
     }
     req.user = user;

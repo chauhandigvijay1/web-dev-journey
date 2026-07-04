@@ -6,7 +6,7 @@ import "./globals.css";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-sans" });
 
-const siteUrl = process.env.NEXT_PUBLIC_API_URL?.replace("/api", "") || "https://jobpilot-client-chi.vercel.app";
+const siteUrl = process.env.NEXT_PUBLIC_API_URL?.replace("/api", "") || process.env.NEXT_PUBLIC_SITE_URL || "https://jobpilot-client-chi.vercel.app";
 
 export const metadata: Metadata = {
   title: {

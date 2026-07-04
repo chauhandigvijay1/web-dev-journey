@@ -15,7 +15,7 @@ import {
   Upload,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { STATUS_LABELS, JOB_STATUSES, isJobStatus, type Job, type JobStatus } from "@/lib/job-types";
+import { safeUrl, STATUS_LABELS, JOB_STATUSES, isJobStatus, type Job, type JobStatus } from "@/lib/job-types";
 import { formatFollowUpBadgeLabel, formatFollowUpLabel, getFollowUpBucket } from "@/lib/reminders";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -238,9 +238,9 @@ export function SourceCard({ job }: { job: Job }) {
         <InfoRow label="Source" value={job.source?.trim() || "-"} />
         <div>
           <p className="text-muted-foreground">Original apply link</p>
-          {job.originalApplyLink?.trim() ? (
+          {safeUrl(job.originalApplyLink) ? (
             <a
-              href={job.originalApplyLink}
+              href={safeUrl(job.originalApplyLink)!}
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex items-center gap-2 font-medium text-primary underline-offset-4 hover:underline"
@@ -340,9 +340,9 @@ export function CrmCard({
                 <div className="font-semibold">{contact.name}</div>
                 <div className="text-muted-foreground">{contact.role}</div>
                 {contact.email ? <div className="text-muted-foreground break-all">{contact.email}</div> : null}
-                {contact.linkedin?.startsWith("https://") ? (
+                {safeUrl(contact.linkedin) ? (
                   <div className="text-muted-foreground break-all text-blue-500">
-                    <a href={contact.linkedin} target="_blank" rel="noreferrer">LinkedIn</a>
+                    <a href={safeUrl(contact.linkedin)!} target="_blank" rel="noreferrer">LinkedIn</a>
                   </div>
                 ) : null}
               </div>

@@ -297,7 +297,7 @@ export async function updateMe(req, res) {
     if (!isNonEmptyString(body.name)) {
       return res.status(400).json({ success: false, message: "Name is required" });
     }
-    req.user.name = body.name.trim();
+    req.user.name = body.name.trim().slice(0, 100);
   }
 
   if (Object.prototype.hasOwnProperty.call(body, "phone")) {

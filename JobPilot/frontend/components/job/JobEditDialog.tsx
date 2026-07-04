@@ -43,7 +43,7 @@ export function JobEditDialog({ job, open, onOpenChange, onSaved }: JobEditDialo
     setConfidenceScore(String(job.confidenceScore ?? 0));
     setFollowUpDate(followUpDateInputValue(job.followUpDate));
     setError(null);
-  }, [job]);
+  }, [job?._id]);
 
   async function handleSave() {
     if (!job) return;

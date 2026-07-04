@@ -35,7 +35,6 @@ const jobSchema = new mongoose.Schema(
     followUpDate: { type: Date, default: null },
     reminderLastSentAt: { type: Date, default: null },
     reminderLastSentForDate: { type: String, trim: true, default: "" },
-    priorityScore: { type: Number, default: 50 }, // 0-100 score for Opportunity Prioritization Engine
     contacts: [
       {
         name: { type: String, trim: true, required: true },
@@ -57,5 +56,8 @@ const jobSchema = new mongoose.Schema(
 jobSchema.index({ user: 1, status: 1, updatedAt: -1 });
 jobSchema.index({ user: 1, followUpDate: 1 });
 jobSchema.index({ user: 1, applyDeadline: 1 });
+jobSchema.index({ user: 1, originalApplyLink: 1 });
+jobSchema.index({ user: 1, createdAt: -1 });
+jobSchema.index({ user: 1, isGhosted: 1 });
 
 export const Job = mongoose.model("Job", jobSchema);

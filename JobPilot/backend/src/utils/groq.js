@@ -38,8 +38,7 @@ export async function groqChat(messages, options = {}) {
     throw err;
   }
   if (status >= 400) {
-    const msg = data?.error?.message || `Groq error (${status})`;
-    const err = new Error(msg);
+    const err = new Error("AI service request failed");
     err.statusCode = 502;
     throw err;
   }

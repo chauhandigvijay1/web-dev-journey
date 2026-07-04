@@ -47,7 +47,9 @@ export function getMailTransporter() {
 }
 
 export function getMailOutbox() {
-  return [...outbox];
+  const copy = [...outbox];
+  outbox.length = 0;
+  return copy;
 }
 
 export function clearMailOutbox() {

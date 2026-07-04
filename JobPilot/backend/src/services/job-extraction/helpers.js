@@ -62,12 +62,15 @@ export function attrFromSelectors($, selectors, attribute) {
   return "";
 }
 
+const MAX_JSONLD_BYTES = 512 * 1024;
+
 export function parseJsonLd($) {
   const items = [];
 
   $('script[type="application/ld+json"]').each((_index, element) => {
     const raw = $(element).contents().text();
     if (!raw?.trim()) return;
+    if (Buffer.byteLength(raw, "utf8") > MAX_JSONLD_BYTES) return;
 
     try {
       const parsed = JSON.parse(raw);

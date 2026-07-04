@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   type StoredUser,
   defaultStoredUserSettings,
@@ -84,12 +84,15 @@ export default function SettingsPage() {
   const [passwordMessage, setPasswordMessage] = useState<string | null>(null);
   const [dataMessage, setDataMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const initialized = useRef(false);
   const passwordValidationMessage = useMemo(
     () => getPasswordValidationMessage(newPassword),
     [newPassword]
   );
 
   useEffect(() => {
+    if (initialized.current) return;
+    initialized.current = true;
     setName(user?.name ?? "");
     setPhone(user?.phone ?? "");
     setBio(user?.bio ?? "");
@@ -297,7 +300,7 @@ export default function SettingsPage() {
   }
 
   function handleLogout() {
-    void api.post("/auth/logout").catch(() => undefined);
+    void api.post("/auth/logout").catch((err) => console.warn("Logout API call failed", err));
     dispatch(logoutAndClear());
     window.location.assign("/login");
   }

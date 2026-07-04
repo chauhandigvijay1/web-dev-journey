@@ -13,7 +13,9 @@ function normalizeFileName(fileName, fallback) {
 async function uploadBufferToCloudinary(buffer, mimetype, options) {
   const { CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, CLOUDINARY_API_SECRET } = process.env;
   if (!CLOUDINARY_CLOUD_NAME || !CLOUDINARY_API_KEY || !CLOUDINARY_API_SECRET) {
-    throw new Error("Cloudinary is not configured");
+    const err = new Error("File upload is not available");
+    err.statusCode = 503;
+    throw err;
   }
   const cloudinary = configureCloudinary();
 

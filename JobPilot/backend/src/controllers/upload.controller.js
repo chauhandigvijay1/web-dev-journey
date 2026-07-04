@@ -8,8 +8,8 @@ export async function uploadResume(req, res) {
     const url = await uploadToCloudinary(req.file.buffer, req.file.mimetype, req.file.originalname);
     return res.json({ success: true, data: { url } });
   } catch (err) {
-    if (err.message === "Cloudinary is not configured") {
-      return res.status(500).json({ success: false, message: err.message });
+    if (err.statusCode === 503) {
+      return res.status(503).json({ success: false, message: "File upload is not available" });
     }
     return res.status(502).json({ success: false, message: "Upload failed" });
   }
@@ -23,8 +23,8 @@ export async function uploadProfileImage(req, res) {
     const url = await uploadImageToCloudinary(req.file.buffer, req.file.mimetype, req.file.originalname);
     return res.json({ success: true, data: { url } });
   } catch (err) {
-    if (err.message === "Cloudinary is not configured") {
-      return res.status(500).json({ success: false, message: err.message });
+    if (err.statusCode === 503) {
+      return res.status(503).json({ success: false, message: "File upload is not available" });
     }
     return res.status(502).json({ success: false, message: "Upload failed" });
   }

@@ -16,23 +16,29 @@ export function DashboardHome() {
   const router = useRouter();
   const [showSaved, setShowSaved] = useState(false);
   const [jobsCount, setJobsCount] = useState<number | null>(null);
+  const [jobsError, setJobsError] = useState<string | null>(null);
 
   useEffect(() => {
     if (searchParams.get("jobSaved") === "1") {
       setShowSaved(true);
       router.replace("/dashboard", { scroll: false });
     }
-    
-    api.get<{ success: boolean; data?: { jobs: Job[] } }>("/jobs")
+  }, [searchParams, router]);
+
+  useEffect(() => {
+    const controller = new AbortController();
+    api.get<{ success: boolean; data?: { jobs: Job[] } }>("/jobs", { signal: controller.signal })
       .then((res) => {
         if (res.data?.success && res.data.data) {
           setJobsCount(res.data.data.jobs.length);
         }
       })
-      .catch(() => undefined);
-  }, [searchParams, router]);
+      .catch(() => { setJobsError("Could not load job count"); });
+    return () => controller.abort();
+  }, []);
 
   function EmptyState() {
+    if (jobsError) return <p className="text-sm text-muted-foreground">{jobsError}</p>;
     if (jobsCount === null) return null;
     if (jobsCount! > 0) return null;
     return (
@@ -95,7 +101,7 @@ export function DashboardHome() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold">{jobsCount !== null ? jobsCount : <span className="animate-pulse text-muted-foreground">-</span>}</div>
+            <div className="text-3xl font-bold">{jobsCount !== null ? jobsCount : jobsError ? <span className="text-destructive">!</span> : <span className="animate-pulse text-muted-foreground">-</span>}</div>
             <p className="mt-1 text-xs text-muted-foreground">Jobs currently tracked</p>
             <Button variant="link" className="mt-4 h-auto p-0 text-primary" asChild>
               <Link href="/dashboard/jobs" className="flex items-center gap-1">

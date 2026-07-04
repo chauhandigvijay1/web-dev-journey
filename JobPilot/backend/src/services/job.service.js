@@ -41,14 +41,45 @@ function normalizeStringArray(value) {
   );
 }
 
-function normalizeOptionalUrl(value) {
+function isPrivateHostname(hostname) {
+  const normalized = hostname.replace(/^www\./, "").toLowerCase();
+  if (/^0x[0-9a-f]+$/i.test(normalized) || /^0[0-7]+$/.test(normalized)) return true;
+  const num = Number(hostname);
+  if (Number.isFinite(num) && !/^0[box]/i.test(hostname)) return true;
+  return (
+    normalized === "localhost" ||
+    normalized === "127.0.0.1" ||
+    normalized === "::1" ||
+    normalized === "0.0.0.0" ||
+    /^127\.\d+\.\d+\.\d+$/.test(normalized) ||
+    /^10\.\d+\.\d+\.\d+$/.test(normalized) ||
+    /^172\.(1[6-9]|2\d|3[01])\.\d+\.\d+$/.test(normalized) ||
+    /^192\.168\.\d+\.\d+$/.test(normalized) ||
+    /^169\.254\.\d+\.\d+$/.test(normalized)
+  );
+}
+
+function isIpv6Hostname(hostname) {
+  return hostname.startsWith("[") && hostname.endsWith("]");
+}
+
+function normalizeOptionalUrl(value, fieldName) {
   const candidate = normalizeString(value, 1000);
   if (!candidate) return "";
   try {
     const url = new URL(candidate);
+    if (url.protocol !== "http:" && url.protocol !== "https:") {
+      return { _error: `${fieldName || "URL"} must be an http or https URL` };
+    }
+    if (isPrivateHostname(url.hostname)) {
+      return { _error: `${fieldName || "URL"} points to a private or internal network` };
+    }
+    if (isIpv6Hostname(url.hostname)) {
+      return { _error: `${fieldName || "URL"} uses IPv6 which is not supported` };
+    }
     return url.href;
   } catch {
-    return "";
+    return { _error: `${fieldName || "URL"} is not a valid URL` };
   }
 }
 
@@ -91,11 +122,19 @@ export function normalizeJobPayload(body = {}, { partial = false } = {}) {
   if (!partial || body.offeredSalary !== undefined) payload.offeredSalary = normalizeString(body.offeredSalary, 180);
   if (!partial || body.companyType !== undefined) payload.companyType = normalizeString(body.companyType, 120);
   if (!partial || body.notes !== undefined) payload.notes = normalizeString(body.notes, 4000);
-  if (!partial || body.resumeUrl !== undefined) payload.resumeUrl = normalizeOptionalUrl(body.resumeUrl);
+  if (!partial || body.resumeUrl !== undefined) {
+    const rv = normalizeOptionalUrl(body.resumeUrl, "resumeUrl");
+    if (rv && typeof rv === "object" && rv._error) return { error: rv._error };
+    payload.resumeUrl = rv;
+  }
   if (!partial || body.qualification !== undefined) payload.qualification = normalizeString(body.qualification, 400);
   if (!partial || body.workMode !== undefined) payload.workMode = normalizeString(body.workMode, 120);
   if (!partial || body.descriptionSummary !== undefined) payload.descriptionSummary = normalizeString(body.descriptionSummary, 1200);
-  if (!partial || body.originalApplyLink !== undefined) payload.originalApplyLink = normalizeOptionalUrl(body.originalApplyLink);
+  if (!partial || body.originalApplyLink !== undefined) {
+    const ov = normalizeOptionalUrl(body.originalApplyLink, "originalApplyLink");
+    if (ov && typeof ov === "object" && ov._error) return { error: ov._error };
+    payload.originalApplyLink = ov;
+  }
   if (!partial || body.skills !== undefined) payload.skills = normalizeStringArray(body.skills);
 
   if (!partial || body.confidenceScore !== undefined) {

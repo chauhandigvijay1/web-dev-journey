@@ -23,9 +23,14 @@ export async function getJobs(req, res) {
     const limit = Math.min(200, Math.max(1, parseInt(req.query.limit) || 50));
     const skip = (page - 1) * limit;
 
+    const filter = { user: req.user._id };
+    if (req.query.originalApplyLink) {
+      filter.originalApplyLink = req.query.originalApplyLink;
+    }
+
     const [jobs, total] = await Promise.all([
-      Job.find({ user: req.user._id }).sort({ createdAt: -1 }).skip(skip).limit(limit).lean(),
-      Job.countDocuments({ user: req.user._id }),
+      Job.find(filter).sort({ createdAt: -1 }).skip(skip).limit(limit).lean(),
+      Job.countDocuments(filter),
     ]);
 
     return res.json({
@@ -102,6 +107,9 @@ export async function getJobCount(req, res) {
 }
 
 export async function deleteAllJobs(req, res) {
+  if (req.body?.confirm !== true) {
+    return res.status(400).json({ success: false, message: "Must send { confirm: true } to delete all jobs" });
+  }
   const deletedCount = await deleteAllJobsForUser(req.user);
   return res.json({
     success: true,

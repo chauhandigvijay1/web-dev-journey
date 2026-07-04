@@ -57,6 +57,8 @@ export const apiRateLimiter = createRateLimiter(
   "Too many requests. Please try again later."
 );
 
+export const healthRateLimiter = createRateLimiter(60, 1, "Too many health check requests.");
+
 export const authRateLimiter = createRateLimiter(
   env.authRateLimitMax,
   env.authRateLimitWindowMinutes,

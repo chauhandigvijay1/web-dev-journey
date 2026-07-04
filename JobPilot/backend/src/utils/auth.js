@@ -152,26 +152,32 @@ export async function ensureUserHasUsername(user) {
 export async function backfillMissingUsernames(logger = console) {
   const users = await User.find({
     $or: [{ username: { $exists: false } }, { username: null }, { username: "" }],
-  });
+  }).lean();
 
   if (users.length === 0) {
     return 0;
   }
 
-  let updated = 0;
+  const updates = await Promise.all(
+    users.map(async (user) => {
+      const username = await ensureUniqueUsername({
+        name: user.name,
+        email: user.email,
+        excludeUserId: user._id,
+      });
+      return {
+        updateOne: {
+          filter: { _id: user._id },
+          update: { $set: { username } },
+        },
+      };
+    })
+  );
 
-  for (const user of users) {
-    user.username = await ensureUniqueUsername({
-      name: user.name,
-      email: user.email,
-      excludeUserId: user._id,
-    });
-    await user.save();
-    updated += 1;
-  }
+  await User.bulkWrite(updates);
 
-  logger.info(`[auth] Backfilled usernames for ${updated} user(s)`);
-  return updated;
+  logger.info(`[auth] Backfilled usernames for ${users.length} user(s)`);
+  return users.length;
 }
 
 export function getGoogleClientId() {

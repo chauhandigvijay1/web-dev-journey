@@ -7,7 +7,7 @@ import {
   hashToken,
   verifyRefreshToken,
 } from "../utils/jwt.js";
-import { ensureUniqueUsername, normalizeUsername } from "../utils/auth.js";
+import { ensureUniqueUsername, ensureUserHasUsername, normalizeUsername } from "../utils/auth.js";
 
 const DEFAULT_SETTINGS = {
   jobPreferences: {
@@ -105,20 +105,6 @@ export function clearRefreshCookie(res) {
   res.clearCookie(env.authCookieName, getRefreshCookieOptions());
 }
 
-export async function ensureSessionUsername(user) {
-  if (normalizeUsername(user?.username)) {
-    return false;
-  }
-
-  user.username = await ensureUniqueUsername({
-    name: user?.name,
-    email: user?.email,
-    excludeUserId: user?._id,
-  });
-
-  return true;
-}
-
 export async function createAuthSession(user) {
   const sessionId = crypto.randomUUID();
   const accessToken = generateAccessToken(user._id, user.tokenVersion);
@@ -138,7 +124,7 @@ export async function createAuthSession(user) {
 }
 
 export async function sendAuthSuccess(res, user, status = 200) {
-  if (await ensureSessionUsername(user)) {
+  if (await ensureUserHasUsername(user)) {
     await user.save();
   }
 

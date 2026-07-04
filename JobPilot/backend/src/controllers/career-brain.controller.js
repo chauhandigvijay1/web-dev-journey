@@ -150,8 +150,8 @@ export async function uploadResumeToCareerBrain(req, res) {
   try {
     url = await uploadToCloudinary(req.file.buffer, mimetype, fileName);
   } catch (err) {
-    if (err.message === "Cloudinary is not configured") {
-      return res.status(500).json({ success: false, message: err.message });
+    if (err.statusCode === 503) {
+      return res.status(503).json({ success: false, message: "File upload is not available" });
     }
     return res.status(502).json({ success: false, message: "Upload failed" });
   }
@@ -367,7 +367,10 @@ export async function downloadResume(req, res) {
 
   const fileName = profile.fileName || "resume.pdf";
   try {
-    const response = await fetch(profile.resumeUrl);
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 30000);
+    const response = await fetch(profile.resumeUrl, { signal: controller.signal });
+    clearTimeout(timeoutId);
     if (!response.ok) {
       return res.status(502).json({ success: false, message: "Failed to fetch resume from storage" });
     }
@@ -382,6 +385,28 @@ export async function downloadResume(req, res) {
 }
 
 export async function deleteResume(req, res) {
+  const profile = await ResumeProfile.findOne({ user: req.user._id }).select("resumeUrl");
+  if (profile?.resumeUrl) {
+    try {
+      const { configureCloudinary } = await import("../config/cloudinary.js");
+      const cloudinary = configureCloudinary();
+      const segments = profile.resumeUrl.split("/");
+      const publicId = segments
+        .slice(segments.indexOf("upload") + 1)
+        .join("/")
+        .replace(/\.[^.]+$/, "");
+      if (publicId) {
+        await new Promise((resolve, reject) => {
+          cloudinary.uploader.destroy(publicId, (error, result) => {
+            if (error) reject(error);
+            else resolve(result);
+          });
+        });
+      }
+    } catch (err) {
+      logger.warn("Failed to delete Cloudinary asset", { message: err.message });
+    }
+  }
   await ResumeProfile.findOneAndDelete({ user: req.user._id });
   return res.json({ success: true, message: "Resume deleted" });
 }

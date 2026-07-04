@@ -43,7 +43,7 @@ describe("uniqueTrimmed", () => {
 describe("filterJobs", () => {
   const jobs: Job[] = [
     job({ _id: "1", title: "Frontend Engineer", company: "Google", location: "Mountain View", status: "applied", jobType: "full-time", workMode: "remote", source: "linkedin" }),
-    job({ _id: "2", title: "Backend Engineer", company: "Meta", location: "New York", location: "New York, USA", status: "saved", jobType: "contract", workMode: "hybrid", source: "indeed" }),
+    job({ _id: "2", title: "Backend Engineer", company: "Meta", location: "New York, USA", status: "saved", jobType: "contract", workMode: "hybrid", source: "indeed" }),
     job({ _id: "3", title: "DevOps Engineer", company: "Amazon", location: "Seattle, USA", status: "interview", jobType: "full-time", workMode: "onsite", source: "linkedin" }),
     job({ _id: "4", title: "ML Engineer", company: "OpenAI", location: "San Francisco, USA", locations: ["San Francisco, USA", "Remote"], status: "offer", jobType: "full-time", workMode: "remote", source: "wellfound" }),
   ];
@@ -124,7 +124,6 @@ describe("sortJobsInColumn", () => {
       salary: "",
       confidenceScore: 0,
       status: "saved",
-      priorityScore: 50,
       createdAt: new Date(now - 100000).toISOString(),
       ...overrides,
     } as Job;
@@ -148,10 +147,10 @@ describe("sortJobsInColumn", () => {
     expect(sorted[0]!._id).toBe("2");
   });
 
-  it("sorts by priority (priorityScore descending)", () => {
+  it("sorts by priority (confidenceScore descending)", () => {
     const jobs = [
-      makeJob("1", { title: "Low", company: "A", priorityScore: 10 }),
-      makeJob("2", { title: "High", company: "B", priorityScore: 90 }),
+      makeJob("1", { title: "Low", company: "A", confidenceScore: 10 }),
+      makeJob("2", { title: "High", company: "B", confidenceScore: 90 }),
     ];
     const sorted = sortJobsInColumn(jobs, "priority");
     expect(sorted[0]!._id).toBe("2");

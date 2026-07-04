@@ -209,13 +209,13 @@ async function scheduleWeeklySummaryForUser(user, now = new Date()) {
 }
 
 async function ensureWeeklySummaryReminders(now) {
-  const users = await User.find({
+  const cursor = User.find({
     emailNotifications: true,
     email: { $exists: true, $ne: "" },
     "settings.notifications.weeklySummaryEnabled": true,
-  }).select("emailNotifications email settings");
+  }).select("emailNotifications email settings").cursor();
 
-  for (const user of users) {
+  for await (const user of cursor) {
     await scheduleWeeklySummaryForUser(user, now);
   }
 }
@@ -251,6 +251,7 @@ async function buildWeeklySummaryPayload(user, reminder) {
         followUpDate: {
           $gte: new Date(),
         },
+        status: { $nin: ["rejected", "offer"] },
       }),
     },
     highlights: jobs.slice(0, 3).map((j) => `${j.title} at ${j.company}`),
@@ -434,7 +435,7 @@ async function processOneReminder(reminder, now, logger) {
 
     return { sent: 1 };
   } catch (error) {
-    logger.error("Reminder failed", error);
+    logger.error("Reminder failed", { message: error?.message, stack: error?.stack });
     await markReminderFailure(populated, now, error);
     return { failed: 1 };
   }
@@ -448,7 +449,10 @@ export async function runReminderSweep({
   now = new Date(),
   logger = defaultLogger,
 } = {}) {
-  if (runningSweep) return runningSweep;
+  if (runningSweep) {
+    logger.warn("[reminders] Sweep already in progress — skipping");
+    return null;
+  }
 
   runningSweep = (async () => {
     if (mongoose.connection.readyState !== 1) {
@@ -502,9 +506,18 @@ export async function runReminderSweep({
       skipped,
       failed,
     };
-  })().finally(() => {
-    runningSweep = null;
-  });
+  })();
+
+  runningSweep = runningSweep
+    .then((result) => {
+      runningSweep = null;
+      return result;
+    })
+    .catch((err) => {
+      runningSweep = null;
+      logger.error("[reminders] Sweep failed", { message: err.message, stack: err.stack });
+      return { processed: 0, sent: 0, skipped: 0, failed: 0 };
+    });
 
   return runningSweep;
 }
@@ -573,8 +586,12 @@ export async function syncJobReminders(job, user = null) {
       job.applyDeadline
     )}`;
 
+    const deadlineDate = new Date(job.applyDeadline);
+    const reminderDate = new Date(deadlineDate);
+    reminderDate.setDate(reminderDate.getDate() - 2);
+
     const scheduledFor = toScheduledDate(
-      job.applyDeadline,
+      reminderDate,
       notifications.timezone,
       notifications.reminderHour
     );
@@ -598,6 +615,7 @@ export async function syncJobReminders(job, user = null) {
     }
   }
 
+  // Reverse order: cancel stale reminders first, then create new ones
   await cancelOtherJobReminders(job._id, keepKeys);
 
   return created;
@@ -610,9 +628,9 @@ export async function syncRemindersForUser(userId) {
 
   if (!user) return;
 
-  const jobs = await Job.find({ user: userId });
+  const cursor = Job.find({ user: userId }).cursor();
 
-  for (const job of jobs) {
+  for await (const job of cursor) {
     await syncJobReminders(job, user);
   }
 
@@ -627,7 +645,9 @@ export function startReminderScheduler(
   reminderTask = cron.schedule(
     env.reminderCron,
     () => {
-      void runReminderSweep({ logger });
+      runReminderSweep({ logger }).catch((err) => {
+        logger.error("[reminders] Scheduler sweep error", { message: err.message, stack: err.stack });
+      });
     },
     { scheduled: true }
   );

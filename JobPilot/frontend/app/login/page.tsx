@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { ErrorBoundary } from "@/components/ui/error-boundary";
 import type { StoredUser } from "@/lib/authStorage";
 import { getApiErrorMessage } from "@/lib/httpError";
 import { api } from "@/services/api";
@@ -75,10 +76,13 @@ export default function LoginPage() {
       );
 
       if (!data.success || !data.data) {
-        throw new Error(data.message ?? "Could not sign in with Google");
+        setError(data.message ?? "Could not sign in with Google");
+        return;
       }
 
       await completeAuth(data.data);
+    } catch (err) {
+      setError(getApiErrorMessage(err, "Could not sign in with Google"));
     } finally {
       setPending(false);
     }
@@ -93,6 +97,7 @@ export default function LoginPage() {
   }
 
   return (
+    <ErrorBoundary>
     <AuthShell
       eyebrow="Welcome back"
       title="Sign in"
@@ -154,5 +159,6 @@ export default function LoginPage() {
         </form>
       </div>
     </AuthShell>
+    </ErrorBoundary>
   );
 }

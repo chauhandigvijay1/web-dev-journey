@@ -33,6 +33,17 @@ import { Input } from "@/components/ui/input";
 import { Progress } from "@/components/ui/progress";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Textarea } from "@/components/ui/textarea";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { safeUrl } from "@/lib/job-types";
 
 /* ------------------------------------------------------------------ */
 /*  Types                                                             */
@@ -604,9 +615,9 @@ function ParsedProfileCard({ profile }: { profile: CareerBrainProfile }) {
                   GitHub <ExternalLink className="h-3 w-3" />
                 </a>
               )}
-              {profile.contactInfo.portfolio && (
+              {safeUrl(profile.contactInfo.portfolio) && (
                 <a
-                  href={profile.contactInfo.portfolio}
+                  href={safeUrl(profile.contactInfo.portfolio)!}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="inline-flex items-center gap-1 text-xs text-primary hover:underline"
@@ -1429,8 +1440,10 @@ export default function CareerBrainPage() {
     }
   }
 
+  var [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+
   async function handleDelete() {
-    if (!window.confirm("Delete your resume and profile data? You can upload a new one.")) return;
+    setShowDeleteConfirm(false);
     setDeleting(true);
     try {
       const { data } = await api.delete<{ success: boolean; message?: string }>("/career-brain/resume");
@@ -1477,9 +1490,26 @@ export default function CareerBrainPage() {
         resume={profile?.resume ?? null}
         uploading={uploading || deleting}
         onUpload={handleUpload}
-        onDelete={handleDelete}
+        onDelete={() => setShowDeleteConfirm(true)}
         downloadUrl={profile?.resume?.fileUrl ? `${api.defaults.baseURL}/career-brain/resume/download` : undefined}
       />
+
+      <AlertDialog open={showDeleteConfirm} onOpenChange={setShowDeleteConfirm}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete resume?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will permanently delete your resume and all career brain data. You can upload a new one later.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       {/* Section 2 – Parsed Profile */}
       {loadingProfile ? (

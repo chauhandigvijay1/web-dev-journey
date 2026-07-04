@@ -45,3 +45,13 @@ export function getPasswordValidationMessage(password: string) {
   }
   return null;
 }
+
+export function getPasswordChecklist(password: string) {
+  return [
+    { label: "At least 8 characters", met: password.length >= 8 },
+    { label: "Lowercase letter", met: /[a-z]/.test(password) },
+    { label: "Uppercase letter", met: /[A-Z]/.test(password) },
+    { label: "Number", met: /\d/.test(password) },
+    { label: "Special character", met: /[^A-Za-z0-9]/.test(password) },
+  ];
+}

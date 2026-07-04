@@ -1,177 +1,114 @@
 # Deployment Guide
 
-## Architecture Overview
+<p align="center">
+  <img src="./assets/screenshots/logo.svg" alt="JobPilot Logo" width="120" />
+</p>
 
-JobPilot consists of three independent components:
+> **JobPilot Deployment:** Comprehensive guide for deploying the Web App, Backend API, and Chrome Extension.
 
-| Component | Stack | Hosting | Live URL |
-|---|---|---|---|
-| **Frontend** | Next.js 14 (React, TypeScript) | Vercel | https://jobpilot-client-chi.vercel.app |
-| **Backend API** | Node.js + Express 5 (ESM) | Render | https://web-dev-journey-cnee.onrender.com |
-| **Browser Extension** | Chrome MV3 (vanilla JS) | Chrome Web Store | Loaded unpacked during dev |
+## Table of Contents
 
-The frontend communicates with the backend via REST API calls. The extension injects content scripts into job board pages and sends extracted data to the backend.
-
----
-
-## Prerequisites
-
-- Node.js >= 18
-- npm (comes with Node.js)
-- Git
-- A [Vercel](https://vercel.com) account (for frontend)
-- A [Render](https://render.com) account (for backend)
-- A [MongoDB Atlas](https://www.mongodb.com/atlas) cluster
-- A [Groq](https://groq.com) API key
-- A Chrome/Chromium browser (for extension development)
+- [Overview](#overview)
+- [Frontend Deployment (Vercel)](#frontend-deployment-vercel)
+- [Backend Deployment (Render)](#backend-deployment-render)
+- [Extension Distribution](#extension-distribution)
+- [Post-Deployment Verification](#post-deployment-verification)
+- [CI/CD Recommendations](#cicd-recommendations)
+- [Troubleshooting](#troubleshooting)
+- [Related Documents](#related-documents)
 
 ---
 
-## Frontend — Deploy to Vercel
+## Overview
 
-**Root directory:** `JobPilot/frontend`
+JobPilot is engineered for modern cloud infrastructure, mapping seamlessly to specialized platforms to optimize for latency, scale, and cost.
 
-### Step-by-step
-
-1. Push your repository to GitHub.
-2. Go to [vercel.com](https://vercel.com) and click **Add New → Project**.
-3. Import your GitHub repository.
-4. In the **Configure Project** step:
-   - **Root Directory:** Click **Edit** and set it to `frontend`.
-   - **Framework Preset:** Select **Next.js** (Vercel auto-detects it).
-   - **Build Command:** Leave as default (`next build`).
-   - **Output Directory:** Leave as default (`.next`).
-5. Add the required environment variable:
-
-   | Variable | Value |
-   |---|---|
-   | `NEXT_PUBLIC_API_URL` | `https://web-dev-journey-cnee.onrender.com` |
-
-   Optional: `NEXT_PUBLIC_GOOGLE_CLIENT_ID` (for Google One Tap sign-in).
-6. Click **Deploy**.
-7. Vercel assigns a `.vercel.app` domain. Configure a custom domain if desired.
-
-> **Note:** The postbuild script (`node scripts/ensure-routes-manifest.mjs`) runs automatically after `next build` and verifies the routes manifest is correctly generated.
+| Component | Stack | Hosting | Domain |
+|-----------|-------|---------|----------|
+| **Frontend** | Next.js 14 | Vercel | `jobpilot-client-chi.vercel.app` |
+| **Backend API** | Express 5 | Render | `web-dev-journey-cnee.onrender.com` |
+| **Extension** | Chrome MV3 | Web Store | — |
 
 ---
 
-## Backend — Deploy to Render
+## Frontend Deployment (Vercel)
 
-**Root directory:** `JobPilot/backend`
+Vercel is the optimal hosting platform for Next.js applications, providing edge caching, global CDN distribution, and automated CI/CD.
 
-### Step-by-step
+### Steps to Deploy:
+1. Ensure your latest changes are pushed to your target branch on GitHub.
+2. From the Vercel dashboard, click **Add New** → **Project** and import the repository.
+3. Configure the Root Directory to `frontend`.
+4. Add the following Environment Variable:
+   - `NEXT_PUBLIC_API_URL`: `https://web-dev-journey-cnee.onrender.com`
+5. Click **Deploy**. Vercel will automatically assign a `.vercel.app` domain.
 
-1. Go to [render.com](https://render.com) and click **New → Web Service**.
-2. Connect your GitHub repository.
-3. Configure the service:
-
-   | Setting | Value |
-   |---|---|
-   | **Name** | `jobpilot-api` (or your preference) |
-   | **Root Directory** | `backend` |
-   | **Runtime** | **Node** |
-   | **Build Command** | `npm install` |
-   | **Start Command** | `npm start` |
-   | **Plan** | Free or any paid tier |
-
-4. Add all required environment variables:
-
-   | Variable | Required | Example |
-   |---|---|---|
-   | `MONGO_URI` | Yes | `mongodb+srv://user:pass@cluster0.xxxxx.mongodb.net/jobpilot?retryWrites=true&w=majority` |
-   | `JWT_SECRET` | Yes | A random string ≥ 32 characters |
-   | `JWT_REFRESH_SECRET` | Yes | A different random string ≥ 32 characters |
-   | `GROQ_API_KEY` | Yes | `gsk_xxxxxxxxxxxxxxxx` |
-
-   Add any optional variables as needed (see [ENVIRONMENT.md](./ENVIRONMENT.md) for the full list).
-5. Click **Create Web Service**.
-6. Render provisions the service and starts it. Monitor the logs for any startup errors.
+> [!NOTE]
+> Vercel automatically maps Next.js API Routes to serverless functions. Ensure your `NEXT_PUBLIC_API_URL` points directly to the Render backend, skipping Next.js API route proxies for backend calls unless strictly necessary.
 
 ---
 
-## Extension — Packaging & Distribution
+## Backend Deployment (Render)
 
-### Load Unpacked (Development)
+The Express backend demands a robust Node environment, which Render provides natively as a Web Service.
 
-1. Open Chrome and go to `chrome://extensions`.
-2. Enable **Developer mode** (toggle in top-right).
-3. Click **Load unpacked**.
-4. Select `JobPilot/extension/`.
-5. The extension icon appears in the toolbar. Use `Alt+Shift+J` to open the popup.
+### Steps to Deploy:
+1. Navigate to the Render dashboard, click **New** → **Web Service**, and link your GitHub repository.
+2. In the configuration settings, apply the following details:
+   - **Root Directory**: `backend`
+   - **Runtime**: `Node`
+   - **Build Command**: `npm install`
+   - **Start Command**: `npm start`
+3. Enter critical Environment Variables (do not commit these to source control):
+   - `MONGO_URI`
+   - `JWT_SECRET`
+   - `JWT_REFRESH_SECRET`
+   - `GROQ_API_KEY`
+4. Click **Create Web Service**.
 
-### Package for Chrome Web Store
-
-1. Increment the `"version"` field in `manifest.json`.
-2. Create a ZIP archive of the `extension/` folder:
-
-   ```powershell
-   Compress-Archive -Path extension\* -DestinationPath jobpilot-extension-v1.0.0.zip
-   ```
-
-3. Upload to the [Chrome Developer Dashboard](https://chrome.google.com/webstore/devconsole).
-4. Fill in the store listing (description, screenshots, promo tiles, privacy policy URL).
-5. Submit for review. Review typically takes 1–3 business days.
-
-> **Note:** The extension requires 37 host permissions across major job boards. The review team may ask for justification — explain that each permission is needed for automatic job detection on that specific domain.
+> [!WARNING]
+> Keep an eye on Render's sleep policies if you are using the free tier. Your initial API requests may face cold-start delays.
 
 ---
 
-## Post-Deployment Verification Checklist
+## Extension Distribution
 
-- [ ] Backend health check responds: `GET https://web-dev-journey-cnee.onrender.com/api/health`
-- [ ] Frontend loads at the Vercel URL without console errors
-- [ ] User registration and login work end-to-end
-- [ ] Google One Tap sign-in works (if configured)
-- [ ] Job creation, listing, and search work
-- [ ] Job extraction from a public URL returns correct data
-- [ ] Reminder email pipeline runs (check backend logs for scheduler output)
-- [ ] Extension popup opens on a supported job board and extracts data
-- [ ] Rate limiting is active (rapid requests return 429)
+### Development (Load Unpacked)
+1. Open Chrome and navigate to `chrome://extensions`.
+2. Toggle **Developer mode** in the top-right corner.
+3. Click **Load unpacked** and select the `extension/` directory.
+
+### Production Packaging
+When preparing to push updates to users via the Chrome Web Store, zip the folder securely via CLI:
+
+```powershell
+# Windows PowerShell Example
+Compress-Archive -Path extension\* -DestinationPath jobpilot-extension-v1.0.2.zip
+```
+
+Submit this `.zip` file through the [Chrome Developer Dashboard](https://chrome.google.com/webstore/devconsole).
 
 ---
 
-## Troubleshooting
+## Post-Deployment Verification
 
-| Symptom | Likely Cause | Solution |
-|---|---|---|
-| Backend crashes on startup | Missing required env var (`MONGO_URI`, `JWT_SECRET`, `JWT_REFRESH_SECRET`, `GROQ_API_KEY`) | Check Render dashboard → Environment. Add the missing variable and redeploy. |
-| Backend logs: `MongoDB connection failed` | Wrong `MONGO_URI` or Atlas IP whitelist | Verify the connection string. Add Render's IP range to Atlas Network Access (0.0.0.0/0 for free tier). |
-| Frontend cannot reach backend | `NEXT_PUBLIC_API_URL` is wrong or CORS misconfigured | Verify the URL on Vercel. On Render, set `CORS_ORIGINS` to include the frontend URL. |
-| Extension says "Not logged in" | Auth cookie domain mismatch | The extension sends cookies to the backend. Ensure `FRONTEND_URL` matches the extension's origin. |
+Always validate the build after pushing to production.
+
+- [ ] **Health Check**: Ping `GET /api/health` to confirm `{ db: "connected" }`.
+- [ ] **UI Rendering**: The frontend loads smoothly without client-side console errors.
+- [ ] **Auth Pipeline**: Registration and Login flows process successfully.
+- [ ] **Data Flow**: Job creation, updates, and fetch logic correctly populate the Kanban board.
+- [ ] **Scraping Capability**: Extension communicates with the API to extract job listings reliably.
+- [ ] **Rate Limiting**: Rapid consecutive requests to endpoints correctly trigger `429 Too Many Requests`.
 
 ---
 
 ## CI/CD Recommendations
 
-### Vercel (Frontend)
-
-Vercel automatically deploys every push to the production branch (usually `main` or `master`). Preview deployments are created for pull requests. To prevent broken deployments, configure:
-
-- **GitHub Checks:** Enable Vercel's status checks so PRs cannot merge if the deployment fails.
-- **Pre-deploy hook:** Run lint + tests before merge. Example GitHub Actions workflow step:
-
-  ```yaml
-  - name: Run frontend tests
-    run: |
-      cd frontend
-      npm.cmd ci
-      npm.cmd run lint
-      npm.cmd test
-  ```
-
-### Render (Backend)
-
-Render supports **Auto-Deploy** — every push to the branch triggers a new deployment. Recommended setup:
-
-- Use a `staging` branch or separate Render service for staging.
-- Enable **Auto-Deploy** only for the production service.
-- Add a health check endpoint (`/api/health`) and configure Render's health check path.
-- Use **Preview Environments** for pull requests (Render Pro plan).
-
-### GitHub Actions (Recommended Pipeline)
+Adopt automated pipelines to shift testing left and ensure stability. Here is a recommended GitHub Actions setup:
 
 ```yaml
-name: CI
+name: CI Pipeline
 on: [push, pull_request]
 jobs:
   test:
@@ -181,14 +118,35 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 18
-      - name: Backend tests
-        run: |
-          cd backend
-          npm ci
-          npm test
-      - name: Frontend tests
-        run: |
-          cd frontend
-          npm ci
-          npm test
+      - name: Test Backend
+        run: cd backend && npm ci && npm test
+      - name: Test Frontend
+        run: cd frontend && npm ci && npm test
 ```
+
+Vercel natively supports deployment hooks triggers. Render can be configured to auto-deploy upon successful merge to the default production branch.
+
+---
+
+## Troubleshooting
+
+| Symptom | Cause | Solution |
+|---------|-------|----------|
+| **Backend crash on startup** | Missing env variables | Audit the Environment tab in Render. |
+| **MongoDB connection failed** | Atlas IP Allowlist | Ensure `0.0.0.0/0` is allowed in MongoDB Atlas Network Access. |
+| **Frontend fails to reach backend** | CORS Block / Bad URL | Verify `NEXT_PUBLIC_API_URL` and confirm `CORS_ORIGINS` on Render. |
+| **Extension shows "Not connected"** | Auth context mismatch | Authenticate through the main web app to synchronize tokens. |
+
+---
+
+## Related Documents
+
+| Document | Description |
+|----------|-------------|
+| [Architecture](./architecture.md) | High-level system architecture |
+| [Performance](./performance.md) | Tuning tips post-deployment |
+| [Testing](./testing.md) | Testing strategies |
+
+<br/>
+
+**Next Reading**: [Performance →](./performance.md) | **Previous**: [Frontend →](./frontend.md)
