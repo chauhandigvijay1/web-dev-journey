@@ -118,6 +118,12 @@ const userSchema = new mongoose.Schema(
       default: null,
       select: false,
     },
+    unverifiedEmail: {
+      type: String,
+      default: null,
+      trim: true,
+      lowercase: true,
+    },
   },
   {
     timestamps: true,

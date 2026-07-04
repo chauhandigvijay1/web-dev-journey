@@ -1,9 +1,7 @@
 const Membership = require('../models/Membership')
 const logger = require('../services/logger')
-const { socketAuthMiddleware } = require('../services/socketAuth')
 
 const registerTaskSocket = (io) => {
-  io.use(socketAuthMiddleware)
 
   io.on('connection', (socket) => {
     socket.on('task:create', async (payload) => {

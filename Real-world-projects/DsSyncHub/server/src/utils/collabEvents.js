@@ -4,6 +4,7 @@ const Notification = require('../models/Notification')
 const safeLink = (value = '') => {
   if (typeof value !== 'string') return ''
   if (!value.startsWith('/')) return ''
+  if (value.startsWith('//')) return ''
   return value.slice(0, 300)
 }
 

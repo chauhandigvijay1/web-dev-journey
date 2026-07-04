@@ -10,7 +10,7 @@
 
 Before installing DsSync Hub, ensure your local development environment meets the following requirements:
 
-- **Node.js**: `v18.x` or newer recommended
+- **Node.js**: `v20.x` or newer recommended
 - **npm**: Package manager
 - **Database**: A local MongoDB instance or a free MongoDB Atlas cluster
 - **Git**: Installed and authenticated

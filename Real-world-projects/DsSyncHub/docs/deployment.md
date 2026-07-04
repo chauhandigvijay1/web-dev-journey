@@ -66,20 +66,24 @@ Follow these phases sequentially to ensure services can talk to each other.
    - Start Command: `npm start` (Ensure this runs `node index.js`, not `nodemon`).
 4. **Environment Variables**: Input the following into Render's Environment panel:
    ```env
-   PORT=5000
-   NODE_ENV=production
-   MONGO_URI=your_mongodb_uri
-   CLIENT_URL=https://your-project.vercel.app
-   JWT_SECRET=your_strong_random_secret
-   JWT_EXPIRES_IN=7d
-   GOOGLE_CLIENT_ID=your_google_client_id
-   EMAIL_USER=your_email@gmail.com
-   EMAIL_PASS=your_app_password
-   EMAIL_FROM=your_email@gmail.com
-   RAZORPAY_KEY_ID=your_key
-   RAZORPAY_KEY_SECRET=your_secret
-   GROQ_API_KEY=your_key
-   ```
+    PORT=5000
+    NODE_ENV=production
+    MONGO_URI=your_mongodb_uri
+    CLIENT_URL=https://your-project.vercel.app
+    JWT_SECRET=your_strong_random_secret
+    JWT_EXPIRES_IN=7d
+    GOOGLE_CLIENT_ID=your_google_client_id
+    EMAIL_USER=your_email@gmail.com
+    EMAIL_PASS=your_app_password
+    EMAIL_FROM=your_email@gmail.com
+    RAZORPAY_KEY_ID=your_key
+    RAZORPAY_KEY_SECRET=your_secret
+    GROQ_API_KEY=your_key
+    SENTRY_DSN=your_sentry_dsn              # Optional — error tracking
+    REDIS_URL=redis://default:pass@host:6379 # Optional — rate limiting & queue
+    CLOUDINARY_URL=cloudinary://key:secret@name # Optional — cloud uploads
+    COUPON_CODE=your_owner_coupon           # Optional — free Pro upgrades
+    ```
 5. Deploy the service and copy your generated Render URL (e.g., `https://your-backend.onrender.com`).
 
 ### Phase 3: Frontend SPA (Vercel)

@@ -5,6 +5,7 @@ import { createRoot } from 'react-dom/client'
 import { Provider } from 'react-redux'
 import { BrowserRouter } from 'react-router-dom'
 import App from './App'
+import ErrorFallback from './components/common/ErrorFallback'
 import { store } from './store'
 import './styles/globals.css'
 
@@ -24,12 +25,16 @@ createRoot(document.getElementById('root')!).render(
       {googleClientId ? (
         <GoogleOAuthProvider clientId={googleClientId}>
           <BrowserRouter>
-            <App />
+            <Sentry.ErrorBoundary fallback={<ErrorFallback />}>
+              <App />
+            </Sentry.ErrorBoundary>
           </BrowserRouter>
         </GoogleOAuthProvider>
       ) : (
         <BrowserRouter>
-          <App />
+          <Sentry.ErrorBoundary fallback={<ErrorFallback />}>
+            <App />
+          </Sentry.ErrorBoundary>
         </BrowserRouter>
       )}
     </Provider>

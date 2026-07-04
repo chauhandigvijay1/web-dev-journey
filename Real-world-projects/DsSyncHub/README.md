@@ -5,8 +5,8 @@
   <p><strong>A production-grade, open-source SaaS collaboration platform for modern teams.</strong></p>
 
   <p>
-    <a href="https://dssync-hub-client.vercel.app" target="_blank">Live Demo</a> -?
-    <a href="docs/index.md">Documentation</a> -?
+    <a href="https://dssync-hub-client.vercel.app" target="_blank">Live Demo</a> —
+    <a href="docs/index.md">Documentation</a> —
     <a href="https://github.com/chauhandigvijay1/web-dev-journey/tree/main/Real-world-projects/DsSyncHub">GitHub Repo</a>
   </p>
 
@@ -25,9 +25,10 @@
 ---
 
 <div align="center">
-  <a href="https://dssync-hub-client.vercel.app">
-    <img src="docs/assets/gifs/app-motion-demo.mp4" alt="DsSync Hub Motion Demo" width="800" style="border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);" onerror="this.src='docs/assets/screenshots/Homepage.png'" />
+  <a href="https://player.cloudinary.com/embed/?cloud_name=dtdvtkzsm&public_id=DsSyncHub-Final_fk7fl6">
+    <img src="docs/assets/gifs/app-motion-demo.gif" alt="DsSync Hub Motion Demo" width="800" style="border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);" onerror="this.src='docs/assets/screenshots/LandingPage.png'" />
   </a>
+  <em>Click above to watch the official DsSyncHub motion Video.</em>
 </div>
 
 <details>
@@ -52,7 +53,7 @@
 
 ## Overview & Mission
 
-DsSync Hub is a **production-grade, multi-tenant SaaS collaboration platform** engineered for teams that need task management, real-time communication, document collaboration, video meetings, AI assistance, and billing ?" all in one unified workspace.
+DsSync Hub is a **production-grade, multi-tenant SaaS collaboration platform** engineered for teams that need task management, real-time communication, document collaboration, video meetings, AI assistance, and billing — all in one unified workspace.
 
 This is not a tutorial project. It is an enterprise-ready foundation demonstrating deep systems thinking, secure multi-tenant isolation, real-time data consistency, and resilient architecture across 17 data models and API controllers.
 
@@ -64,7 +65,7 @@ We solved multiple complex scaling and consistency problems during development:
 
 - **Multi-API-key AI fallback**: Comma-separated `GROQ_API_KEY` env var with sequential retry + 100ms delay + 12-second strict timeout.
 - **Ephemeral Render storage**: Cloudinary integration with automatic local fallback + production warnings for persistence.
-- **Socket Singleton Disconnect**: Removed `disconnectSocket()` from component cleanup ?" all features share one global persistent socket.
+- **Socket Singleton Disconnect**: Removed `disconnectSocket()` from component cleanup — all features share one global persistent socket.
 - **Data-Race Prevention**: Attached `io` to the Express app via `app.set('io', io)`. REST controllers update the database *then* emit socket events, ensuring the database is always the single source of truth.
 - **Multi-tenant Data Isolation**: Membership-based query filtering enforced on all 17 controllers via compound indexing.
 - **Email Port Blocking (Render)**: Bull queue with 3 retries (exponential backoff) using SendGrid HTTP API as primary, and Resend/SMTP as fallbacks.
@@ -278,11 +279,15 @@ Never expose production secrets. Reference `server/.env.example`.
 | `PORT` | Optional | Express server port | `5000` |
 | `MONGO_URI` | **Required** | MongoDB connection string | `mongodb+srv://user:pass@cluster.mongodb.net/db` |
 | `JWT_SECRET` | **Required** | Cryptographic key for Auth | `your_super_secret_jwt_key` |
+| `JWT_EXPIRES_IN` | Optional | Token expiry duration | `7d` |
 | `FRONTEND_URL` | **Required** | CORS origin whitelist | `http://localhost:5173` |
-| `REDIS_URL` | Optional | Rate limiting & Bull queue | `redis://default:pass@redis-host:6379` |
-| `GROQ_API_KEY` | Optional | Enables AI assistant | `gsk_your_api_key_here` |
-| `CLOUDINARY_URL`| Optional | Enables cloud uploads | `cloudinary://key:secret@cloud_name` |
-| `RAZORPAY_KEY` | Optional | Enables billing | `rzp_test_your_key_here` |
+| `REDIS_URL` | Optional | Rate limiting, Socket.io adapter & Bull queue | `redis://default:pass@redis-host:6379` |
+| `GROQ_API_KEY` | Optional | Enables AI assistant (comma-separated for key rotation) | `gsk_your_api_key_here` |
+| `CLOUDINARY_URL` | Optional | Enables cloud uploads (or use individual `CLOUDINARY_CLOUD_NAME`/`API_KEY`/`API_SECRET`) | `cloudinary://key:secret@cloud_name` |
+| `RAZORPAY_KEY_ID` | Optional | Enables billing (Razorpay public key) | `rzp_test_your_key_here` |
+| `RAZORPAY_KEY_SECRET` | Optional | Enables billing (Razorpay secret key) | `rzp_test_secret_here` |
+| `SENTRY_DSN` | Optional | Production error tracking | `https://key@o.ingest.sentry.io/project` |
+| `COUPON_CODE` | Optional | Owner coupon for free Pro upgrades | `OWNER_SECRET` |
 
 ---
 

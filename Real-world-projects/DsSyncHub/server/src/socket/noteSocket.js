@@ -1,9 +1,7 @@
 const Membership = require('../models/Membership')
 const logger = require('../services/logger')
-const { socketAuthMiddleware } = require('../services/socketAuth')
 
 const registerNoteSocket = (io) => {
-  io.use(socketAuthMiddleware)
 
   io.on('connection', (socket) => {
     socket.on('note:create', async (payload) => {

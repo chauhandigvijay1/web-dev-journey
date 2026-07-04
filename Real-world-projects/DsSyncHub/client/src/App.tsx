@@ -20,7 +20,7 @@ const App = () => {
 
     applyTheme()
     mediaQuery.addEventListener('change', applyTheme)
-    window.localStorage.setItem('dssync-theme', theme)
+    try { window.localStorage.setItem('dssync-theme', theme) } catch { /* localStorage unavailable */ }
 
     return () => mediaQuery.removeEventListener('change', applyTheme)
   }, [theme])

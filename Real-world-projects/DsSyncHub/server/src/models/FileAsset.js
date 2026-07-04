@@ -36,7 +36,7 @@ const fileAssetSchema = new mongoose.Schema(
     },
     provider: {
       type: String,
-      enum: ['local'],
+      enum: ['local', 'cloudinary'],
       default: 'local',
     },
     size: {

@@ -89,14 +89,12 @@ const buildCouponSeedList = () => {
 }
 
 const seedCoupons = async () => {
-  const existingCount = await Coupon.countDocuments()
-  if (existingCount > 0) return
   const list = buildCouponSeedList()
   for (const c of list) {
     const expiresAt = c.type === 'owner' ? null : new Date(Date.now() + 365 * 24 * 60 * 60 * 1000)
     await Coupon.findOneAndUpdate(
       { code: c.code },
-      { ...c, isActive: true, expiresAt, maxUsesPerUser: 1, maxTotalUses: 0, usedCount: 0 },
+      { ...c, isActive: true, expiresAt, maxUsesPerUser: 1, maxTotalUses: 0 },
       { upsert: true, new: true, setDefaultsOnInsert: true },
     )
   }
@@ -220,7 +218,7 @@ const checkoutBilling = async (req, res, next) => {
       if (!coupon.applicablePlans.includes(plan)) {
         return res.status(400).json({ success: false, message: `This coupon is not valid for the ${plan} plan.` })
       }
-      const existingRedemption = await CouponRedemption.findOne({ coupon: coupon._id, user: req.user._id, workspace })
+      const existingRedemption = await CouponRedemption.findOne({ coupon: coupon._id, user: req.user._id, workspace, isActive: true })
       if (existingRedemption) {
         return res.status(400).json({ success: false, message: 'This coupon has already been used on this workspace.' })
       }
@@ -324,7 +322,7 @@ const verifyBillingPayment = async (req, res, next) => {
 
     const subscription = await Subscription.findOneAndUpdate(
       { workspace },
-      subscriptionData,
+      { $set: subscriptionData },
       { upsert: true, new: true, setDefaultsOnInsert: true },
     )
 
@@ -453,7 +451,6 @@ const billingConfig = async (_req, res) => {
       razorpayConfigured: Boolean(razorpay),
       hasRazorpayKeyId: Boolean((process.env.RAZORPAY_KEY_ID || '').trim()),
       hasRazorpayKeySecret: Boolean((process.env.RAZORPAY_KEY_SECRET || '').trim()),
-      hasOwnerCoupon: Boolean((process.env.OWNER_COUPON_CODE || '').trim()),
       provider: razorpay ? 'razorpay' : 'none',
       coupons: coupons
         .filter((c) => c.type !== 'owner')
@@ -473,7 +470,6 @@ const billingConfig = async (_req, res) => {
       razorpayConfigured: false,
       hasRazorpayKeyId: Boolean((process.env.RAZORPAY_KEY_ID || '').trim()),
       hasRazorpayKeySecret: Boolean((process.env.RAZORPAY_KEY_SECRET || '').trim()),
-      hasOwnerCoupon: Boolean((process.env.OWNER_COUPON_CODE || '').trim()),
       provider: 'none',
       coupons: [],
     })
@@ -502,26 +498,31 @@ const applyCoupon = async (req, res, next) => {
       return res.status(400).json({ success: false, message: 'This coupon has reached its maximum usage limit.' })
     }
 
-    const existingRedemption = await CouponRedemption.findOne({ coupon: coupon._id, user: req.user._id, workspace })
+    const existingRedemption = await CouponRedemption.findOne({ coupon: coupon._id, user: req.user._id, workspace, isActive: true })
     if (existingRedemption) {
       if (coupon.type === 'owner') {
         const ownerCode = (process.env.OWNER_COUPON_CODE || '').trim().toUpperCase()
-        if (ownerCode && coupon.code === ownerCode && existingRedemption.isActive) {
+        if (ownerCode && coupon.code === ownerCode) {
           return res.status(400).json({ success: false, message: 'This owner coupon is already applied to this workspace.' })
-        }
-        if (ownerCode && coupon.code === ownerCode && !existingRedemption.isActive) {
-          existingRedemption.isActive = true
-          await existingRedemption.save()
-          const sub = await Subscription.findOneAndUpdate(
-            { workspace },
-            { status: 'active', cancelAtPeriodEnd: false },
-            { new: true },
-          )
-          await Workspace.findByIdAndUpdate(workspace, { plan: 'pro' })
-          return res.status(200).json({ success: true, message: 'Owner coupon reactivated. Workspace upgraded to Pro.', subscription: sub ? toSubscription(sub) : undefined })
         }
       }
       return res.status(400).json({ success: false, message: 'This coupon has already been used on this workspace.' })
+    }
+
+    const inactiveRedemption = coupon.type === 'owner' ? await CouponRedemption.findOne({ coupon: coupon._id, user: req.user._id, workspace, isActive: false }) : null
+    if (inactiveRedemption) {
+      const ownerCode = (process.env.OWNER_COUPON_CODE || '').trim().toUpperCase()
+      if (ownerCode && coupon.code === ownerCode) {
+        inactiveRedemption.isActive = true
+        await inactiveRedemption.save()
+        const sub = await Subscription.findOneAndUpdate(
+          { workspace },
+          { status: 'active', cancelAtPeriodEnd: false },
+          { new: true },
+        )
+        await Workspace.findByIdAndUpdate(workspace, { plan: 'pro' })
+        return res.status(200).json({ success: true, message: 'Owner coupon reactivated. Workspace upgraded to Pro.', subscription: sub ? toSubscription(sub) : undefined })
+      }
     }
 
     const now = new Date()

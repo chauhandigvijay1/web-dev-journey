@@ -1,5 +1,5 @@
 import { Bold, Code, Heading, Italic, Link2, List, ListOrdered, Minus, Quote, Underline } from 'lucide-react'
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import DOMPurify from 'dompurify'
 import { noteApi } from '../../services/noteApi'
 import type { NoteItem } from '../../types/note'
@@ -32,8 +32,8 @@ const sanitize = (html: string) =>
 const NoteEditor = ({ note, onPatchNote, onSavingState }: NoteEditorProps) => {
   const editorRef = useRef<HTMLDivElement | null>(null)
   const [title, setTitle] = useState(note.title)
-  const [content, setContent] = useState(sanitize(note.content || '<p></p>'))
   const saveTimeoutRef = useRef<number | null>(null)
+  const isUpdatingRef = useRef(false)
 
   const scheduleSave = (nextTitle: string, nextContent: string) => {
     if (saveTimeoutRef.current) {
@@ -55,6 +55,9 @@ const NoteEditor = ({ note, onPatchNote, onSavingState }: NoteEditorProps) => {
   }
 
   const applyCommand = (action: string, value?: string) => {
+    const editor = editorRef.current
+    if (!editor) return
+    editor.focus()
     const supported = document.queryCommandSupported(action)
     if (supported) {
       document.execCommand(action, false, value)
@@ -69,11 +72,15 @@ const NoteEditor = ({ note, onPatchNote, onSavingState }: NoteEditorProps) => {
         range.surroundContents(link)
       }
     }
-    const updatedHtml = editorRef.current?.innerHTML || '<p></p>'
-    const safeHtml = sanitize(updatedHtml)
-    setContent(safeHtml)
-    scheduleSave(title, safeHtml)
+    scheduleSave(title, editor.innerHTML)
   }
+
+  useEffect(() => {
+    const editor = editorRef.current
+    if (editor && !editor.innerHTML) {
+      editor.innerHTML = sanitize(note.content || '<p></p>')
+    }
+  }, [note.id])
 
   return (
     <div className="flex h-full flex-col rounded-2xl border border-white/10 glass-card dark:border-zinc-800 dark:bg-zinc-900">
@@ -87,7 +94,7 @@ const NoteEditor = ({ note, onPatchNote, onSavingState }: NoteEditorProps) => {
             onChange={(event) => {
               const nextTitle = event.target.value
               setTitle(nextTitle)
-              scheduleSave(nextTitle, content)
+              scheduleSave(nextTitle, editorRef.current?.innerHTML || '')
             }}
             value={title}
           />
@@ -113,14 +120,15 @@ const NoteEditor = ({ note, onPatchNote, onSavingState }: NoteEditorProps) => {
         className="min-h-[420px] flex-1 overflow-y-auto p-4 text-left text-sm leading-7 outline-none"
         contentEditable
         dir="ltr"
-        dangerouslySetInnerHTML={{ __html: content }}
-        onInput={(event) => {
-          const nextContent = sanitize((event.target as HTMLDivElement).innerHTML)
-          if (editorRef.current && editorRef.current.innerHTML !== nextContent) {
-            editorRef.current.innerHTML = nextContent
-          }
-          setContent(nextContent)
-          scheduleSave(title, nextContent)
+        onInput={() => {
+          const editor = editorRef.current
+          if (!editor || isUpdatingRef.current) return
+          scheduleSave(title, editor.innerHTML)
+        }}
+        onPaste={(event) => {
+          event.preventDefault()
+          const text = event.clipboardData?.getData('text/plain') || ''
+          document.execCommand('insertText', false, text)
         }}
         ref={editorRef}
         suppressContentEditableWarning

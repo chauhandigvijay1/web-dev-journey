@@ -243,20 +243,34 @@ const googleAuth = async (req, res, next) => {
     let user = await User.findOne({ email: normalizedEmail })
 
     if (!user) {
-      const generatedUsername = normalizedEmail.split('@')[0].replace(/[^a-z0-9._-]/gi, '')
+      const baseUsername = normalizedEmail.split('@')[0].replace(/[^a-z0-9._-]/gi, '').slice(0, 20)
+      let username = baseUsername
+      let suffix = 0
+      while (suffix < 100) {
+        const candidate = suffix === 0 ? username : `${baseUsername}_${suffix}`
+        const exists = await User.findOne({ username: candidate }).select('_id').lean()
+        if (!exists) {
+          username = candidate
+          break
+        }
+        suffix++
+      }
       user = await User.create({
         fullName: payload.name || 'Google User',
-        username: `${generatedUsername}_${Math.floor(Math.random() * 10000)}`,
+        username,
         email: normalizedEmail,
         provider: 'google',
         emailVerified: true,
         avatarUrl: payload.picture || '',
       })
     } else {
-      // Keep existing provider for local accounts, but allow Google sign-in by verified email.
-      if (user.provider !== 'local') {
-        user.provider = 'google'
+      if (user.provider === 'local') {
+        return res.status(400).json({
+          success: false,
+          message: 'This account uses email/password login. Sign in with your password instead.',
+        })
       }
+      user.provider = 'google'
       user.emailVerified = true
       if (payload.picture && !user.avatarUrl) {
         user.avatarUrl = payload.picture
@@ -293,7 +307,8 @@ const sendVerificationEmailController = async (req, res, next) => {
 
     const clientUrl = (process.env.CLIENT_URL || 'http://localhost:5173').replace(/\/$/, '')
     const verifyUrl = `${clientUrl}/verify-email/${token}`
-    await sendVerificationEmail({ toEmail: req.user.email, verifyUrl })
+    const targetEmail = req.user.unverifiedEmail || req.user.email
+    await sendVerificationEmail({ toEmail: targetEmail, verifyUrl })
 
     return res.status(200).json({ success: true, message: 'Verification email sent.' })
   } catch (error) {
@@ -318,6 +333,10 @@ const verifyEmail = async (req, res, next) => {
       return res.status(400).json({ success: false, message: 'The verification link is invalid or has expired.' })
     }
 
+    if (user.unverifiedEmail) {
+      user.email = user.unverifiedEmail
+      user.unverifiedEmail = null
+    }
     user.emailVerified = true
     user.emailVerificationToken = null
     user.emailVerificationExpiresAt = null

@@ -14,7 +14,11 @@ const getSavedWorkspaceId = () => {
     return null
   }
 
-  return window.localStorage.getItem('dssync-active-workspace')
+  try {
+    return window.localStorage.getItem('dssync-active-workspace')
+  } catch {
+    return null
+  }
 }
 
 const initialState: WorkspaceState = {

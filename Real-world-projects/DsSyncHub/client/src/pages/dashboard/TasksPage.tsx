@@ -1,11 +1,12 @@
-import { Calendar, Filter, MessageSquare, Paperclip, Plus } from 'lucide-react'
+import { Filter, Plus } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
+import { DndContext, DragOverlay, PointerSensor, useSensor, useSensors, type DragEndEvent, type DragStartEvent } from '@dnd-kit/core'
 import AIAssistantDrawer from '../../components/ai/AIAssistantDrawer'
 import EmptyState from '../../components/common/EmptyState'
-import Pagination from '../../components/common/Pagination'
 import WorkspaceRequiredState from '../../components/common/WorkspaceRequiredState'
 import AddTaskModal from '../../components/tasks/AddTaskModal'
+import KanbanColumn from '../../components/tasks/KanbanColumn'
 import TaskDetailDrawer from '../../components/tasks/TaskDetailDrawer'
 import { useAppDispatch, useAppSelector } from '../../hooks/redux'
 import { useDebouncedValue } from '../../hooks/useDebouncedValue'
@@ -31,13 +32,6 @@ const columns: { key: TaskStatus; title: string }[] = [
   { key: 'done', title: 'Done' },
 ]
 
-const priorityColor: Record<string, string> = {
-  low: 'glass-card/10 text-zinc-700 dark:bg-zinc-800 dark:text-zinc-200',
-  medium: 'bg-blue-100 text-blue-700 dark:bg-blue-500/20 dark:text-blue-300',
-  high: 'bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-300',
-  critical: 'bg-rose-100 text-rose-700 dark:bg-rose-500/20 dark:text-rose-300',
-}
-
 const TasksPage = () => {
   const dispatch = useAppDispatch()
   const [searchParams, setSearchParams] = useSearchParams()
@@ -48,9 +42,14 @@ const TasksPage = () => {
   const [aiOpen, setAiOpen] = useState(false)
   const [prefillAssigneeId, setPrefillAssigneeId] = useState('')
   const [searchInput, setSearchInput] = useState(filters.search)
-  const [currentPage, setCurrentPage] = useState(1)
+  const [activeDragTask, setActiveDragTask] = useState<TaskItem | null>(null)
   const debouncedSearch = useDebouncedValue(searchInput, 250)
-  const pageSize = 16
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: { distance: 5 },
+    }),
+  )
 
   useEffect(() => {
     if (activeWorkspaceId) {
@@ -96,9 +95,24 @@ const TasksPage = () => {
       return true
     })
   }, [tasks, filters])
-  const totalPages = Math.max(1, Math.ceil(filteredTasks.length / pageSize))
-  const safeCurrentPage = Math.min(currentPage, totalPages)
-  const paginatedTasks = filteredTasks.slice((safeCurrentPage - 1) * pageSize, safeCurrentPage * pageSize)
+
+  const tasksByColumn = useMemo(() => {
+    const map: Record<TaskStatus, TaskItem[]> = {
+      todo: [],
+      in_progress: [],
+      review: [],
+      done: [],
+    }
+    for (const task of filteredTasks) {
+      if (map[task.status]) {
+        map[task.status].push(task)
+      }
+    }
+    for (const key of Object.keys(map) as TaskStatus[]) {
+      map[key].sort((a, b) => a.order - b.order)
+    }
+    return map
+  }, [filteredTasks])
 
   const selectedTask = useMemo(
     () => filteredTasks.find((task) => task.id === selectedTaskId) || tasks.find((task) => task.id === selectedTaskId) || null,
@@ -110,11 +124,38 @@ const TasksPage = () => {
     dispatch(fetchTaskCommentsThunk(task.id))
   }
 
-  const moveTask = (task: TaskItem, direction: 'left' | 'right') => {
-    const currentIndex = columns.findIndex((column) => column.key === task.status)
-    const targetIndex = direction === 'left' ? currentIndex - 1 : currentIndex + 1
-    if (targetIndex < 0 || targetIndex >= columns.length) return
-    dispatch(moveTaskThunk({ taskId: task.id, status: columns[targetIndex].key, order: task.order }))
+  const handleDragStart = (event: DragStartEvent) => {
+    const task = tasks.find((t) => t.id === event.active.id)
+    if (task) setActiveDragTask(task)
+  }
+
+  const handleDragEnd = (event: DragEndEvent) => {
+    setActiveDragTask(null)
+    const { active, over } = event
+    if (!over || !active) return
+
+    const taskId = active.id as string
+    const task = tasks.find((t) => t.id === taskId)
+    if (!task) return
+
+    let targetStatus: TaskStatus | null = null
+
+    if (over.data.current?.type === 'column') {
+      targetStatus = over.data.current.status as TaskStatus
+    } else {
+      const overTask = tasks.find((t) => t.id === over.id)
+      if (overTask) {
+        targetStatus = overTask.status
+      }
+    }
+
+    if (targetStatus && targetStatus !== task.status) {
+      const tasksInTarget = tasksByColumn[targetStatus]
+      const newOrder = tasksInTarget.length > 0
+        ? Math.max(...tasksInTarget.map((t) => t.order)) + 1
+        : 1
+      dispatch(moveTaskThunk({ taskId, status: targetStatus, order: newOrder }))
+    }
   }
 
   const workspaceName =
@@ -123,6 +164,8 @@ const TasksPage = () => {
   if (!activeWorkspaceId) {
     return <WorkspaceRequiredState description="Tasks need an active workspace so assignees, deadlines, comments, and board columns stay scoped to the right team." />
   }
+
+  const totalTaskCount = filteredTasks.length
 
   return (
     <section className="space-y-4 pb-5">
@@ -138,7 +181,6 @@ const TasksPage = () => {
             id="tasks-search"
             onChange={(event) => {
               setSearchInput(event.target.value)
-              setCurrentPage(1)
             }}
             placeholder="Search tasks"
             value={searchInput}
@@ -147,7 +189,6 @@ const TasksPage = () => {
             className="rounded-xl border border-white/10 px-3 py-2 text-sm hover:glass-card/10 dark:border-zinc-700 dark:hover:bg-zinc-800"
             onClick={() => {
               setSearchInput('')
-              setCurrentPage(1)
               dispatch(clearTaskFilters())
             }}
             type="button"
@@ -173,10 +214,9 @@ const TasksPage = () => {
         </div>
       </div>
 
-      <div className="grid gap-2 rounded-2xl border border-white/10 glass-card p-3 dark:border-zinc-800 dark:bg-zinc-900 sm:grid-cols-2 lg:grid-cols-5">
+      <div className="flex gap-2 rounded-2xl border border-white/10 glass-card p-3 dark:border-zinc-800 dark:bg-zinc-900">
         <label className="sr-only" htmlFor="tasks-status-filter">Status filter</label>
         <select className="rounded-xl border border-white/10 px-3 py-2 text-sm capitalize dark:border-zinc-700 bg-black/20" id="tasks-status-filter" onChange={(event) => {
-          setCurrentPage(1)
           dispatch(setTaskFilters({ status: event.target.value as 'all' | TaskStatus }))
         }} value={filters.status}>
           <option value="all">All Status</option>
@@ -187,7 +227,6 @@ const TasksPage = () => {
         </select>
         <label className="sr-only" htmlFor="tasks-priority-filter">Priority filter</label>
         <select className="rounded-xl border border-white/10 px-3 py-2 text-sm capitalize dark:border-zinc-700 bg-black/20" id="tasks-priority-filter" onChange={(event) => {
-          setCurrentPage(1)
           dispatch(setTaskFilters({ priority: event.target.value as typeof filters.priority }))
         }} value={filters.priority}>
           <option value="all">All Priority</option>
@@ -198,7 +237,6 @@ const TasksPage = () => {
         </select>
         <label className="sr-only" htmlFor="tasks-assignee-filter">Assignee filter</label>
         <select className="rounded-xl border border-white/10 px-3 py-2 text-sm dark:border-zinc-700 bg-black/20" id="tasks-assignee-filter" onChange={(event) => {
-          setCurrentPage(1)
           dispatch(setTaskFilters({ assignee: event.target.value }))
         }} value={filters.assignee}>
           <option value="all">All Assignees</option>
@@ -210,7 +248,6 @@ const TasksPage = () => {
         </select>
         <label className="sr-only" htmlFor="tasks-due-filter">Due date filter</label>
         <select className="rounded-xl border border-white/10 px-3 py-2 text-sm dark:border-zinc-700 bg-black/20" id="tasks-due-filter" onChange={(event) => {
-          setCurrentPage(1)
           dispatch(setTaskFilters({ due: event.target.value as typeof filters.due }))
         }} value={filters.due}>
           <option value="all">All Due Dates</option>
@@ -246,97 +283,29 @@ const TasksPage = () => {
       ) : (
         <>
           <div className="flex items-center justify-between text-sm text-zinc-400">
-            <p>
-              Showing {(safeCurrentPage - 1) * pageSize + 1}-{Math.min(safeCurrentPage * pageSize, filteredTasks.length)} of {filteredTasks.length} tasks
-            </p>
+            <p>{totalTaskCount} tasks</p>
             <p>{workspaceName}</p>
           </div>
-          <div className="grid gap-4 overflow-x-auto md:grid-cols-2 xl:grid-cols-4">
-            {columns.map((column) => {
-              const tasksInColumn = paginatedTasks
-                .filter((task) => task.status === column.key)
-                .sort((a, b) => a.order - b.order)
-              return (
-                <article
-                  className="min-w-[280px] rounded-2xl border border-white/10 glass-card p-3 shadow-sm dark:border-zinc-800 dark:bg-zinc-900"
+          <DndContext onDragEnd={handleDragEnd} onDragStart={handleDragStart} sensors={sensors}>
+            <div className="grid gap-4 overflow-x-auto md:grid-cols-2 xl:grid-cols-4">
+              {columns.map((column) => (
+                <KanbanColumn
                   key={column.key}
-                >
-                  <div className="mb-3 flex items-center justify-between">
-                    <h2 className="font-semibold text-zinc-900 dark:text-white drop-shadow-md">{column.title}</h2>
-                    <span className="rounded-full glass-card/10 px-2 py-0.5 text-xs dark:bg-zinc-800">{tasksInColumn.length}</span>
-                  </div>
-                  <div className="space-y-2">
-                    {tasksInColumn.length === 0 && (
-                      <div className="flex items-center justify-center rounded-xl border border-dashed border-white/5 py-8 text-sm text-zinc-500">No tasks</div>
-                    )}
-                    {tasksInColumn.map((task) => (
-                      <article className="rounded-xl border border-white/10" key={task.id}>
-                        <button
-                          className="w-full p-3 text-left transition hover:-translate-y-0.5 hover:shadow-sm"
-                          onClick={() => openTask(task)}
-                          type="button"
-                        >
-                          <div className="flex items-start justify-between gap-2">
-                            <p className="min-w-0 break-words text-sm font-semibold text-zinc-900 dark:text-white drop-shadow-md">{task.title}</p>
-                            <span className={`shrink-0 rounded-full px-2 py-0.5 text-[11px] font-medium capitalize ${priorityColor[task.priority]}`}>
-                              {task.priority}
-                            </span>
-                          </div>
-                          <p className="mt-1 line-clamp-2 text-xs text-zinc-400">{task.description}</p>
-                          <div className="mt-2 flex flex-wrap gap-1">
-                            {task.labels.slice(0, 3).map((label) => (
-                              <span className="max-w-full break-words rounded-full bg-brand-500/10 px-2 py-0.5 text-[11px] text-brand-400 dark:bg-brand-500/20 dark:text-brand-300" key={label}>
-                                {label}
-                              </span>
-                            ))}
-                          </div>
-                          <div className="mt-3 flex items-center justify-between text-xs text-zinc-500">
-                            <div className="flex items-center gap-2">
-                              <span>
-                                <MessageSquare className="mr-1 inline" size={12} />
-                                {task.commentsCount}
-                              </span>
-                              <span>
-                                <Paperclip className="mr-1 inline" size={12} />
-                                {task.attachments.length}
-                              </span>
-                            </div>
-                            {task.dueDate && (
-                              <span>
-                                <Calendar className="mr-1 inline" size={12} />
-                                {new Date(task.dueDate).toLocaleDateString()}
-                              </span>
-                            )}
-                          </div>
-                        </button>
-                        <div className="flex gap-2 px-3 pb-3">
-                          <button
-                            className="rounded-md border border-white/10 px-2 py-1 text-[11px] dark:border-zinc-700"
-                            onClick={() => {
-                              moveTask(task, 'left')
-                            }}
-                            type="button"
-                          >
-                            Prev
-                          </button>
-                          <button
-                            className="rounded-md border border-white/10 px-2 py-1 text-[11px] dark:border-zinc-700"
-                            onClick={() => {
-                              moveTask(task, 'right')
-                            }}
-                            type="button"
-                          >
-                            Next
-                          </button>
-                        </div>
-                      </article>
-                    ))}
-                  </div>
-                </article>
-              )
-            })}
-          </div>
-          <Pagination currentPage={safeCurrentPage} onPageChange={setCurrentPage} totalPages={totalPages} />
+                  onOpen={openTask}
+                  status={column.key}
+                  tasks={tasksByColumn[column.key]}
+                  title={column.title}
+                />
+              ))}
+            </div>
+            <DragOverlay>
+              {activeDragTask ? (
+                <div className="rotate-3 rounded-xl border border-white/20 bg-zinc-900 p-3 shadow-2xl opacity-90">
+                  <p className="text-sm font-semibold text-white">{activeDragTask.title}</p>
+                </div>
+              ) : null}
+            </DragOverlay>
+          </DndContext>
         </>
       )}
 

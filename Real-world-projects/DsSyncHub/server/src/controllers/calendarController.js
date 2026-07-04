@@ -72,7 +72,7 @@ const createEvent = async (req, res, next) => {
     const io = req.app.get('io')
     if (io) {
       const populatedEvent = await CalendarEvent.findById(event._id).populate('createdBy', 'fullName email avatarUrl')
-      io.to(`workspace:${workspace}`).emit('calendar:created', { event: toEvent(populatedEvent) })
+      io.to(`workspace:${workspace}`).emit('calendar:created', toEvent(populatedEvent))
     }
 
     return res.status(201).json({ success: true, event: toEvent(event) })
@@ -104,7 +104,7 @@ const updateEvent = async (req, res, next) => {
     const io = req.app.get('io')
     if (io) {
       const populatedEvent = await CalendarEvent.findById(event._id).populate('createdBy', 'fullName email avatarUrl')
-      io.to(`workspace:${event.workspace}`).emit('calendar:updated', { event: toEvent(populatedEvent) })
+      io.to(`workspace:${event.workspace}`).emit('calendar:updated', toEvent(populatedEvent))
     }
 
     return res.status(200).json({ success: true, event: toEvent(event) })

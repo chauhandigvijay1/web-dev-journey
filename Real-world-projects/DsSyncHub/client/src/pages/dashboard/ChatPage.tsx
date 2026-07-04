@@ -27,7 +27,6 @@ import WorkspaceRequiredState from '../../components/common/WorkspaceRequiredSta
 import { useChatSocket } from '../../hooks/useChatSocket'
 import { useAppDispatch, useAppSelector } from '../../hooks/redux'
 import { apiBaseUrl } from '../../services/api'
-import { connectSocket } from '../../services/socket'
 import {
   addReactionThunk,
   createChannelThunk,
@@ -105,8 +104,9 @@ const MessageBubble = ({
   const isOwner = message.sender._id === userId
 
   const handleReaction = (emoji: string) => {
-    dispatch(addReactionThunk({ messageId: message._id, emoji }))
-    socket.emit('add_reaction', { messageId: message._id, emoji })
+    dispatch(addReactionThunk({ messageId: message._id, emoji })).unwrap().catch(() => {
+      /* reaction failed silently */
+    })
   }
 
   const userReacted = (emoji: string) =>
@@ -147,11 +147,15 @@ const MessageBubble = ({
             />
             <button
               className="rounded-lg bg-zinc-900 px-2 py-1 text-xs text-white dark:glass-card"
-              onClick={() => {
-                dispatch(editMessageThunk({ messageId: message._id, content: editingText }))
-                socket.emit('edit_message', { messageId: message._id, content: editingText })
-                setEditingMessageId(null)
-                setEditingText('')
+              onClick={async () => {
+                try {
+                  await dispatch(editMessageThunk({ messageId: message._id, content: editingText })).unwrap()
+                  socket.emit('edit_message', { messageId: message._id, content: editingText })
+                  setEditingMessageId(null)
+                  setEditingText('')
+                } catch {
+                  /* edit failed */
+                }
               }}
               type="button"
             >
@@ -280,9 +284,13 @@ const MessageBubble = ({
                   <button
                     aria-label="Delete message"
                     className="rounded-md border border-transparent p-1 text-xs text-rose-500 hover:border-rose-900/40"
-                    onClick={() => {
-                      dispatch(deleteMessageThunk(message._id))
-                      socket.emit('delete_message', { messageId: message._id })
+                    onClick={async () => {
+                      try {
+                        await dispatch(deleteMessageThunk(message._id)).unwrap()
+                        socket.emit('delete_message', { messageId: message._id })
+                      } catch {
+                        /* delete failed */
+                      }
                     }}
                     type="button"
                   >
@@ -361,9 +369,9 @@ const ChatPage = () => {
   }
 
   useEffect(() => {
-    const directTarget = searchParams.get('dm')
-    if (directTarget) {
-      dispatch(setDirectUserId(directTarget))
+    const dm = searchParams.get('dm')
+    if (dm) {
+      dispatch(setDirectUserId(dm))
       setSearchParams({})
       return
     }
@@ -418,19 +426,24 @@ const ChatPage = () => {
 
   const sendMessage = async () => {
     if (!activeWorkspaceId || !messageText.trim()) return
+    const text = messageText.trim()
     const payload: any = {
       workspace: activeWorkspaceId,
       channel: currentChannelId,
       recipient: directUserId,
-      content: messageText.trim(),
+      content: text,
       mentions: extractMentionIds(messageText, members),
     }
     if (replyToMessage) {
       payload.replyTo = replyToMessage._id
     }
-    await dispatch(sendMessageThunk(payload))
-    setMessageText('')
-    setReplyToMessage(null)
+    try {
+      await dispatch(sendMessageThunk(payload)).unwrap()
+      setMessageText('')
+      setReplyToMessage(null)
+    } catch {
+      /* send failed, keep message text for retry */
+    }
   }
 
   const typingStart = () => {
@@ -471,12 +484,8 @@ const ChatPage = () => {
               key={channel._id}
               onClick={() => {
                 dispatch(setCurrentChannelId(channel._id))
+                setReplyToMessage(null)
                 setMobileThreadsOpen(false)
-                const liveSocket = connectSocket()
-                liveSocket.emit('join_channel', {
-                  workspaceId: activeWorkspaceId,
-                  channelId: channel._id,
-                })
               }}
               type="button"
             >
@@ -499,6 +508,7 @@ const ChatPage = () => {
                 key={member.id}
                 onClick={() => {
                   dispatch(setDirectUserId(member.userId))
+                  setReplyToMessage(null)
                   setMobileThreadsOpen(false)
                 }}
                 type="button"

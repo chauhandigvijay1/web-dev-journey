@@ -63,7 +63,15 @@ The socket is instantiated as a strict **Singleton**. It is connected exactly on
 > **CRITICAL RULE**: Never call `socket.disconnect()` inside a component's cleanup function. The socket connection must remain alive across page transitions to ensure background notifications and chat updates are not dropped.
 
 ### Hook-Driven Event Listeners
-We abstract socket listening into custom hooks (`useTaskSocket`, `useChatSocket`). When the server emits an event (like `task_updated`), the hook catches it and immediately dispatches a Redux action to update the store, instantly reflecting the change in the UI without requiring an HTTP refetch.
+We abstract socket listening into custom hooks (`useTaskSocket`, `useChatSocket`, `useNoteSocket`). When the server emits an event (like `task_updated`), the hook catches it and immediately dispatches a Redux action to update the store, instantly reflecting the change in the UI without requiring an HTTP refetch.
+
+---
+
+## 🧱 Production Hardening
+
+- **Error Boundary**: `Sentry.ErrorBoundary` wraps the entire `<App>` tree with a custom `ErrorFallback` component that displays a user-friendly error and auto-redirects after 10 seconds.
+- **localStorage Safety**: All `getItem`/`setItem` calls (5 locations) are wrapped in try/catch — prevents crashes in Safari Private Browsing or when storage is full.
+- **Kanban Drag-and-Drop**: Task board uses `@dnd-kit/core` and `@dnd-kit/sortable` for native drag-and-drop between columns, replacing the previous Prev/Next button approach.
 
 ---
 

@@ -62,22 +62,35 @@ const MeetingRoomPage = () => {
       },
     }
 
-    try {
-      const script = document.createElement('script')
+    const apiRef: { current: any } = { current: null }
+    let script: HTMLScriptElement | null = null
+
+    if (window.JitsiMeetExternalAPI) {
+      apiRef.current = new window.JitsiMeetExternalAPI(domain, options)
+      apiRef.current.addEventListener('readyToClose', () => navigate('/meetings'))
+    } else {
+      script = document.createElement('script')
       script.src = `https://${domain}/external_api.js`
       script.async = true
       script.onload = () => {
         if (window.JitsiMeetExternalAPI) {
-          const api = new window.JitsiMeetExternalAPI(domain, options)
-          api.addEventListener('readyToClose', () => navigate('/meetings'))
+          apiRef.current = new window.JitsiMeetExternalAPI(domain, options)
+          apiRef.current.addEventListener('readyToClose', () => navigate('/meetings'))
         }
       }
+      script.onerror = () => {
+        /* Jitsi CDN failed to load */
+      }
       document.head.appendChild(script)
-      return () => {
+    }
+
+    return () => {
+      if (apiRef.current && typeof apiRef.current.dispose === 'function') {
+        apiRef.current.dispose()
+      }
+      if (script && document.head.contains(script)) {
         document.head.removeChild(script)
       }
-    } catch {
-      /* Jitsi script may already be loaded */
     }
   }, [roomId, user, navigate])
 

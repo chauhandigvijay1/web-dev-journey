@@ -61,7 +61,7 @@ const NotificationsPage = () => {
               await dispatch(markAllNotificationsReadThunk())
               setMarkingAllRead(false)
             }} type="button">{markingAllRead ? <Loader className="inline animate-spin" size={14} /> : null} Mark all read</button>
-            <button className="rounded-full border border-white/10 px-4 py-2 text-sm dark:border-zinc-700" onClick={() => items.filter((item) => item.isRead).forEach((item) => dispatch(removeNotificationThunk(item.id)))} type="button">Clear read items</button>
+            <button className="rounded-full border border-white/10 px-4 py-2 text-sm dark:border-zinc-700" onClick={async () => { for (const item of items) { if (item.isRead) { try { await dispatch(removeNotificationThunk(item.id)).unwrap() } catch { /* notification delete failed */ } } } }} type="button">Clear read items</button>
           </div>
         </div>
 

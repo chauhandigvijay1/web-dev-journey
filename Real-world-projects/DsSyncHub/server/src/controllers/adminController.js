@@ -1,7 +1,9 @@
 const User = require('../models/User')
 const Workspace = require('../models/Workspace')
 const Membership = require('../models/Membership')
+const CouponRedemption = require('../models/CouponRedemption')
 const Invite = require('../models/Invite')
+const Subscription = require('../models/Subscription')
 const logger = require('../services/logger')
 
 const listUsers = async (req, res, next) => {
@@ -64,10 +66,11 @@ const deleteUser = async (req, res, next) => {
       Note.deleteMany({ createdBy: userId }),
       Task.deleteMany({ createdBy: userId }),
       FileAsset.deleteMany({ uploadedBy: userId }),
-      BillingInvoice.deleteMany({ user: userId }),
       Notification.deleteMany({ user: userId }),
       AiUsage.deleteMany({ user: userId }),
-      Invite.deleteMany({ createdBy: userId }),
+      CouponRedemption.deleteMany({ user: userId }),
+      Invite.deleteMany({ workspace: { $in: ownedIds } }),
+      Subscription.deleteMany({ user: userId }),
       ...ownedWorkspaces.map((w) =>
         Workspace.findByIdAndDelete(w._id).then(() =>
           Promise.all([
@@ -77,6 +80,7 @@ const deleteUser = async (req, res, next) => {
             Message.deleteMany({ workspace: w._id }),
             FileAsset.deleteMany({ workspace: w._id }),
             BillingInvoice.deleteMany({ workspace: w._id }),
+            Subscription.deleteMany({ workspace: w._id }),
             Notification.deleteMany({ workspace: w._id }),
             AiUsage.deleteMany({ workspace: w._id }),
           ]),
@@ -127,7 +131,7 @@ const getStats = async (req, res, next) => {
     const [userCount, workspaceCount, inviteCount, proCount] = await Promise.all([
       User.countDocuments(),
       Workspace.countDocuments({ isArchived: false }),
-      Invite.countDocuments({ expiresAt: { $gt: new Date() }, acceptedAt: null }),
+      Invite.countDocuments({ expiresAt: { $gt: new Date() }, usedAt: null }),
       Workspace.countDocuments({ plan: 'pro', isArchived: false }),
     ])
 

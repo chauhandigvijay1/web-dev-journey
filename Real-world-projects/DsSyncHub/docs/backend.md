@@ -26,12 +26,12 @@ The `server/src/` directory strictly enforces the separation of concerns. Busine
 ```text
 server/src/
 ├── config/         # Environment, Database, and 3rd-party initializations
-├── routes/         # 17 Express Router definitions mapping URLs to Controllers
+├── routes/         # 17 Express Router definitions (inline rate limiters) mapping URLs to Controllers
 ├── middleware/     # 6 Edge-security modules guarding route execution
 ├── controllers/    # 17 modules handling HTTP request/response lifecycles
 ├── services/       # Decoupled business logic (AI, Storage, Email)
 ├── models/         # 17 Mongoose schemas with strict validations
-├── socket/         # 4 Socket namespaces (chat, task, note, calendar)
+├── socket/         # 4 Socket namespaces (chat, task, note, calendar) with shared JWT auth
 ├── scripts/        # Node-cron background jobs
 └── utils/          # Cryptography and input validation helpers
 ```
@@ -43,9 +43,11 @@ server/src/
 Every inbound API request traverses a strict, layered middleware pipeline before ever touching business logic. This guarantees the backend is secure by default.
 
 1. **`validateRequest`**: Zod/Joi validation ensures the JSON payload exactly matches the expected schema.
-2. **`sanitizeInput`**: A global XSS firewall strips malicious vectors (e.g., `<script>`, `$where`) from all query parameters and body payloads.
+2. **`sanitizeInput`**: A global XSS firewall strips malicious vectors (e.g., `<script>`, event handlers) from all query parameters and body payloads.
 3. **`authMiddleware`**: Verifies the JWT signature and token version, hydrating `req.user` for downstream usage.
 4. **`adminMiddleware`**: (Route specific) Enforces platform-level RBAC by ensuring `req.user.role === 'admin'`.
+5. **`rateLimiter` / `authLimiter` / `searchLimiter` / `editLimiter`**: Redis-backed distributed rate limiting (500/15min global, 10/15min auth, 30/min search, 20/min edit).
+6. **`aiUsageLimit`**: Atomic daily AI usage check via `findOneAndUpdate` — eliminates race conditions that could exceed quota.
 
 ---
 

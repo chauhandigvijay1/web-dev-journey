@@ -47,13 +47,15 @@ A high-performance WebSocket messaging system ensuring zero-latency team communi
 
 ---
 
-## 📊 Agile Task Management
+## 📊 Agile Task Management (Kanban Board)
 
-A Kanban-style productivity engine for tracking deliverables.
+A full-featured Kanban-style productivity engine for tracking deliverables.
 
-- **Lifecycle Tracking**: Tasks flow through To Do, In Progress, Review, and Done.
-- **Contextual Data**: Tasks support priorities (Low, Medium, High, Urgent), due dates, assignees, and rich markdown descriptions.
-- **Real-Time Sync**: Task updates broadcast instantly to all workspace members via websockets, ensuring the board is never stale.
+- **Drag-and-Drop Board**: Tasks flow through four columns — To Do, In Progress, Review, and Done. Drag any task card between columns to update its status, or reorder within a column.
+- **Contextual Data**: Tasks support priorities (Low, Medium, High, Critical), due dates, assignees, labels, file attachments, threaded comments with @mentions, and rich descriptions.
+- **Filtering & Search**: Real-time search across task titles plus per-column filters by status, priority, assignee, and due date (today / overdue).
+- **Real-Time Sync**: Every mutation (create, update, move, complete, delete) broadcasts instantly to all workspace members via WebSockets — the board is never stale.
+- **AI-Assisted Planning**: Built-in AI actions for prioritizing tasks, generating sprint plans, and breaking goals into actionable items — powered by Groq.
 
 ---
 

@@ -4,6 +4,7 @@ const User = require('../models/User')
 const { sendVerificationEmail } = require('../services/emailService')
 const Membership = require('../models/Membership')
 const Message = require('../models/Message')
+const Subscription = require('../models/Subscription')
 const { getAuthCookieOptions } = require('../utils/cookies')
 const { isValidEmail, isValidPhone, isValidUsername, isStrongPassword } = require('../utils/validators')
 const { storeFile, validateIncomingFile } = require('../services/storageService')
@@ -64,7 +65,7 @@ const updateAccount = async (req, res, next) => {
       }
       const normalizedEmail = email.trim().toLowerCase()
       if (normalizedEmail !== user.email) {
-        user.email = normalizedEmail
+        user.unverifiedEmail = normalizedEmail
         user.emailVerified = false
         const token = crypto.randomBytes(24).toString('hex')
         user.emailVerificationToken = crypto.createHash('sha256').update(token).digest('hex')
@@ -156,16 +157,20 @@ const updateAppearance = async (req, res, next) => {
   }
 }
 
-const logoutAllSessions = async (_req, res) => {
-  const user = await User.findById(_req.user._id)
-  if (!user) {
-    return res.status(404).json({ success: false, message: 'User not found.' })
-  }
+const logoutAllSessions = async (_req, res, next) => {
+  try {
+    const user = await User.findById(_req.user._id)
+    if (!user) {
+      return res.status(404).json({ success: false, message: 'User not found.' })
+    }
 
-  user.tokenVersion += 1
-  await user.save()
-  res.clearCookie('accessToken', { ...getAuthCookieOptions(), maxAge: undefined })
-  return res.status(200).json({ success: true, message: 'Signed out from all active sessions.' })
+    user.tokenVersion += 1
+    await user.save()
+    res.clearCookie('accessToken', { ...getAuthCookieOptions(), maxAge: undefined })
+    return res.status(200).json({ success: true, message: 'Signed out from all active sessions.' })
+  } catch (error) {
+    return next(error)
+  }
 }
 
 const deleteOwnAccount = async (req, res, next) => {
@@ -178,6 +183,7 @@ const deleteOwnAccount = async (req, res, next) => {
     const BillingInvoice = require('../models/BillingInvoice')
     const Notification = require('../models/Notification')
     const AiUsage = require('../models/AiUsage')
+    const CouponRedemption = require('../models/CouponRedemption')
     const Invite = require('../models/Invite')
 
     const ownedWorkspaces = await Workspace.find({ owner: userId })
@@ -190,10 +196,14 @@ const deleteOwnAccount = async (req, res, next) => {
       Note.deleteMany({ createdBy: userId }),
       Task.deleteMany({ createdBy: userId }),
       FileAsset.deleteMany({ uploadedBy: userId }),
-      BillingInvoice.deleteMany({ user: userId }),
+      CouponRedemption.deleteMany({ user: userId }),
+      Subscription.deleteMany({ user: userId }),
+      ...ownedWorkspaces.map((w) =>
+        BillingInvoice.deleteMany({ workspace: w._id }),
+      ),
       Notification.deleteMany({ user: userId }),
       AiUsage.deleteMany({ user: userId }),
-      Invite.deleteMany({ createdBy: userId }),
+      Invite.deleteMany({ workspace: { $in: ownedIds } }),
       ...ownedWorkspaces.map((w) =>
         Workspace.findByIdAndDelete(w._id).then(() =>
           Promise.all([
@@ -203,6 +213,7 @@ const deleteOwnAccount = async (req, res, next) => {
             Message.deleteMany({ workspace: w._id }),
             FileAsset.deleteMany({ workspace: w._id }),
             BillingInvoice.deleteMany({ workspace: w._id }),
+            Subscription.deleteMany({ workspace: w._id }),
             Notification.deleteMany({ workspace: w._id }),
             AiUsage.deleteMany({ workspace: w._id }),
           ]),
@@ -241,8 +252,13 @@ const uploadAvatar = async (req, res, next) => {
 }
 
 const serveAvatar = (req, res) => {
-  const path = require("path");
-  res.sendFile(path.resolve(__dirname, "../../uploads", req.params.filename));
+  const path = require('path')
+  const filename = path.basename(req.params.filename || '')
+  if (!filename || !/^[a-zA-Z0-9._-]+$/.test(filename)) {
+    return res.status(400).json({ success: false, message: 'Invalid filename.' })
+  }
+  const fullPath = path.resolve(__dirname, '../../uploads', filename)
+  return res.sendFile(fullPath)
 };
 
 module.exports = {

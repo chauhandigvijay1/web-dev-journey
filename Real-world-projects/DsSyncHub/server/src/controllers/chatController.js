@@ -234,6 +234,10 @@ const addReaction = async (req, res, next) => {
 
     await message.save()
     const populated = await Message.findById(message._id).populate('sender', 'fullName email avatarUrl').populate({ path: 'replyTo', select: 'content sender', populate: { path: 'sender', select: 'fullName' } })
+    const io = req.app.get('io')
+    if (io) {
+      io.to(`workspace:${message.workspace}`).emit('message_reaction', populated)
+    }
     return res.status(200).json({ success: true, message: populated })
   } catch (error) {
     return next(error)

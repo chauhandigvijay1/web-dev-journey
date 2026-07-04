@@ -2,12 +2,10 @@ const Channel = require('../models/Channel')
 const Membership = require('../models/Membership')
 const Message = require('../models/Message')
 const logger = require('../services/logger')
-const { socketAuthMiddleware } = require('../services/socketAuth')
 
 const workspaceOnlineUsers = new Map()
 
 const registerChatSocket = (io) => {
-  io.use(socketAuthMiddleware)
 
   io.on('connection', (socket) => {
     socket.on('join_workspace', async ({ workspaceId }) => {
@@ -64,9 +62,13 @@ const registerChatSocket = (io) => {
 
     socket.on('send_message', async (payload) => {
       try {
-        const { workspace, channel = null } = payload || {}
-        if (!workspace || !channel) return
-        socket.to(`channel:${channel}`).emit('message_received', payload)
+        const { workspace, channel } = payload || {}
+        if (!workspace) return
+        if (channel) {
+          socket.to(`channel:${channel}`).emit('message_received', payload)
+        } else {
+          socket.to(`workspace:${workspace}`).emit('message_received', payload)
+        }
       } catch (err) { logger.error('Socket error in send_message:', err) }
     })
 

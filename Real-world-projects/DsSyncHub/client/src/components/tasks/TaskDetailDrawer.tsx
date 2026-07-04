@@ -223,6 +223,7 @@ const TaskDetailDrawer = ({ task, open, onClose }: TaskDetailDrawerProps) => {
               </button>
               <label className="sr-only" htmlFor="task-detail-attachment-upload">Upload task attachment</label>
               <input
+                accept=".jpg,.jpeg,.png,.webp,.gif,.svg,.pdf,.txt,.csv,.html,.js,.json,.zip,.gz,.tar,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.mp3,.wav,.ogg,.mp4,.webm"
                 className="hidden"
                 id="task-detail-attachment-upload"
                 onChange={async (event) => {

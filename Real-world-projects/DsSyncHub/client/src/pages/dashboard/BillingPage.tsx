@@ -391,9 +391,6 @@ const BillingPage = () => {
                   {coupon.type === 'free_trial' && (
                     <p className="text-xs text-amber-400">{coupon.durationMonths} month(s) free trial</p>
                   )}
-                  {coupon.type === 'owner' && (
-                    <p className="text-xs text-purple-400">Owner coupon &bull; 1 year free</p>
-                  )}
                 </div>
               ))}
             </div>

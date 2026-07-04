@@ -21,12 +21,13 @@ const exportWorkspace = async (req, res, next) => {
     const workspace = await Workspace.findById(workspaceId)
     if (!workspace) return res.status(404).json({ success: false, message: 'Workspace not found.' })
 
+    const EXPORT_LIMIT = 10000
     const [tasks, notes, messages, events, files] = await Promise.all([
-      Task.find({ workspace: workspaceId }).lean(),
-      Note.find({ workspace: workspaceId }).lean(),
-      Message.find({ workspace: workspaceId }).lean(),
-      CalendarEvent.find({ workspace: workspaceId }).lean(),
-      FileAsset.find({ workspace: workspaceId }).lean(),
+      Task.find({ workspace: workspaceId }).limit(EXPORT_LIMIT).lean(),
+      Note.find({ workspace: workspaceId }).limit(EXPORT_LIMIT).lean(),
+      Message.find({ workspace: workspaceId }).limit(EXPORT_LIMIT).lean(),
+      CalendarEvent.find({ workspace: workspaceId }).limit(EXPORT_LIMIT).lean(),
+      FileAsset.find({ workspace: workspaceId }).limit(EXPORT_LIMIT).lean(),
     ])
 
     const zip = new AdmZip()

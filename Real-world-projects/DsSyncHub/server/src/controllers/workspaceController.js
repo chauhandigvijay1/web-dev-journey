@@ -4,6 +4,7 @@ const AiUsage = require('../models/AiUsage')
 const BillingInvoice = require('../models/BillingInvoice')
 const CalendarEvent = require('../models/CalendarEvent')
 const Channel = require('../models/Channel')
+const CouponRedemption = require('../models/CouponRedemption')
 const FileAsset = require('../models/FileAsset')
 const Invite = require('../models/Invite')
 const Meeting = require('../models/Meeting')
@@ -486,17 +487,17 @@ const inviteMember = async (req, res, next) => {
 
     const normalizedEmail = email.trim().toLowerCase()
 
-    const existingMember = await Membership.findOne({ workspace: workspace._id }).populate({
-      path: 'user',
-      match: { email: normalizedEmail },
-      select: '_id',
-    })
-    if (existingMember && existingMember.user) {
-      if (existingMember.status === 'active') {
-        return res.status(400).json({ success: false, message: 'This user is already a member of this workspace.' })
-      }
-      if (existingMember.status === 'pending') {
-        return res.status(400).json({ success: false, message: 'An invite has already been sent to this email. Cancel the pending invite first.' })
+    const user = await User.findOne({ email: normalizedEmail })
+
+    if (user) {
+      const existingMember = await Membership.findOne({ workspace: workspace._id, user: user._id })
+      if (existingMember) {
+        if (existingMember.status === 'active') {
+          return res.status(400).json({ success: false, message: 'This user is already a member of this workspace.' })
+        }
+        if (existingMember.status === 'pending') {
+          return res.status(400).json({ success: false, message: 'An invite has already been sent to this email. Cancel the pending invite first.' })
+        }
       }
     }
 
@@ -504,8 +505,6 @@ const inviteMember = async (req, res, next) => {
     if (existingInvite) {
       return res.status(400).json({ success: false, message: 'An active invite already exists for this email. Cancel it first or wait for it to expire.' })
     }
-
-    const user = await User.findOne({ email: normalizedEmail })
 
     const invite = await Invite.create({
       workspace: workspace._id,
@@ -759,6 +758,7 @@ const deleteWorkspace = async (req, res, next) => {
       BillingInvoice.deleteMany({ workspace: workspaceId }),
       CalendarEvent.deleteMany({ workspace: workspaceId }),
       Channel.deleteMany({ workspace: workspaceId }),
+      CouponRedemption.deleteMany({ workspace: workspaceId }),
       FileAsset.deleteMany({ workspace: workspaceId }),
       Invite.deleteMany({ workspace: workspaceId }),
       Meeting.deleteMany({ workspace: workspaceId }),
@@ -768,7 +768,9 @@ const deleteWorkspace = async (req, res, next) => {
       Notification.deleteMany({ workspace: workspaceId }),
       Subscription.deleteMany({ workspace: workspaceId }),
       Task.deleteMany({ workspace: workspaceId }),
-      TaskComment.deleteMany({ workspace: workspaceId }),
+      Task.find({ workspace: workspaceId }).then((tasks) =>
+        TaskComment.deleteMany({ task: { $in: tasks.map((t) => t._id) } }),
+      ),
       workspace.deleteOne(),
     ])
 

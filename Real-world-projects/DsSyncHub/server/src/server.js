@@ -13,6 +13,7 @@ const { registerNoteSocket } = require('./socket/noteSocket')
 const { registerCalendarSocket } = require('./socket/calendarSocket')
 const { getEmailQueue } = require('./services/emailQueue')
 const { cleanupExpiredTokens } = require('./scripts/cleanupExpiredTokens')
+const { socketAuthMiddleware } = require('./services/socketAuth')
 
 const port = process.env.PORT || 5000
 const server = http.createServer(app)
@@ -31,6 +32,8 @@ const io = new Server(server, {
 })
 
 app.set('io', io)
+
+io.use(socketAuthMiddleware)
 
 registerChatSocket(io)
 registerTaskSocket(io)
@@ -58,8 +61,12 @@ if (process.env.REDIS_URL) {
 
 getEmailQueue()
 
-cron.schedule('0 */6 * * *', () => {
-  cleanupExpiredTokens()
+cron.schedule('0 */6 * * *', async () => {
+  try {
+    await cleanupExpiredTokens()
+  } catch (err) {
+    logger.error({ err: err.message }, 'Scheduled token cleanup failed')
+  }
 })
 logger.info('Expired token cleanup cron scheduled (every 6 hours)')
 

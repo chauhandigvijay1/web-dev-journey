@@ -159,8 +159,12 @@ const CalendarPage = () => {
         onCancel={() => setDeleteConfirmId(null)}
         onConfirm={async () => {
           if (!deleteConfirmId) return
-          await dispatch(deleteCalendarEventThunk(deleteConfirmId))
-          dispatch(pushToast({ title: 'Event deleted', description: 'The event has been removed.', tone: 'success' }))
+          try {
+            await dispatch(deleteCalendarEventThunk(deleteConfirmId)).unwrap()
+            dispatch(pushToast({ title: 'Event deleted', description: 'The event has been removed.', tone: 'success' }))
+          } catch {
+            dispatch(pushToast({ title: 'Failed to delete', description: 'Could not delete the event. Please try again.', tone: 'error' }))
+          }
           setDeleteConfirmId(null)
         }}
         open={Boolean(deleteConfirmId)}

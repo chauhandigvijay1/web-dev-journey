@@ -8,7 +8,7 @@ const rawStringFields = new Set([
 const sanitizeValue = (value, key = '') => {
   if (typeof value !== 'string') return value
   if (rawStringFields.has(key)) return value
-  return value.replace(/[<>{}$]/g, '').trim()
+  return value.replace(/[<>{}]/g, '').trim()
 }
 
 const sanitizeObject = (obj) => {

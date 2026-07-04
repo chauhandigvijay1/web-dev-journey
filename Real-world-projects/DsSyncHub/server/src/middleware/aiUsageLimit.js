@@ -25,13 +25,12 @@ const aiUsageLimit = async (req, res, next) => {
     const limit = limits.aiDailyLimit
 
     const usage = await AiUsage.findOneAndUpdate(
-      { user: req.user._id, workspace: workspaceId, dateKey },
+      { user: req.user._id, workspace: workspaceId, dateKey, count: { $lt: limit } },
       { $inc: { count: 1 } },
       { new: true, upsert: true, setDefaultsOnInsert: true },
     )
 
-    if (usage.count > limit) {
-      await AiUsage.updateOne({ _id: usage._id }, { $inc: { count: -1 } })
+    if (!usage) {
       return res.status(429).json({
         success: false,
         message: 'Daily AI usage limit reached for current plan.',

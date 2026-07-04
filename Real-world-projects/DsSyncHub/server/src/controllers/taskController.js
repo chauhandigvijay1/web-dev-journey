@@ -129,6 +129,11 @@ const createTask = async (req, res, next) => {
       summary: `${req.user.fullName} created task "${task.title}".`,
     })
 
+    const io = req.app.get('io')
+    if (io) {
+      io.to(`workspace:${task.workspace}`).emit('task:created', serializeTask(task))
+    }
+
     return res.status(201).json({
       success: true,
       task: serializeTask(task),
@@ -204,6 +209,12 @@ const updateTask = async (req, res, next) => {
         summary: `${req.user.fullName} moved "${task.title}" to ${task.status.replace('_', ' ')}.`,
       })
     }
+
+    const io = req.app.get('io')
+    if (io) {
+      io.to(`workspace:${task.workspace}`).emit('task:updated', serializeTask(task))
+    }
+
     return res.status(200).json({
       success: true,
       task: serializeTask(task),
@@ -229,6 +240,10 @@ const archiveTask = async (req, res, next) => {
 
     task.archived = true
     await task.save()
+    const io = req.app.get('io')
+    if (io) {
+      io.to(`workspace:${task.workspace}`).emit('task:deleted', task._id.toString())
+    }
     return res.status(200).json({ success: true, message: 'Task archived.' })
   } catch (error) {
     return next(error)
@@ -263,6 +278,11 @@ const moveTask = async (req, res, next) => {
       summary: `${req.user.fullName} moved "${task.title}" to ${task.status.replace('_', ' ')}.`,
     })
 
+    const io = req.app.get('io')
+    if (io) {
+      io.to(`workspace:${task.workspace}`).emit('task:updated', serializeTask(task))
+    }
+
     return res.status(200).json({
       success: true,
       task: serializeTask(task),
@@ -294,6 +314,10 @@ const completeTask = async (req, res, next) => {
       entityId: task._id,
       summary: `${req.user.fullName} completed "${task.title}".`,
     })
+    const io = req.app.get('io')
+    if (io) {
+      io.to(`workspace:${task.workspace}`).emit('task:updated', serializeTask(task))
+    }
     return res.status(200).json({
       success: true,
       task: serializeTask(task),

@@ -7,7 +7,7 @@ const cleanupExpiredTokens = async () => {
     const now = new Date()
 
     const [inviteResult, passwordResult, verifyResult] = await Promise.all([
-      Invite.deleteMany({ expiresAt: { $lt: now }, acceptedAt: null }),
+      Invite.deleteMany({ expiresAt: { $lt: now }, usedAt: null }),
       User.updateMany(
         { passwordResetExpiresAt: { $lt: now }, passwordResetTokenHash: { $ne: null } },
         { $set: { passwordResetTokenHash: null, passwordResetExpiresAt: null } },
