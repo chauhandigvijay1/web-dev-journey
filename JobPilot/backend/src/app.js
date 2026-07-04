@@ -20,8 +20,8 @@ app.use(hpp());
 const allowedOrigins = new Set(env.corsOrigins);
 
 function isAllowedExtensionOrigin(origin) {
-  if (!origin || !env.extensionId) return false;
-  return origin.replace(/\/+$/, "") === env.extensionId;
+  if (!origin) return false;
+  return origin.startsWith("chrome-extension://");
 }
 
 function isLoopbackOrigin(origin) {
