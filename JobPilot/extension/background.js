@@ -370,11 +370,6 @@ var inflightSaves = {};
 // ─── Message Listener ────────────────────────────────────────────────────────
 
 chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
-  // Validate sender — only accept messages from our own extension
-  if (sender.id !== chrome.runtime.id) {
-    try { sendResponse({ success: false, message: 'Unknown sender' }); } catch (e) { /* Port closed */ }
-    return false;
-  }
   if (request.action === 'SYNC_AUTH_TOKEN') {
     (async function () {
       const token = cleanText(request.token, 5000);

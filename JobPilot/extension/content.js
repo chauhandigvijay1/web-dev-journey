@@ -87,8 +87,9 @@ function titleFromUrl() {
 function extractFromLdJson() {
   for (const script of document.querySelectorAll('script[type="application/ld+json"]')) {
     try {
-      const data = JSON.parse(script.textContent);
-      for (const item of [data].flat()) {
+      const raw = JSON.parse(script.textContent);
+      const items = raw["@graph"] ? (Array.isArray(raw["@graph"]) ? raw["@graph"] : [raw["@graph"]]) : (Array.isArray(raw) ? raw : [raw]);
+      for (const item of items) {
         const type = item["@type"];
         if (!type || !type.includes("JobPosting")) continue;
         const loc = item.jobLocation;
@@ -208,6 +209,9 @@ function scrapePage() {
   }
 
   result.company = first([
+    '.job-details-jobs-unified-top-card__company-name',
+    '.jobs-unified-top-card__company-name',
+    '.top-card-layout__second-line a',
     '[class*="company-name"]',
     '[class*="company"]',
     '[data-testid*="companyName"]',

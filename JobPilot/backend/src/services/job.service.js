@@ -200,7 +200,7 @@ export async function createJobForUser(user, body) {
     ...normalized.data,
   });
 
-  await syncJobReminders(job, user);
+  try { await syncJobReminders(job, user); } catch (e) { /* non-critical */ }
   return job;
 }
 
