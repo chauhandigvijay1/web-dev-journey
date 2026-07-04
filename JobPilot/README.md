@@ -46,14 +46,14 @@
 
 ---
 
-## 🎬 Motion Video Tour
+## 🎬 Motion Poster
 
 <p align="center">
   <a href="https://jobpilot-client-chi.vercel.app" target="_blank">
-    <img src="./docs/assets/gifs/demo-thumbnail.gif" alt="JobPilot Motion Video" width="720" style="border-radius: 12px; border: 1px solid #e2e8f0; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);" />
+    <img src="./docs/assets/gifs/demo-thumbnail.gif" alt="JobPilot Motion Video" width="350" style="border-radius: 12px; border: 1px solid #e2e8f0; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);" />
   </a>
   <br/>
-  <em>Click above to watch the official JobPilot motion video. Replace <code>demo-thumbnail.gif</code> with the actual cover image for your motion video.</em>
+  <em>Click above to watch the official JobPilot motion Poster.</em>
 </p>
 
 <br/>
@@ -123,7 +123,7 @@ Rather than scattering images, explore the core modules of JobPilot below. **Int
 </details>
 
 <details>
-  <summary><strong>3. AI-Powered Tools (Cover Letters & ATS)</strong></summary>
+  <summary><strong>3. AI-Powered Tools (Cover Letters,Interview Preparation & ATS)</strong></summary>
   <p><em>Generate personalized cover letters, interview questions, and ATS scores via Groq Llama 3 in real-time.</em></p>
   <p align="center">
     <img src="./docs/assets/gifs/ai-interview-question.gif" width="720" style="border-radius: 8px; border: 1px solid #e2e8f0;" alt="AI Streaming" />
