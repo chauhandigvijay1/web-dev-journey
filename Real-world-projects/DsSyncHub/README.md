@@ -27,7 +27,7 @@
 <div align="center">
   <a href="https://player.cloudinary.com/embed/?cloud_name=dtdvtkzsm&public_id=DsSyncHub-Final_fk7fl6">
     <img src="docs/assets/gifs/app-motion-demo.gif" alt="DsSync Hub Motion Demo" width="800" style="border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);" onerror="this.src='docs/assets/screenshots/LandingPage.png'" />
-  </a>
+  </a><br>
   <em>Click above to watch the official DsSyncHub motion Video.</em>
 </div>
 
