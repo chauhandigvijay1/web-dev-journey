@@ -63,6 +63,21 @@ function clean(str) {
   return (str || "").replace(/\s+/g, " ").trim();
 }
 
+function bestMatch(selectors) {
+  let best = "";
+  for (const s of selectors) {
+    const els = document.querySelectorAll(s);
+    for (const el of els) {
+      const text = t(el);
+      if (!text) continue;
+      if (!best || (text.length < best.length && text.length > 1)) {
+        best = text;
+      }
+    }
+  }
+  return best;
+}
+
 function findMeta(prop) {
   return document.querySelector(`meta[property="${prop}"]`)?.getAttribute("content")
     || document.querySelector(`meta[name="${prop}"]`)?.getAttribute("content")
@@ -90,13 +105,20 @@ function extractFromLdJson() {
       const raw = JSON.parse(script.textContent);
       const items = raw["@graph"] ? (Array.isArray(raw["@graph"]) ? raw["@graph"] : [raw["@graph"]]) : (Array.isArray(raw) ? raw : [raw]);
       for (const item of items) {
-        const type = item["@type"];
-        if (!type || !type.includes("JobPosting")) continue;
+        const types = Array.isArray(item["@type"]) ? item["@type"] : [item["@type"]];
+        if (!types.some(t => t && t.includes("JobPosting"))) continue;
+        const hOrg = item.hiringOrganization;
+        let company = "";
+        if (typeof hOrg === "string") {
+          company = hOrg;
+        } else if (hOrg) {
+          company = hOrg.name || (typeof hOrg["@id"] === "string" && hOrg["@id"].replace(/https?:\/\/[^/]+\//, "").replace(/[/_-]/g, " ").trim()) || "";
+        }
         const loc = item.jobLocation;
         const address = loc?.address;
         return {
           title: clean(item.title),
-          company: item.hiringOrganization?.name || clean(item.hiringOrganization?.["@id"]),
+          company: clean(company),
           location: address?.addressLocality || address?.streetAddress || clean(loc?.name),
           description: clean(item.description),
           skills: item.skills ? (Array.isArray(item.skills) ? item.skills.map(s => clean(s)).filter(Boolean) : [clean(item.skills)]) : [],
@@ -127,11 +149,12 @@ function findCompanyFromPage() {
   const patterns = [
     new RegExp("(?:at|for|with)\\s+([A-Z][A-Za-z0-9&.\\s]{2,50}?)\\s+(?:is\\s+(?:hiring|looking|seeking)|has\\s+(?:an?|the)\\s+(?:open|opportunity|position)|are\\s+hiring)", "i"),
     new RegExp("([A-Z][A-Za-z0-9&.\\s]{2,40}?)\\s+(?:is|are)\\s+hiring", "i"),
-    new RegExp("(?:company|organization|firm|startup)\\s*[:\\-]?\\s*([A-Z][A-Za-z0-9&.\\s]{2,40})", "i"),
+    new RegExp("(?:at|join|work\\s+(?:for|at|with))\\s+([A-Z][A-Za-z0-9&.\\s]{2,50}?)(?:\\s+as\\s+|\\.|,|!|\\s+we)", "i"),
+    new RegExp("([A-Z][A-Za-z0-9&.\\s]{2,60}?)\\s+(?:is looking|seeking|hiring|has an? (?:open|opportunity)|are looking)", "i"),
   ];
   for (const re of patterns) {
     const m = text.match(re);
-    if (m) return clean(m[1]);
+    if (m) return clean(m[1]).replace(/^(?:at|for|with|join|work\s+(?:for|at|with))\s+/i, "").trim();
   }
   return "";
 }
@@ -209,16 +232,30 @@ function scrapePage() {
   }
 
   result.company = first([
-    '.job-details-jobs-unified-top-card__company-name',
-    '.jobs-unified-top-card__company-name',
-    '.top-card-layout__second-line a',
     '[class*="company-name"]',
-    '[class*="company"]',
     '[data-testid*="companyName"]',
     '[data-testid*="company"]',
     '[itemprop="hiringOrganization"] [itemprop="name"]',
     '[itemprop="name"][class*="company"]',
   ]);
+
+  if (!result.company) {
+    result.company = bestMatch([
+      '[class*="company"]',
+      '[class*="org"]',
+      '[class*="employer"]',
+      '[class*="brand"]',
+      '[class*="hiring-org"]',
+      '[class*="job-company"]',
+      '[class*="posting-company"]',
+      'a[href*="company"]',
+      '[data-company]',
+    ]);
+  }
+
+  if (!result.company) {
+    result.company = findMeta("og:site_name") || findMeta("twitter:site") || findMeta("application-name");
+  }
 
   if (!result.company) {
     result.company = findCompanyFromPage();

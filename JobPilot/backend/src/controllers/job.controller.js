@@ -13,7 +13,9 @@ export async function createJob(req, res) {
     const job = await createJobForUser(req.user, req.body ?? {});
     return res.status(201).json({ success: true, data: { job } });
   } catch (err) {
-    return res.status(err.statusCode || 400).json({ success: false, message: err.message || "Could not create job" });
+    const status = (err && err.statusCode) || 400;
+    const message = (err && err.message) || "Could not create job";
+    return res.status(status).json({ success: false, message });
   }
 }
 
