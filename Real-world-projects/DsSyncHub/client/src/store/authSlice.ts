@@ -11,17 +11,25 @@ type AuthState = {
   token: string | null
 }
 
+const getInitialToken = (): string | null => {
+  try {
+    return localStorage.getItem('dssync-token')
+  } catch {
+    return null
+  }
+}
+
 const initialState: AuthState = {
   user: null,
   isAuthenticated: false,
   loading: false,
   initialized: false,
-  token: localStorage.getItem('dssync-token'),
+  token: getInitialToken(),
 }
 
 export const initializeAuth = createAsyncThunk('auth/initialize', async () => {
   const response = await authApi.getMe()
-  return { user: response.user, accessToken: response.accessToken }
+  return { user: response.user }
 })
 
 export const loginThunk = createAsyncThunk(

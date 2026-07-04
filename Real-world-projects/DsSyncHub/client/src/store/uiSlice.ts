@@ -19,7 +19,12 @@ const getInitialTheme = (): UIState['theme'] => {
     return 'system'
   }
 
-  const savedTheme = window.localStorage.getItem('dssync-theme')
+  let savedTheme: string | null = null
+  try {
+    savedTheme = window.localStorage.getItem('dssync-theme')
+  } catch {
+    /* localStorage unavailable */
+  }
   if (savedTheme === 'light' || savedTheme === 'dark' || savedTheme === 'system') {
     return savedTheme
   }
@@ -69,16 +74,16 @@ const uiSlice = createSlice({
 
     builder
       .addCase(initializeAuth.fulfilled, (state, action) => {
-        syncThemeFromUser(state, action.payload.appearance?.theme)
+        syncThemeFromUser(state, action.payload.user?.appearance?.theme)
       })
       .addCase(loginThunk.fulfilled, (state, action) => {
-        syncThemeFromUser(state, action.payload.appearance?.theme)
+        syncThemeFromUser(state, action.payload.user?.appearance?.theme)
       })
       .addCase(registerThunk.fulfilled, (state, action) => {
-        syncThemeFromUser(state, action.payload.appearance?.theme)
+        syncThemeFromUser(state, action.payload.user?.appearance?.theme)
       })
       .addCase(googleLoginThunk.fulfilled, (state, action) => {
-        syncThemeFromUser(state, action.payload.appearance?.theme)
+        syncThemeFromUser(state, action.payload.user?.appearance?.theme)
       })
       .addCase(setCredentials, (state, action) => {
         syncThemeFromUser(state, action.payload.appearance?.theme)
