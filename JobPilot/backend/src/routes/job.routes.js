@@ -21,7 +21,7 @@ jobRouter.get("/count", asyncHandler(getJobCount));
 
 jobRouter
   .route("/")
-  .post(asyncHandler(createJob))
+  .post(createJob)
   .get(asyncHandler(getJobs))
   .delete(asyncHandler(deleteAllJobs));
 
