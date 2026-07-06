@@ -1,44 +1,99 @@
-# DevFlow AI — API Reference
+<div align="center">
+  <picture>
+    <img src="./assets/logo.svg" alt="DevFlow AI Logo" width="80" />
+  </picture>
+</div>
 
-Base URL: `https://devflow-api-ubnd.onrender.com/api` (production) or `http://localhost:5000/api` (development)
+# API Reference
+
+Complete REST API documentation for all 24 endpoints across the DevFlow AI platform (10 Auth, 4 Chat, 2 AI, 5 Payment, 2 Upload, 1 Health). 
+
+Base URL (Production): `https://devflow-api-ubnd.onrender.com/api`  
+Base URL (Development): `http://localhost:5000/api`
+
+---
+
+## Table of Contents
+
+- [Overview](#overview)
+- [Standard Response Envelope](#standard-response-envelope)
+- [Authentication Endpoints](#authentication-endpoints)
+- [Chat Endpoints](#chat-endpoints)
+- [AI Endpoints](#ai-endpoints)
+- [Payment Endpoints](#payment-endpoints)
+- [Upload Endpoints](#upload-endpoints)
+- [Health Check](#health-check)
+- [Error Codes](#error-codes)
+- [Rate Limiting](#rate-limiting)
+- [Best Practices](#best-practices)
+- [Related Documents](#related-documents)
+
+---
+
+## Overview
+
+All endpoints consume and return JSON payloads unless otherwise specified. Protected endpoints require a valid JWT via the `Authorization` header.
+
+```http
+Authorization: Bearer <your_jwt_token>
+```
+
+> [!TIP]
+> Obtain a token from `POST /api/auth/login` or `POST /api/auth/signup`. Tokens automatically expire after **7 days** by default.
+
+### Architecture Flow
+
+```mermaid
+sequenceDiagram
+    participant Client
+    participant RateLimiter as API Gateway (Rate Limiter)
+    participant Auth as Auth Middleware
+    participant Service as Target Endpoint
+    
+    Client->>RateLimiter: HTTPS Request
+    RateLimiter-->>Client: 429 Too Many Requests (if limit exceeded)
+    RateLimiter->>Auth: Forward Request
+    Auth-->>Client: 401 Unauthorized (if missing/invalid JWT)
+    Auth->>Service: Authenticated Request
+    Service-->>Client: 200 OK (JSON / SSE Stream)
+```
+
+---
 
 ## Standard Response Envelope
 
-All endpoints return JSON. The top-level shape is:
+DevFlow AI APIs utilize a unified, predictable response envelope for all standard HTTP responses (excluding SSE streams).
 
 ```json
 {
-  "success": true|false,
-  "data": { ... },
-  "message": "...",
-  "stack": "..."   // only in non-production environments
+  "success": true,
+  "data": {},
+  "message": ""
 }
 ```
 
-Errors use HTTP status codes and the `success: false` envelope.
+### Properties
 
-## Authentication
+| Field | Type | Description |
+|---|---|---|
+| `success` | `boolean` | `true` for successful requests, `false` for errors. |
+| `data` | `object` \| `array` | Response payload (present on success). |
+| `message` | `string` | Human-readable context message (present on success or error). |
+| `stack` | `string` | Error stack trace (available in **non-production** environments only). |
 
-All protected endpoints require a JWT in the `Authorization` header:
-
-```
-Authorization: Bearer <token>
-```
-
-The token is obtained from `POST /api/auth/login` or `POST /api/auth/signup` and expires in 7 days.
-
----
-
-## Auth Endpoints (`/api/auth`)
+> [!NOTE]
+> Errors leverage standard HTTP status codes combined with `success: false`.
 
 ---
 
-### POST `/api/auth/register`
+## Authentication Endpoints
 
-Create an account with just name, email, and password (no username).
+Base path: `/api/auth`
 
-**Request Body:**
+### `POST /register`
+Quick signup without requiring a username.
 
+**Request Body**
 ```json
 {
   "name": "John Doe",
@@ -47,13 +102,14 @@ Create an account with just name, email, and password (no username).
 }
 ```
 
-**Validation Rules:**
-- `name`: required, min 2 characters
-- `email`: required, valid email, disposable domains blocked (mailinator, 10minutemail, etc.)
-- `password`: required, min 8 characters, must contain at least one uppercase letter, one lowercase letter, and one digit
+**Validation Rules**
+| Field | Requirement |
+|---|---|
+| `name` | Required, minimum 2 characters. |
+| `email` | Required, valid email format (disposable domains blocked). |
+| `password` | Required, minimum 8 characters, containing uppercase, lowercase, and digit. |
 
-**Success Response (201):**
-
+**Response (201 Created)**
 ```json
 {
   "success": true,
@@ -73,18 +129,14 @@ Create an account with just name, email, and password (no username).
   }
 }
 ```
-
-**Error Responses:**
-- `409` — Email already registered
+*Errors:* `409 Conflict` (Email already registered).
 
 ---
 
-### POST `/api/auth/signup`
+### `POST /signup`
+Full user signup providing a custom username.
 
-Create an account with a custom username.
-
-**Request Body:**
-
+**Request Body**
 ```json
 {
   "name": "John Doe",
@@ -94,18 +146,22 @@ Create an account with a custom username.
 }
 ```
 
-**Validation Rules:**
-- `name`: required, min 2 characters
-- `username`: required, 3–40 characters, alphanumeric only (no spaces/special chars)
-- `email`: required, valid email, disposable domains blocked
-- `password`: required, same rules as register
+**Validation Rules**
+| Field | Requirement |
+|---|---|
+| `name` | Required, minimum 2 characters. |
+| `username` | Required, 3–40 characters, alphanumeric only (no spaces/special chars). |
+| `email` | Required, valid email format (disposable domains blocked). |
+| `password` | Required, minimum 8 characters, containing uppercase, lowercase, and digit. |
 
-**Success Response (201):**
+> [!IMPORTANT]
+> Unlike `/register`, the `/signup` endpoint returns the `token` and `user` object at the **top level** of the response payload (not wrapped in a `data` object).
 
+**Response (201 Created)**
 ```json
 {
   "success": true,
-  "token": "<JWT>",
+  "token": "eyJhbGciOiJIUzI1NiIs...",
   "user": {
     "_id": "...",
     "name": "John Doe",
@@ -120,66 +176,50 @@ Create an account with a custom username.
   }
 }
 ```
-
-Note: Unlike the register endpoint, the signup response returns `token` and `user` **at the top level** (not wrapped in a `data` object). The `user.username` field will be populated.
-
-**Error Responses:**
-- `409` — Email already exists
-- `409` — Username already taken
+*Errors:* `409 Conflict` (Email already exists, Username already taken).
 
 ---
 
-### POST `/api/auth/login`
+### `POST /login`
+Authenticate a user with either their email or username.
 
-Authenticate with email or username.
-
-**Request Body:**
-
+**Request Body**
 ```json
-{
-  "identifier": "johndoe",
-  "password": "MyStr0ngPass"
+{ 
+  "identifier": "johndoe", 
+  "password": "MyStr0ngPass" 
+}
+```
+*(Alternatively, use the `email` field directly)*
+```json
+{ 
+  "email": "john@example.com", 
+  "password": "MyStr0ngPass" 
 }
 ```
 
-Alternatively, use the `email` field:
+**Validation Rules:** At least one of `identifier` or `email` is required. `password` is required.
 
-```json
-{
-  "email": "john@example.com",
-  "password": "MyStr0ngPass"
-}
-```
-
-**Validation Rules:**
-- `identifier` or `email` — at least one is required
-- `password` — required
-
-**Success Response (200):**
-
+**Response (200 OK)**
 ```json
 {
   "success": true,
   "data": {
     "token": "eyJhbGciOiJIUzI1NiIs...",
-    "user": { ... }
+    "user": { /* user object */ }
   }
 }
 ```
-
-**Error Responses:**
-- `401` — Invalid credentials
+*Errors:* `401 Unauthorized` (Invalid credentials).
 
 ---
 
-### GET `/api/auth/me`
-
+### `GET /me`
 Retrieve the currently authenticated user's profile.
 
 **Headers:** `Authorization: Bearer <token>`
 
-**Success Response (200):**
-
+**Response (200 OK)**
 ```json
 {
   "success": true,
@@ -199,14 +239,12 @@ Retrieve the currently authenticated user's profile.
 
 ---
 
-### PUT `/api/auth/update`
-
-Update the authenticated user's profile.
+### `PUT /update`
+Update the authenticated user's profile information. All fields are optional.
 
 **Headers:** `Authorization: Bearer <token>`
 
-**Request Body** (all fields optional):
-
+**Request Body**
 ```json
 {
   "name": "John Updated",
@@ -218,59 +256,41 @@ Update the authenticated user's profile.
 }
 ```
 
-**Notes:**
-- `phone` maps to `contact` in the database
-- `profileImage` maps to `avatar` in the database
-- Changing `username` checks uniqueness across all users
+> [!NOTE]
+> `phone` maps to `contact` in the database. `profileImage` maps to `avatar`. Changing `username` evaluates uniqueness across all users.
 
-**Success Response (200):**
-
-```json
-{
-  "success": true,
-  "data": { ... }
-}
-```
-
-**Error Responses:**
-- `409` — Username already taken
+*Errors:* `409 Conflict` (Username already taken).
 
 ---
 
-### POST `/api/auth/forgot-password`
+### `POST /forgot-password`
+Generate a password reset token and dispatch an email to the user.
 
-Generate a password reset token.
-
-**Request Body:**
-
+**Request Body**
 ```json
-{
-  "email": "john@example.com"
+{ 
+  "email": "john@example.com" 
 }
 ```
 
-**Success Response (200):**
-
+**Response (200 OK)**
 ```json
 {
   "success": true,
   "message": "Reset instructions generated.",
-  "data": {
-    "expiresInMinutes": 15
-  }
+  "data": { "expiresInMinutes": 15 }
 }
 ```
 
-**Note:** The reset token is sent via email using **Resend**. If `RESEND_API_KEY` is not configured, the token is logged to the server console. The API never returns the raw token in the response.
+> [!WARNING]
+> The reset token is delivered via the **Resend** email API. If `RESEND_API_KEY` is not configured, the token is simply logged to the server console. The API never returns the raw token in the response.
 
 ---
 
-### POST `/api/auth/reset-password`
+### `POST /reset-password`
+Reset the password utilizing a valid token.
 
-Reset the password using a valid reset token.
-
-**Request Body:**
-
+**Request Body**
 ```json
 {
   "token": "a1b2c3d4e5f6...",
@@ -279,53 +299,46 @@ Reset the password using a valid reset token.
 ```
 
 **Validation Rules:**
-- `token`: required
-- `password`: same strength rules as registration
+- `token`: Required.
+- `password`: Same strength rules as registration (8+ characters, mixed case, digit).
 
-**Success Response (200):**
-
+**Response (200 OK)**
 ```json
-{
-  "success": true,
-  "message": "Password reset successful."
+{ 
+  "success": true, 
+  "message": "Password reset successful." 
 }
 ```
-
-**Error Responses:**
-- `400` — Reset token is invalid or expired
+*Errors:* `400 Bad Request` (Reset token is invalid or expired).
 
 ---
 
-### DELETE `/api/auth/me`
-
+### `DELETE /me`
 Soft-delete the authenticated user's account.
 
 **Headers:** `Authorization: Bearer <token>`
 
-**Success Response (200):**
-
+**Response (200 OK)**
 ```json
-{
-  "success": true,
-  "message": "Account deleted successfully."
+{ 
+  "success": true, 
+  "message": "Account deleted successfully." 
 }
 ```
 
-**Notes:**
-- The user's `isDeleted` flag is set to `true`
-- Email and username are suffixed with `_deleted_{timestamp}` to free them for reuse
-- The user is immediately unable to authenticate
+**Behavior Details:**
+- Updates user with `isDeleted: true` and logs `deletedAt` to current timestamp.
+- Suffixes email and username with `_deleted_{timestamp}` to liberate them for future reuse.
+- Instant authentication block (the `protect` middleware immediately rejects soft-deleted profiles).
 
 ---
 
-### GET `/api/auth/settings`
-
-Retrieve user preferences.
+### `GET /settings`
+Retrieve the authenticated user's preferences.
 
 **Headers:** `Authorization: Bearer <token>`
 
-**Success Response (200):**
-
+**Response (200 OK)**
 ```json
 {
   "success": true,
@@ -342,69 +355,38 @@ Retrieve user preferences.
   }
 }
 ```
-
-If no settings have been saved, `data` will be an empty object `{}`.
-
----
-
-### PUT `/api/auth/settings`
-
-Update user preferences.
-
-**Headers:** `Authorization: Bearer <token>`
-
-**Request Body** (all fields optional):
-
-```json
-{
-  "nickname": "Johnny",
-  "interests": "AI, React, Node.js",
-  "region": "Asia",
-  "language": "English",
-  "country": "India",
-  "timezone": "UTC+5:30",
-  "startPage": "Dashboard",
-  "emailUpdates": true,
-  "compactMode": false
-}
-```
-
-**Allowed Fields:** `nickname`, `interests`, `region`, `language`, `country`, `timezone`, `startPage`, `emailUpdates`, `compactMode`
-
-**Success Response (200):**
-
-```json
-{
-  "success": true,
-  "data": { ... }
-}
-```
+*(If no preferences are set, `data` returns `{}`)*
 
 ---
 
-## Chat Endpoints (`/api/chats`)
+### `PUT /settings`
+Update user preferences. All provided fields are purely optional.
 
-All chat endpoints require authentication.
+**Headers:** `Authorization: Bearer <token>`  
+**Request Body:** Follows the same keys as the `GET` response payload.
+
+**Allowed Configurable Fields:**  
+`nickname`, `interests`, `region`, `language`, `country`, `timezone`, `startPage`, `emailUpdates`, `compactMode`
 
 ---
 
-### POST `/api/chats`
+## Chat Endpoints
 
-Create a new chat session.
+Base path: `/api/chats`  
+*All endpoints in this segment require authentication.*
 
-**Request Body:**
+### `POST /`
+Initialize a new chat session.
 
+**Request Body** (Both optional, default title: `"New Chat"`)
 ```json
-{
-  "title": "My Chat Topic",
-  "message": "Optional first message"
+{ 
+  "title": "My Chat Topic", 
+  "message": "Optional first message" 
 }
 ```
 
-Both fields are optional. Default title is `"New Chat"`.
-
-**Success Response (201):**
-
+**Response (201 Created)**
 ```json
 {
   "success": true,
@@ -419,95 +401,65 @@ Both fields are optional. Default title is `"New Chat"`.
 }
 ```
 
----
+### `GET /`
+List all chat sessions for the authenticated user, ordered by most recent first.
 
-### GET `/api/chats`
-
-List all chats for the authenticated user, sorted by most recent.
-
-**Success Response (200):**
-
+**Response (200 OK)**
 ```json
 {
   "success": true,
   "data": [
-    {
-      "_id": "...",
-      "userId": "...",
-      "title": "Chat Title",
-      "messages": [],
-      "createdAt": "...",
-      "updatedAt": "..."
+    { 
+      "_id": "...", 
+      "userId": "...", 
+      "title": "Chat Title", 
+      "messages": [], 
+      "createdAt": "...", 
+      "updatedAt": "..." 
     }
   ]
 }
 ```
 
----
+### `GET /:id`
+Retrieve a single chat object.
 
-### GET `/api/chats/:id`
+**Validation:** `:id` must be a valid MongoDB ObjectId.  
+*Errors:* `404 Not Found` (Chat not found).
 
-Retrieve a specific chat by its MongoDB ID.
+### `DELETE /:id`
+Delete a chat session entirely.
 
-**Validation:** `:id` must be a valid MongoDB ObjectId.
-
-**Success Response (200):**
-
+**Validation:** `:id` must be a valid MongoDB ObjectId.  
+**Response (200 OK)**
 ```json
-{
-  "success": true,
-  "data": { ... }
-}
-```
-
-**Error Responses:**
-- `404` — Chat not found
-
----
-
-### DELETE `/api/chats/:id`
-
-Delete a chat.
-
-**Validation:** `:id` must be a valid MongoDB ObjectId.
-
-**Success Response (200):**
-
-```json
-{
-  "success": true,
-  "message": "Chat deleted successfully"
-}
+{ "success": true, "message": "Chat deleted successfully" }
 ```
 
 ---
 
-## AI Endpoints (`/api/ai`)
+## AI Endpoints
 
-All AI endpoints require authentication.
+Base path: `/api/ai`  
+*All endpoints require authentication.*
 
----
+### `POST /prompt`
+Trigger an AI generation pipeline, receiving a Server-Sent Events (SSE) stream.
 
-### POST `/api/ai/prompt`
-
-Send a prompt to the AI and receive a Server-Sent Events (SSE) stream of the response.
-
-**Request Body:**
-
+**Request Body**
 ```json
-{
-  "chatId": "664f...",
-  "prompt": "Explain closures in JavaScript"
+{ 
+  "chatId": "664f...", 
+  "prompt": "Explain closures in JavaScript" 
 }
 ```
 
 **Validation Rules:**
-- `chatId`: required, valid MongoDB ObjectId
-- `prompt`: required, string, max 8000 characters
+- `chatId`: Required, valid MongoDB ObjectId.
+- `prompt`: Required, string, max 8,000 characters.
 
-**Response Format (SSE):**
-
-```
+**Response Format (SSE)**
+```text
 data: {"token":"Closures"}
 data: {"token":" in"}
 data: {"token":" JavaScript"}
@@ -515,45 +467,46 @@ data: {"token":" are..."}
 data: [DONE]
 ```
 
-**Headers:**
-- `Content-Type: text/event-stream`
-- `Cache-Control: no-cache`
-- `Connection: keep-alive`
+**Required Client Headers:**
+| Header | Expected Value |
+|---|---|
+| `Content-Type` | `text/event-stream` |
+| `Cache-Control` | `no-cache` |
+| `Connection` | `keep-alive` |
 
-**Usage Limits:**
-- Free tier: 20 prompts per day (UTC-based counter)
-- Pro tier: unlimited (999 per day)
+**Plan Limits (Daily Counters based on UTC):**
+| Subscription Plan | Daily Limit |
+|---|---|
+| **Free** | 20 prompts/day |
+| **Pro** | 999 prompts/day (effectively unlimited) |
 
-**Error Responses (pre-streaming):**
-- `400` — Prompt required
-- `404` — Chat not found
-- `401` — User not found
-- `429` — Daily limit reached. Upgrade to Pro.
+**Pre-Streaming Errors:**
+| Code | Message |
+|---|---|
+| `400` | Prompt required. |
+| `401` | User not found. |
+| `404` | Chat not found. |
+| `429` | Daily limit reached. Upgrade to Pro. |
 
-**Streaming Errors:**
-Errors during the stream are sent as SSE events with a token message, then terminated with `[DONE]`. The Express error handler is never invoked once streaming has started.
+> [!WARNING]
+> If a runtime error triggers after SSE stream headers have already dispatched, a fallback token containing the error is transmitted, ending with `[DONE]`, closing the stream. The Express error handler is intentionally bypassed once streaming initiates.
 
----
+### `POST /explain`
+Single-turn, non-streaming prompt specifically purposed for code explanation.
 
-### POST `/api/ai/explain`
-
-Get a single-turn code explanation (non-streaming).
-
-**Request Body:**
-
+**Request Body**
 ```json
-{
-  "code": "const x = () => { return 42; }",
-  "language": "javascript"
+{ 
+  "code": "const x = () => { return 42; }", 
+  "language": "javascript" 
 }
 ```
 
 **Validation Rules:**
-- `code`: required, max 50000 characters
-- `language`: optional, max 50 characters
+- `code`: Required, max 50,000 characters.
+- `language`: Optional, max 50 characters.
 
-**Success Response (200):**
-
+**Response (200 OK)**
 ```json
 {
   "success": true,
@@ -565,26 +518,20 @@ Get a single-turn code explanation (non-streaming).
 
 ---
 
-## Payment Endpoints (`/api/payments` or `/api/payment`)
+## Payment Endpoints
 
-All payment endpoints require authentication.
+Base path: `/api/payments`  
+*All endpoints require authentication.*
 
----
+### `POST /create-order`
+Initialize a Razorpay order entity for a Pro subscription checkout flow.
 
-### POST `/api/payments/create-order`
-
-Create a Razorpay order for Pro subscription checkout.
-
-**Request Body (optional):**
-
+**Request Body** (Optional)
 ```json
-{
-  "couponCode": "OFF50"
-}
+{ "couponCode": "OFF50" }
 ```
 
-**Success Response (200):**
-
+**Response (200 OK) — Paid checkout:**
 ```json
 {
   "success": true,
@@ -597,9 +544,7 @@ Create a Razorpay order for Pro subscription checkout.
 }
 ```
 
-**Free Checkout:**
-If a coupon that reduces the amount to 0 is used (e.g., owner coupon), the response is:
-
+**Response (200 OK) — Free checkout** (if a 100% discount owner coupon is applied):
 ```json
 {
   "success": true,
@@ -612,17 +557,12 @@ If a coupon that reduces the amount to 0 is used (e.g., owner coupon), the respo
 }
 ```
 
-**Error Responses:**
-- `503` — Payment gateway is not configured
+*Errors:* `503 Service Unavailable` (Payment gateway not configured).
 
----
+### `POST /verify`
+Finalize and verify a Razorpay payment, automatically granting the Pro subscription.
 
-### POST `/api/payments/verify`
-
-Verify a Razorpay payment and activate the Pro subscription.
-
-**Request Body:**
-
+**Request Body**
 ```json
 {
   "razorpay_order_id": "order_Ov1b2c3d4e5f6",
@@ -632,40 +572,28 @@ Verify a Razorpay payment and activate the Pro subscription.
 }
 ```
 
-**Signature Verification:**
-The server computes `HMAC_SHA256(razorpay_order_id + "|" + razorpay_payment_id, RAZORPAY_KEY_SECRET)` and compares it to the provided `razorpay_signature`.
+> [!NOTE]
+> The backend computes `HMAC_SHA256(order_id + "|" + payment_id, RAZORPAY_KEY_SECRET)` and matches it strictly against the submitted `razorpay_signature` for security compliance.
 
-**Success Response (200):**
-
+**Response (200 OK)**
 ```json
-{
-  "success": true,
-  "message": "Payment successful"
-}
+{ "success": true, "message": "Payment successful" }
 ```
 
 **Error Responses:**
-- `400` — Payment verification payload is incomplete
-- `400` — Invalid signature
-- `400` — Invalid or expired free checkout session
-- `400` — This coupon has already been redeemed by this account
+| Code | Reason |
+|---|---|
+| `400` | Verification payload incomplete, Invalid signature, Invalid/expired free checkout session, or Coupon already redeemed. |
 
----
+### `POST /apply-coupon`
+Retrieve metadata mapping for a coupon code.
 
-### POST `/api/payments/apply-coupon`
-
-Validate a coupon code and return its details.
-
-**Request Body:**
-
+**Request Body**
 ```json
-{
-  "couponCode": "OFF50"
-}
+{ "couponCode": "OFF50" }
 ```
 
-**Success Response (200):**
-
+**Response (200 OK)**
 ```json
 {
   "success": true,
@@ -677,37 +605,24 @@ Validate a coupon code and return its details.
   }
 }
 ```
+*Errors:* `400 Bad Request` (Invalid code, or already redeemed).
 
-**Error Responses:**
-- `400` — Invalid coupon code
-- `400` — This coupon has already been redeemed by this account
+### `POST /cancel`
+Immediate cancellation of an active Pro subscription, reverting limits to the free tier instantaneously.
 
----
-
-### POST `/api/payments/cancel`
-
-Cancel the active Pro subscription immediately. The user is reverted to free-tier limits.
-
-**Success Response (200):**
-
+**Response (200 OK)**
 ```json
-{
-  "success": true,
-  "message": "Subscription cancelled successfully."
-}
+{ "success": true, "message": "Subscription cancelled successfully." }
 ```
+*Errors:* `400 Bad Request` (No active subscription to cancel).
 
-**Error Responses:**
-- `400` — You do not have an active Pro subscription to cancel.
+### `GET /status`
+Obtain detailed snapshot of billing configuration, daily AI usage, and general subscription health.
 
----
+> [!TIP]
+> **Side-Effect Insight**: Querying this endpoint performs silent background maintenance, auto-downgrading expired Pro plans and zeroing daily rate limits on UTC rollover.
 
-### GET `/api/payments/status`
-
-Get the current billing status, usage, and subscription details. This endpoint also performs automatic maintenance (downgrades expired Pro subscriptions, resets daily counters on UTC date change).
-
-**Success Response (200):**
-
+**Response (200 OK)**
 ```json
 {
   "success": true,
@@ -735,20 +650,17 @@ Get the current billing status, usage, and subscription details. This endpoint a
 
 ---
 
-## Upload Endpoints (`/api/uploads` or `/api/upload`)
+## Upload Endpoints
 
-All upload endpoints require authentication. Files are uploaded to Cloudinary.
+Base path: `/api/uploads`  
+*All endpoints require authentication. Storage backed natively by **Cloudinary**.*
 
----
+### `POST /`
+Upload arbitrary file types (Capped at 5 MB).
 
-### POST `/api/uploads`
+**Request:** Form Data (`multipart/form-data`) referencing the field `file`.
 
-Upload any file type (up to 5 MB).
-
-**Request:** `multipart/form-data` with field name `file`.
-
-**Success Response (200):**
-
+**Response (200 OK)**
 ```json
 {
   "success": true,
@@ -759,60 +671,96 @@ Upload any file type (up to 5 MB).
 }
 ```
 
----
+### `POST /profile`
+Upload user profile avatars. Heavily scoped to image MIME variants.
 
-### POST `/api/uploads/profile`
+**Request:** Form Data (`multipart/form-data`) referencing the field `file`.
 
-Upload a profile image. Only image MIME types are accepted. Images are automatically resized to 512×512 with auto quality and format optimization.
+> [!TIP]
+> Processed images inherently resize to `512x512` leveraging Cloudinary's dynamic quality detection and format alignment pipelines.
 
-**Request:** `multipart/form-data` with field name `file`.
-
-**Success Response (200):**
-
+**Response (200 OK)**
 ```json
 {
   "success": true,
   "url": "https://res.cloudinary.com/..."
 }
 ```
-
-**Error Responses:**
-- `400` — Only image files are allowed
-- `400` — Image file is required
+*Errors:* `400 Bad Request` (Non-image payloads, or missing file).
 
 ---
 
 ## Health Check
 
-### GET `/api/health`
+### `GET /api/health`
+Verify the status of the DevFlow API cluster.
 
-**Response (200):**
-
+**Response (200 OK)**
 ```json
-{
-  "success": true,
-  "message": "DevFlow AI API running"
-}
+{ "success": true, "message": "DevFlow AI API running" }
 ```
 
 ---
 
-## Error Codes Summary
+## Error Codes
 
-| Status Code | Meaning |
-|---|---|
-| 200 | Success |
-| 201 | Created |
-| 400 | Bad Request (validation or business logic) |
-| 401 | Unauthorized (missing/invalid token) |
-| 403 | Forbidden (insufficient role) |
-| 404 | Resource not found |
-| 409 | Conflict (duplicate email/username) |
-| 422 | Validation Error (express-validator) |
-| 429 | Rate limit or daily usage limit exceeded |
-| 500 | Internal Server Error |
-| 503 | Service unavailable (infra dependency down) |
+The API utilizes conventional HTTP status codes paired with clear messaging structures.
+
+| Status | Codename | Implication |
+|---|---|---|
+| `200` | **OK** | Operation executed cleanly. |
+| `201` | **Created** | Resource generation succeeded. |
+| `400` | **Bad Request** | Malformed input, logic mismatch, or invalid coupon logic. |
+| `401` | **Unauthorized** | Faulty, expired, or non-existent JWT. |
+| `403` | **Forbidden** | Valid auth, but insufficient operational permissions. |
+| `404` | **Not Found** | Target data/resource identifier does not exist. |
+| `409` | **Conflict** | Collision in constraint boundaries (i.e. Duplicate Email). |
+| `422` | **Unprocessable** | Granular payload validation blocked by `express-validator`. |
+| `429` | **Too Many Requests** | Limit breached (IP velocity bounds or AI Plan caps). |
+| `500` | **Server Error** | Unhandled core system exception. |
+| `503` | **Service Unavailable**| Outages across dependencies (e.g. Gateway down). |
+
+---
 
 ## Rate Limiting
 
-The entire API is rate-limited to 300 requests per 15-minute window per IP.
+We enforce robust rate limiting arrays to preserve ecosystem stability, evaluated at the IP address boundary using standard Express structures.
+
+| Boundary Scope | Imposed Limit | Affected Routing Paths |
+|---|---|---|
+| **Global API** | 300 requests / 15 mins | All system endpoints |
+| **Login Protocol** | 20 requests / 15 mins | `POST /api/auth/login` |
+| **Recovery** | 20 requests / 15 mins | `POST /api/auth/forgot-password` |
+| **AI Prompt Engine**| 30 requests / 1 min | `POST /api/ai/prompt` |
+| **AI Explain Layer**| 30 requests / 1 min | `POST /api/ai/explain` |
+| **Free Tier Usage** | 20 requests / day (per User) | Counter verified during streaming lifecycle |
+
+---
+
+## Best Practices
+
+> [!TIP]
+> 1. **Handle SSE Appropriately:** Build resilient stream parsers as backend limits abruptly close connections (`[DONE]`) to handle daily caps safely.
+> 2. **Cache User Preferences:** Aggressively memoize `/api/auth/settings` outputs within your frontend clients to optimize bandwidth metrics.
+> 3. **Throttle Retries:** Always consume the standard `429` block structure by gracefully slowing redundant retry layers.
+
+---
+
+## Related Documents
+
+- [Architecture Overview](./architecture.md) — System architecture, data flows, design decisions
+- [Backend Architecture](./backend.md) — Express middleware, controllers, error handling
+- [AI Integration](./ai.md) — Groq streaming, SSE protocol, usage limits
+- [Authentication](./authentication.md) — JWT flow, registration, password reset, security
+
+## Next Reading
+
+> **Next:** [AI Integration](./ai.md) — Groq Cloud, SSE streaming protocol, usage limits, and prompt validation.
+
+---
+
+<div align="center">
+  <sub>Built with Next.js, Express, MongoDB, and Groq AI</sub>
+  <br />
+  <sub>&copy; DevFlow AI — Documentation</sub>
+</div>

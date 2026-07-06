@@ -1,103 +1,127 @@
-# DevFlow AI — Payment & Billing System
+<picture>
+  <img src="./assets/logo.svg" alt="DevFlow AI Logo" width="64" height="64">
+</picture>
+
+# Payment & Billing System
+
+> Razorpay-powered subscription management with coupon-based discounts, free trials, and immediate cancellation.
+
+## Table of Contents
+- [Overview](#overview)
+- [Pricing Tiers](#pricing-tiers)
+- [Payment Flow](#payment-flow)
+- [Coupon System](#coupon-system)
+- [Subscription Lifecycle](#subscription-lifecycle)
+- [Usage Tracking](#usage-tracking)
+- [Client Integration](#client-integration)
+- [Security & Keys](#security--keys)
+- [Known Limitations](#known-limitations)
+- [Related Documents](#related-documents)
+- [Next Reading](#next-reading)
+
+---
 
 ## Overview
 
-DevFlow AI uses **Razorpay** as its payment gateway for Pro subscription upgrades. The billing system supports one-time payments, coupon-based discounts, free trials, and immediate subscription cancellation.
+DevFlow AI leverages **Razorpay** as the primary payment gateway for Pro subscription upgrades. The billing architecture is designed for simplicity, supporting one-time payments, coupon-based discounts, free trials via secret codes, and immediate subscription cancellation. All subscription states are directly embedded within the User document in MongoDB for optimal performance and minimal latency.
 
-## Pricing
+---
+
+## Pricing Tiers
 
 | Plan | Price | AI Prompts/Day | Features |
 |---|---|---|---|
-| Free | ₹0 | 20 | Basic AI chat, Markdown, code highlighting |
-| Pro | ₹299/month (29,900 paise) | Unlimited | All features + priority support |
+| **Free** | ₹0 | 20 | Basic AI chat, Markdown, code highlighting |
+| **Pro** | ₹299/month (29,900 paise) | 999 | All Free features + priority support |
+
+---
 
 ## Payment Flow
 
+The payment flow handles both standard paid transactions and free bypasses via exclusive 100% off coupons.
+
+```mermaid
+sequenceDiagram
+    participant Client
+    participant Server as Express API
+    participant Razorpay
+    participant DB as MongoDB
+
+    Client->>Server: POST /api/payments/create-order { couponCode? }
+    Server->>Server: Resolve coupon (default amount: 29900 paise)
+    
+    alt Owner coupon (100% off)
+        Server->>Server: Generate nonce (random, 5min expiry)
+        Server-->>Client: { orderId: "free_checkout", isFree: true, nonce }
+    else Paid transaction
+        Server->>Razorpay: POST /orders
+        Razorpay-->>Server: { order_id, amount }
+        Server-->>Client: { orderId, amount, keyId }
+    end
+    
+    Client->>Client: Open Razorpay checkout modal
+    Client->>Razorpay: User completes payment
+    Razorpay-->>Client: { payment_id, razorpay_signature }
+    Client->>Server: POST /api/payments/verify { order_id, payment_id, signature }
+    Server->>Server: HMAC-SHA256 signature verification
+    Server->>DB: Update user subscription to Pro
+    Server-->>Client: { success: true }
+    Client->>Server: GET /api/payments/status (refresh UI)
+    Server-->>Client: { plan: "pro", usage, expiresAt }
 ```
-┌──────────┐                ┌──────────┐               ┌──────────┐
-│  Client  │                │  Server  │               │ Razorpay │
-└────┬─────┘                └────┬─────┘               └────┬─────┘
-     │                          │                          │
-     │ POST /payments/create-order                          │
-     │ { couponCode?: "OFF50" }│                          │
-     ├─────────────────────────>│                          │
-     │                          │ Resolve coupon amount   │
-     │                          │ or use default 29,900 paise  │
-     │                          │                          │
-     │                          │ POST /orders            │
-     │                          ├─────────────────────────>│
-     │                          │ { order_id, amount }     │
-     │                          │<─────────────────────────│
-     │ { orderId, amount,       │                          │
-     │   keyId, currency }      │                          │
-     │<─────────────────────────│                          │
-     │                          │                          │
-     │ Open Razorpay Checkout   │                          │
-     │ (client-side SDK)        │                          │
-     │                          │                          │
-     │ User completes payment──>│ Razorpay overlay         │
-     │                          │                          │
-     │ Receives payment_id,     │                          │
-     │ razorpay_signature       │                          │
-     │                          │                          │
-     │ POST /payments/verify    │                          │
-     │ { order_id, payment_id,  │                          │
-     │   signature, couponCode }│                          │
-     ├─────────────────────────>│                          │
-     │                          │ HMAC SHA256 verify       │
-     │                          │ Subscribe user           │
-     │                          │                          │
-     │ { success: true }        │                          │
-     │<─────────────────────────│                          │
-     │                          │                          │
-     │ GET /payments/status     │                          │
-     │ (refresh billing UI)     │                          │
-     ├─────────────────────────>│                          │
-     │ { plan, usage, ... }     │                          │
-     │<─────────────────────────│                          │
-```
+
+---
 
 ## Coupon System
 
-### Built-in Coupons
+### Built-in Public Coupons
 
 | Code | Discount | Duration | Type |
 |---|---|---|---|
 | `FREETRIAL` | 100% (29,900 paise off) | 7 days | Public |
 | `OFF50` | 50% (14,950 paise off) | 30 days | Public |
 
-### Owner/Secret Coupon
+### Owner / Secret Coupons
+
+> [!IMPORTANT]
+> The owner coupon bypasses the Razorpay flow entirely. The `create-order` endpoint generates a one-time cryptographic nonce (with a 5-minute expiry) and returns `{ isFree: true, orderId: "free_checkout", nonce }`. The verification endpoint validates this nonce before granting Pro access.
 
 | Variable | Default | Description |
 |---|---|---|
-| `OWNER_COUPON` | `—` | Coupon code for 100% free Pro access (no hardcoded fallback) |
-| `OWNER_COUPON_DURATION` | `30` | Subscription duration in days |
+| `OWNER_COUPON` | — | Coupon code for 100% free Pro access (no hardcoded fallback) |
+| `OWNER_COUPON_DURATION` | 30 | Subscription duration in days |
 
-The owner coupon bypasses all payment flow. The `create-order` endpoint generates a one-time `nonce` (cryptographic random, stored with 5-minute expiry), and returns `{ isFree: true, orderId: "free_checkout", nonce }`. The `verify` endpoint validates the nonce before granting Pro access — preventing replay and forgery attacks.
+### Validation Rules
 
-### Coupon Validation Rules
+- **Storage & Lookup:** Coupons are case-insensitive during lookup but stored in uppercase format.
+- **Redemption Limits:** Public coupons cannot be redeemed more than once per account. This is strictly tracked via `user.usedCoupons[]`.
+- **Owner Privileges:** The `OWNER_COUPON` can be utilized multiple times by authorized users.
+- **Processing:** Coupons are resolved server-side using the `resolveCoupon()` utility.
 
-- Coupons are **case-insensitive** during lookup but stored in uppercase
-- Public coupons cannot be redeemed more than once per account (tracked via `user.usedCoupons[]`)
-- Owner coupon can be used multiple times
-- Coupons are resolved on the server using the `resolveCoupon()` utility
+---
 
-## Subscription States
+## Subscription Lifecycle
+
+### Subscription States
 
 | State | Description |
 |---|---|
-| `inactive` | Free tier, no subscription |
-| `active` | Pro subscription active and within validity period |
-| `expired` | Pro subscription has passed its `expiresAt` date (derived state — the actual stored state becomes `plan: "free"`, `status: "inactive"`) |
-| `canceled` | User manually canceled Pro subscription |
-| `past_due` | (Not implemented — reserved for future recurring billing) |
-| `trialing` | (Not implemented — reserved for future free trial feature) |
+| `inactive` | Free tier, no active subscription |
+| `active` | Pro subscription is currently active |
+| `expired` | Pro has passed `expiresAt` (derived state — stored as `plan: "free"`) |
+| `canceled` | User manually canceled the subscription |
+| `past_due` | Reserved for future recurring billing implementations |
+| `trialing` | Reserved for future free trial implementations |
 
 ### Auto-Downgrade
 
-On every protected request (both `/api/ai/prompt` and `/api/payments/status`), the server checks if the Pro subscription has expired:
+On every protected request (e.g., `/api/ai/prompt` and `/api/payments/status`), the server validates the subscription expiration.
+
+> [!WARNING]
+> There is no grace period. Access to Pro features is revoked immediately upon expiration.
 
 ```javascript
+// Server-side evaluation logic
 if (plan === "pro" && expiresAt && expiresAt <= now) {
   plan = "free";
   status = "inactive";
@@ -105,78 +129,51 @@ if (plan === "pro" && expiresAt && expiresAt <= now) {
 }
 ```
 
-This means there is no grace period — access is revoked immediately at expiry.
+### Cancellation Policy
 
-## Billing Status Response
+When a user initiates `POST /api/payments/cancel`:
+1. The plan is immediately set to `free`, and the status to `canceled`.
+2. Both `expiresAt` and `offerCode` are cleared from the User document.
+3. If the daily usage exceeds the free tier limit (20), the current count is capped.
 
-`GET /api/payments/status` returns:
+> [!NOTE]
+> We do not offer prorated refunds. Cancellation is instantaneous and final.
 
-```json
-{
-  "plan": "free",
-  "status": "inactive",
-  "expiresAt": null,
-  "usage": {
-    "dailyCount": 5,
-    "limit": 20,
-    "remaining": 15,
-    "lastReset": "2025-01-01T00:00:00.000Z"
-  },
-  "pricing": {
-    "regularMonthly": 29900,
-    "currency": "INR"
-  },
-  "expiredOfferPrompt": {
-    "show": false,
-    "message": "Your Pro access has expired. Upgrade to continue."
-  }
-}
-```
-
-## Subscription Cancellation
-
-`POST /api/payments/cancel` immediately:
-1. Sets subscription plan to `free`
-2. Sets status to `canceled`
-3. Clears `expiresAt` and `offerCode`
-4. Caps usage daily count at the free tier limit (20) if it exceeds it
-
-There is no prorated refund — cancellation is immediate and final.
+---
 
 ## Usage Tracking
 
 | Mechanism | Description |
 |---|---|
-| `user.usage.dailyCount` | Incremented after each successful AI prompt |
-| `user.usage.lastReset` | UTC date of the last counter reset |
-| Reset condition | UTC date change detected via `isSameUtcDate()` |
-
-The limit check happens before the Groq API call to avoid unnecessary costs:
+| `user.usage.dailyCount` | Incremented precisely after each successful AI prompt |
+| `user.usage.lastReset` | UTC date marking the last counter reset |
+| Reset Condition | Triggered when a UTC date change is detected via `isSameUtcDate()` |
 
 ```javascript
+// Enforcement logic
 if (plan === "free" && dailyCount >= 20) {
   throw new AppError("Daily limit reached. Upgrade to Pro.", 429);
 }
 ```
 
-## Client-Side Implementation
+---
 
-### Razorpay SDK Loading
-
-The Razorpay checkout.js is loaded dynamically on the pricing and billing pages via a custom hook (not globally, to reduce page weight).
+## Client Integration
 
 ### Billing Page Features
 
-- **Usage meter:** Visual progress bar showing daily usage against limit
-- **Plan display:** Current plan with expiry date for Pro users
-- **Coupon input:** Text field with validation feedback
-- **Checkout button:** Triggers Razorpay payment modal
-- **Cancel button:** For active Pro subscriptions
-- **Expiry banner:** Prompts re-upgrade when Pro expires
-- **45-second watchdog timer:** Cancels payment if Razorpay modal doesn't load within 45 seconds
-- **15-second request timeout:** For all API calls
+The client-side billing interface provides a seamless experience:
+- **Usage Meter:** A visual progress bar detailing daily usage against the plan's limit.
+- **Plan Display:** Clearly indicates the current active plan and expiry date for Pro users.
+- **Coupon Input:** A dedicated text field featuring real-time validation feedback.
+- **Checkout Action:** Triggers the native Razorpay payment modal.
+- **Cancel Action:** Allows active Pro users to terminate their subscription instantly.
+- **Expiry Banner:** Prompts users to re-upgrade when their Pro status lapses.
 
-### Razorpay Options Object
+> [!TIP]
+> **Performance & Fallbacks:** The client implements a **45-second watchdog timer** to abort the transaction if the Razorpay modal fails to load, alongside a **15-second request timeout** for all standard API calls.
+
+### Razorpay Configuration Options
 
 ```javascript
 const options = {
@@ -188,19 +185,16 @@ const options = {
   handler: async function (response) {
     // POST to /api/payments/verify
   },
-  modal: {
-    ondismiss: function () {
-      // Handle modal close without payment
-    },
-  },
 };
 ```
 
-## Security
+---
+
+## Security & Keys
 
 ### Signature Verification
 
-All Razorpay payments are verified server-side using HMAC-SHA256:
+To prevent spoofing, all Razorpay payment payloads are strictly verified server-side using HMAC-SHA256 signatures.
 
 ```javascript
 const body = razorpay_order_id + "|" + razorpay_payment_id;
@@ -216,15 +210,39 @@ if (expectedSignature !== razorpay_signature) {
 
 ### Key Management
 
-- `RAZORPAY_KEY_ID` (public) — used by the client SDK to identify the merchant
-- `RAZORPAY_KEY_SECRET` (private) — used server-side for order creation and signature verification
-- The client must never have access to `RAZORPAY_KEY_SECRET`
+> [!CAUTION]
+> The client application must **never** have access to `RAZORPAY_KEY_SECRET`. Exposure of this key compromises the integrity of the entire billing system.
 
-## Current Limitations
+| Key | Visibility | Usage |
+|---|---|---|
+| `RAZORPAY_KEY_ID` | Public (Client) | Identifies the merchant to the Razorpay SDK |
+| `RAZORPAY_KEY_SECRET` | Private (Server only) | Order creation and cryptographic signature verification |
 
-- **No recurring billing:** Payments are one-time with a fixed duration. No automatic renewal.
-- **No prorated refunds:** Cancellation is immediate with no partial refund.
-- **No invoice generation:** Receipts are handled only through Razorpay's dashboard.
-- **No webhook handling:** The server does not process Razorpay webhooks (payment failures, refunds, etc.).
-- **No multi-currency support:** Currently INR only.
-- **No trial period:** Pro access starts immediately after payment verification.
+---
+
+## Known Limitations
+
+- **No Recurring Billing:** Subscriptions are strictly one-time payments with fixed durations. Automatic renewal is not supported.
+- **No Prorated Refunds:** Cancellation terminates access immediately without partial reimbursement.
+- **No Custom Invoices:** Receipts are managed exclusively through the external Razorpay dashboard.
+- **No Webhook Handling:** The server does not actively listen for Razorpay webhooks (e.g., async payment failures or refunds).
+- **Single Currency:** Transactions are strictly limited to INR.
+- **No Post-Payment Trial:** Pro access is granted immediately post-verification, overriding any traditional trial periods.
+
+---
+
+## Related Documents
+
+- [Architecture Overview](./architecture.md)
+- [API Reference](./api.md)
+- [Environment Variables](./environment.md)
+
+## Next Reading
+
+> **Next:** [Deployment Guide](./deployment.md) — Learn how to deploy the frontend to Netlify and the backend to Render with optimal production configurations.
+
+---
+
+<p align="center">
+  <sub>© 2026 DevFlow AI. Built with Next.js, Express, MongoDB, and Groq AI.</sub>
+</p>
