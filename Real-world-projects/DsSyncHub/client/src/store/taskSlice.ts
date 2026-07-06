@@ -154,7 +154,8 @@ const taskSlice = createSlice({
         state.loading = false
       })
       .addCase(createTaskThunk.fulfilled, (state, action) => {
-        state.items.push(action.payload)
+        const exists = state.items.some((t) => t.id === action.payload.id)
+        if (!exists) state.items.push(action.payload)
       })
       .addCase(updateTaskThunk.fulfilled, (state, action) => {
         state.items = state.items.map((item) => (item.id === action.payload.id ? action.payload : item))

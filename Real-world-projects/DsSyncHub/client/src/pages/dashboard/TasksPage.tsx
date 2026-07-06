@@ -138,22 +138,23 @@ const TasksPage = () => {
     const task = tasks.find((t) => t.id === taskId)
     if (!task) return
 
-    let targetStatus: TaskStatus | null = null
+    let targetStatus: TaskStatus
+    let newOrder: number
 
     if (over.data.current?.type === 'column') {
       targetStatus = over.data.current.status as TaskStatus
-    } else {
-      const overTask = tasks.find((t) => t.id === over.id)
-      if (overTask) {
-        targetStatus = overTask.status
-      }
-    }
-
-    if (targetStatus && targetStatus !== task.status) {
       const tasksInTarget = tasksByColumn[targetStatus]
-      const newOrder = tasksInTarget.length > 0
+      newOrder = tasksInTarget.length > 0
         ? Math.max(...tasksInTarget.map((t) => t.order)) + 1
         : 1
+    } else {
+      const overTask = tasks.find((t) => t.id === over.id)
+      if (!overTask) return
+      targetStatus = overTask.status
+      newOrder = overTask.order
+    }
+
+    if (task.status !== targetStatus || task.order !== newOrder) {
       dispatch(moveTaskThunk({ taskId, status: targetStatus, order: newOrder }))
     }
   }
@@ -257,9 +258,9 @@ const TasksPage = () => {
       </div>
 
       {loading ? (
-        <div className="grid gap-4 overflow-x-auto md:grid-cols-2 xl:grid-cols-4">
+        <div className="flex gap-4 overflow-x-auto pb-2">
           {columns.map((column) => (
-            <article className="min-w-[280px] rounded-2xl border border-white/10 glass-card p-3 shadow-sm dark:border-zinc-800 dark:bg-zinc-900" key={column.key}>
+            <article className="w-[280px] shrink-0 rounded-2xl border border-white/10 glass-card p-3 shadow-sm dark:border-zinc-800 dark:bg-zinc-900" key={column.key}>
               <div className="mb-3 h-6 w-28 animate-pulse rounded-full glass-card/10 dark:bg-zinc-800" />
               <div className="space-y-2">
                 {Array.from({ length: 3 }).map((_, index) => (
@@ -287,7 +288,7 @@ const TasksPage = () => {
             <p>{workspaceName}</p>
           </div>
           <DndContext onDragEnd={handleDragEnd} onDragStart={handleDragStart} sensors={sensors}>
-            <div className="grid gap-4 overflow-x-auto md:grid-cols-2 xl:grid-cols-4">
+            <div className="flex gap-4 overflow-x-auto pb-2">
               {columns.map((column) => (
                 <KanbanColumn
                   key={column.key}

@@ -19,7 +19,7 @@ const KanbanColumn = ({ status, title, tasks, onOpen }: Props) => {
   return (
     <article
       ref={setNodeRef}
-      className={`min-w-[280px] rounded-2xl border transition-colors ${
+      className={`w-[280px] shrink-0 rounded-2xl border transition-colors ${
         isOver
           ? 'border-brand-500/50 bg-brand-500/5'
           : 'border-white/10 glass-card dark:border-zinc-800 dark:bg-zinc-900'
