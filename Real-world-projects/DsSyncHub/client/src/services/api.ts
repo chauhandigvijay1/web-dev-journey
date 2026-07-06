@@ -31,9 +31,12 @@ api.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401) {
-      localStorage.removeItem('dssync-token')
-      localStorage.removeItem('dssync-active-workspace')
-      window.location.href = '/login'
+      const url = error.config?.url || ''
+      if (!url.includes('/auth/me')) {
+        localStorage.removeItem('dssync-token')
+        localStorage.removeItem('dssync-active-workspace')
+        window.location.href = '/login'
+      }
       return Promise.reject(error)
     }
     if (!error.response) {
