@@ -1,8 +1,0 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 120" fill="none">
-  <!-- Icon -->
-  <path d="M30 20h35c24.85 0 45 20.15 45 45s-20.15 45-45 45H30V20z" stroke="#10b981" stroke-width="12" stroke-linejoin="round"/>
-  <path d="M30 65h35c13.8 0 25-11.2 25-25s-11.2-25-25-25" stroke="#047857" stroke-width="12" stroke-linecap="round"/>
-  <path d="M65 110c-13.8 0-25-11.2-25-25s11.2-25 25-25h35" stroke="#34d399" stroke-width="12" stroke-linecap="round"/>
-  <!-- Text -->
-  <text x="130" y="78" font-family="-apple-system, BlinkMacSystemFont, 'Inter', sans-serif" font-size="52" font-weight="700" fill="#ffffff" letter-spacing="-1">DsSync Hub</text>
-</svg>
